@@ -9,7 +9,15 @@ export default function BookingView({ doctors, user, onSubmitBooking, styles }) 
     setSelectedDoc(doc);
   };
   
-  if(booking.date) alert(booking.date+ " "+ typeof booking.time)
+  alert(JSON.stringify({
+  userName: user.name,
+  userEmail: user.email,
+  userPhone: user.phone,
+  doctorName: selectedDoc.name,
+  doctorEmail: selectedDoc.email,
+  date: booking.date,
+  time: booking.time
+})) 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmitBooking({
