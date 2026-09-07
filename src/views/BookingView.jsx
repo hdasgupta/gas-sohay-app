@@ -8,7 +8,8 @@ export default function BookingView({ doctors, user, onSubmitBooking, styles }) 
     const doc = doctors.find((d) => d.email === e.target.value);
     setSelectedDoc(doc);
   };
-
+  
+  if(booking.date) (typeof booking.date)
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmitBooking({
