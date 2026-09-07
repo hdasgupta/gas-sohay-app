@@ -9,7 +9,7 @@ export default function BookingView({ doctors, user, onSubmitBooking, styles }) 
     setSelectedDoc(doc);
   };
   
-  if(booking.date) (typeof booking.date)
+  if(booking.date) alert(typeof booking.date)
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmitBooking({
