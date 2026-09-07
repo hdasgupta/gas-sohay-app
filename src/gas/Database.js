@@ -8,7 +8,8 @@ function initDatabase() {
 
   // Pre-seed Default Admin Account if Users sheet is empty
   var userSheet = getOrCreateSheet('Users');
-  if (userSheet.getLastRow() === 1) {
+  
+  if (userSheet.getLastRow() == 1) {
     userSheet.appendRow(['ADM-1', 'System Admin', 'HQ', 'admin@hospital.com', '0000000000', 'admin123', 'admin']);
   }
 }
