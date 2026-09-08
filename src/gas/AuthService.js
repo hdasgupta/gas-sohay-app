@@ -52,7 +52,7 @@ function registerPatient(data) {
   };
 }
 
-function searchPatientByEmail(email) {
+function getPatientByEmail(email) {
   // Tab to edit
   var userSheet = getOrCreateSheet('Users');
   var users = userSheet.getDataRange().getValues();

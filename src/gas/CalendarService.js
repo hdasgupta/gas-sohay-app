@@ -77,7 +77,7 @@ function getUserAppointments(userEmail) {
 
       appointments.push({
         id: data[i][0],
-        patient: searchPatientByEmail (patientEmail).name,
+        patient: getPatientByEmail (patientEmail).name,
         doctor: getDoctorByEmail(doctorEmail).name,
         date: dateStr,
         time: timeStr,

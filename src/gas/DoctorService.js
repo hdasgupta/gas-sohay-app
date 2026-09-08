@@ -44,7 +44,7 @@ function upsertDoctor(doc) {
   return { success: true, message: 'New doctor added successfully.' };
 }
 
-function searchDoctorByEmail(email) {
+function getDoctorByEmail(email) {
   // Tab to edit
   return getDoctorsList().map((doctor) => doctor.email === email)[0]
 }
