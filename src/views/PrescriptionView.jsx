@@ -254,7 +254,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           </div>
 
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Date (Today - Locked)</label>
+            <label style={defaultStyles.label}>Date</label>
             <input
               style={defaultStyles.readOnlyInput}
               type="date"
