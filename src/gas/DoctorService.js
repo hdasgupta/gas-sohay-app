@@ -43,3 +43,8 @@ function upsertDoctor(doc) {
   sheet.appendRow([newId, doc.name, doc.specialty, doc.email, doc.phone, doc.password, availJson]);
   return { success: true, message: 'New doctor added successfully.' };
 }
+
+function searchDoctorByEmail(email) {
+  // Tab to edit
+  return getDoctorsList().map((doctor) => doctor.email === email)[0]
+}

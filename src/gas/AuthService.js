@@ -51,3 +51,21 @@ function registerPatient(data) {
     user: { id: userId, name: data.name, location: data.location, email: data.email, phone: data.phone, role: 'patient' }
   };
 }
+
+function searchPatientByEmail(email) {
+  // Tab to edit
+  var userSheet = getOrCreateSheet('Users');
+  var users = userSheet.getDataRange().getValues();
+  for (var i = 1; i < users.length; i++) {
+    if (users[i][3] === email && ) {
+      return {
+         id: users[i][0], 
+         name: users[i][1], 
+         location: users[i][2], 
+         email: users[i][3], 
+         phone: users[i][4], 
+         role: users[i][6] 
+      };
+    }
+  }
+}
