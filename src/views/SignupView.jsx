@@ -42,6 +42,7 @@ export default function SignupView({ onSubmit, onNavigateLogin, styles }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    alert(isEmailVerified)
     if (!isEmailVerified) {
       setOtpStatus('Please verify your email address first.');
       return;
