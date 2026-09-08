@@ -48,6 +48,10 @@ export default function App() {
       }
     });
   };
+  
+  setInterval(function() {
+    callBackend('pingServer', []);
+  }, 10 * 60 * 1000);
 
   const handleBookAppointment = (payload) => {
     setStatus('Creating Google Calendar Event & Meet Link...');

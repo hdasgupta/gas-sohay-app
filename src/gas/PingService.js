@@ -1,0 +1,3 @@
+function pingServer() {
+  return "OK";
+}
