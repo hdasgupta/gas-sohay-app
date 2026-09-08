@@ -2,7 +2,7 @@
  * Schedules a Google Calendar Event with Meet link & notifies patient.
  */
 function bookAppointment(payload) {
-  var startDateTime = new Date(payload.date + 'T' + payload.time);
+  var startDateTime = new Date(JSON.parse(payload.date) + 'T' + JSON.parse(payload.time));
   var endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 mins
 
   // Advanced Calendar Service Google Meet Integration
@@ -63,8 +63,8 @@ function getUserAppointments(userEmail) {
     var doctorEmail = data[i][2];
 
     if (patientEmail === userEmail || doctorEmail === userEmail) {
-      var dateStr = data[i][3]; // Format: YYYY-MM-DD
-      var timeStr = data[i][4]; // Format: HH:MM
+      var dateStr = JSON.parse(data[i][3]); // Format: YYYY-MM-DD
+      var timeStr = JSON.parse(data[i][4]); // Format: HH:MM
       var rawMeetLink = data[i][5];
       var status = data[i][6];
 

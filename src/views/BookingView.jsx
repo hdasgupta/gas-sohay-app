@@ -27,9 +27,9 @@ export default function BookingView({ doctors, user, onSubmitBooking, styles }) 
       userPhone: user.phone,
       doctorName: selectedDoc.name,
       doctorEmail: selectedDoc.email,
-      date: booking.date,
-      time: booking.time
-    });
+      date: JSON.stringify(booking.date),
+      time: JSON.stringify(booking.time
+    )});
   };
 
   return (
