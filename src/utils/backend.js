@@ -1,7 +1,16 @@
-export const callBackend = (fn, args = [], cb) => {
-  if (typeof google !== 'undefined' && google.script) {
+// src/utils/backend.js
+
+export function callBackend(functionName, args = [], callback) {
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
     google.script.run
-    .withFailureHandler((e) => alert(JSON.stringify(e))) 
-    .withSuccessHandler(cb)[fn](...args);
+      .withSuccessHandler((response) => {
+        if (callback) callback(response);
+      })
+      .withFailureHandler((err) => {
+        console.error('Apps Script Error:', err);
+        alert('Server error: ' + err.message);
+      })[functionName](...args);
+  } else {
+    console.warn('Running outside Google Apps Script environment.');
   }
-};
+}
