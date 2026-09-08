@@ -32,25 +32,72 @@ function authenticateUser(email, password) {
 }
 
 /**
- * Registers a new patient account.
+ * Generates and emails a 6-digit OTP code to the patient, stored in cache for 10 minutes.
+ */
+function sendOtp(email) {
+  if (!email) return { success: false, message: 'Email address is required.' };
+
+  var otp = Math.floor(100000 + Math.random() * 900000).toString();
+  var cache = CacheService.getScriptCache();
+  cache.put('OTP_' + email, otp, 600); // 10 minute expiration
+
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Verification Code - Sohay App,
+    htmlBody: `<h3>Email Verification</h3><p>Your OTP code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`
+  });
+
+  return { success: true, message: 'OTP sent to your email.' };
+}
+
+/**
+ * Verifies the provided OTP code against the script cache.
+ */
+function verifyOtp(email, otp) {
+  var cache = CacheService.getScriptCache();
+  var storedOtp = cache.get('OTP_' + email);
+
+  if (storedOtp && storedOtp === otp) {
+    cache.put('VERIFIED_' + email, 'TRUE', 900); // Mark email as verified for 15 minutes
+    return { success: true, message: 'Email verified successfully!' };
+  }
+  return { success: false, message: 'Invalid or expired OTP code.' };
+}
+
+/**
+ * Registers a patient after checking OTP verification and password complexity.
  */
 function registerPatient(data) {
   initDatabase();
+  var cache = CacheService.getScriptCache();
+  var isVerified = cache.get('VERIFIED_' + data.email);
+
+  if (!isVerified) {
+    return { success: false, message: 'Please verify your email via OTP before registering.' };
+  }
+
+  // Server-side password policy validation
+  var passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|< me>]{8,}$/;
+  if (!passRegex.test(data.password)) {
+    return { success: false, message: 'Password does not meet complexity requirements.' };
+  }
+
   var sheet = getOrCreateSheet('Users');
   var users = sheet.getDataRange().getValues();
-  
+
   for (var i = 1; i < users.length; i++) {
-    if (users[i][3] === data.email) return { success: false, message: 'Email already registered.' };
+    if (users[i][3] === data.email) return { success: false, message: 'Email is already registered.' };
   }
 
   var userId = 'USR-' + new Date().getTime();
   sheet.appendRow([userId, data.name, data.location, data.email, data.phone, data.password, 'patient']);
-  
+
   return {
     success: true,
     user: { id: userId, name: data.name, location: data.location, email: data.email, phone: data.phone, role: 'patient' }
   };
 }
+
 
 function getPatientByEmail(email) {
   // Tab to edit
