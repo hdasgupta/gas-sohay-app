@@ -47,6 +47,7 @@ export default function SignupView({ onSubmit, onNavigateLogin, styles }) {
       return;
     }
     if (!isPasswordValid) return;
+    alert("submitting...");
     onSubmit(formData);
   };
 
