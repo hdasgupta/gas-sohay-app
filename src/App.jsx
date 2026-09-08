@@ -26,6 +26,7 @@ export default function App() {
     }
   }, []);
 
+  alert(JSON.stringify(user));
   const routeUserByRole = (usr) => {
   if (usr.role === 'admin') {
     setView('admin');
