@@ -43,7 +43,7 @@ function sendOtp(email) {
 
   MailApp.sendEmail({
     to: email,
-    subject: 'Verification Code - Sohay App,
+    subject: 'Verification Code - Sohay App',
     htmlBody: `<h3>Email Verification</h3><p>Your OTP code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`
   });
 
