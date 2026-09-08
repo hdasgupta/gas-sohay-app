@@ -4,6 +4,6 @@
 function doGet() {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('Hospital Appointment System')
+    .setTitle('Sohay App')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
