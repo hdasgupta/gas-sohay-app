@@ -57,7 +57,7 @@ function getUserAppointments(userEmail) {
   var appointments = [];
   var now = new Date();
 
-  console.log(data[1][1], patientEmail, doctorEmail)
+  console.log(JSON.stringify(data), data[1][1], patientEmail, doctorEmail)
   for (var i = 1; i < data.length; i++) {
     var patientEmail = data[i][1];
     var doctorEmail = data[i][2];
