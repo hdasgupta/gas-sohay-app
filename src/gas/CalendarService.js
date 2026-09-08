@@ -87,6 +87,8 @@ function getUserAppointments(userEmail) {
       });
     }
   }
+  
+  console.log(JSON.stringify(appointments)) ;
 
   // Sort: Upcoming meetings first, then by date descending
   return appointments.sort(function(a, b) {
