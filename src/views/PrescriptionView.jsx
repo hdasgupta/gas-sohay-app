@@ -251,13 +251,14 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             />
           </div>
 
+          { /* Unchangeable Date Input */ }
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Date</label>
+            <label style={defaultStyles.label}>Date (Today - Locked)</label>
             <input
-              style={defaultStyles.input}
+              style={defaultStyles.readOnlyInput}
               type="date"
-              value={prescriptionDate}
-              onChange={(e) => setPrescriptionDate(e.target.value)}
+              value={todayDate}
+              readOnly
             />
           </div>
         </div>
