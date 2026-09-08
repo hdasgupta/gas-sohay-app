@@ -8,6 +8,7 @@ export default function BookingView({ doctors, user, onSubmitBooking, styles }) 
     const doc = doctors.find((d) => d.email === e.target.value);
     setSelectedDoc(doc);
   };
+  /*
   if(selectedDoc)
   alert(JSON.stringify({
   userName: user.name,
@@ -17,7 +18,7 @@ export default function BookingView({ doctors, user, onSubmitBooking, styles }) 
   doctorEmail: selectedDoc.email,
   date: booking.date,
   time: booking.time
-})) 
+})) */
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmitBooking({
