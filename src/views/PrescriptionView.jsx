@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function PrescriptionView({ user, styles = {} }) {
+export default function PrescriptionView({ user, styles }) {
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [docLink, setDocLink] = useState('');
@@ -26,26 +26,20 @@ export default function PrescriptionView({ user, styles = {} }) {
   const [prescriptionList, setPrescriptionList] = useState([]);
 
   useEffect(() => {
+    // Fetch live list from Google Sheets
     callBackend('getMedicineMasterList', [], (data) => {
-      if (Array.isArray(data)) {
-        setMasterMedicines(data);
-      } else {
-        setMasterMedicines([]);
-      }
+      setMasterMedicines(Array.isArray(data) ? data : []);
     });
   }, []);
 
-  // Safe filter check prevents React white-screen crashes
-  const filteredMaster = Array.isArray(masterMedicines)
-    ? masterMedicines.filter((m) =>
-        m && m.name ? m.name.toLowerCase().includes((searchTerm || '').toLowerCase()) : false
-      )
-    : [];
+  const filteredMaster = masterMedicines.filter((m) =>
+    m && m.name ? m.name.toLowerCase().includes((searchTerm || '').toLowerCase()) : false
+  );
 
   const handleSelectSearchedMedicine = (med) => {
     setCurrentMed((prev) => ({
       ...prev,
-      name: med.name || '',
+      name: med.name,
       power: med.power || ''
     }));
     setSearchTerm('');
@@ -72,7 +66,7 @@ export default function PrescriptionView({ user, styles = {} }) {
       .map((k) => k.charAt(0).toUpperCase() + k.slice(1));
 
     if (selectedTimes.length === 0) {
-      alert('Select at least one taking time (e.g., Breakfast, Dinner).');
+      alert('Select at least one taking time.');
       return;
     }
 
@@ -86,6 +80,7 @@ export default function PrescriptionView({ user, styles = {} }) {
       }
     ]);
 
+    // Reset input fields
     setCurrentMed({
       name: '',
       power: '',
@@ -113,6 +108,10 @@ export default function PrescriptionView({ user, styles = {} }) {
       setLoading(false);
       if (res && res.success) {
         setDocLink(res.docUrl);
+        // Refresh master list since new medicines were saved to Google Sheets
+        callBackend('getMedicineMasterList', [], (data) => {
+          setMasterMedicines(Array.isArray(data) ? data : []);
+        });
       } else {
         alert('Failed to generate prescription document.');
       }
@@ -120,7 +119,7 @@ export default function PrescriptionView({ user, styles = {} }) {
   };
 
   return (
-    <div style={styles.card || { padding: '20px', background: '#fff', border: '1px solid #ddd' }}>
+    <div style={styles.card}>
       <h2>Prepare Digital Prescription</h2>
 
       {/* Header & Patient Details */}
@@ -139,31 +138,37 @@ export default function PrescriptionView({ user, styles = {} }) {
 
       <hr />
 
-      {/* Search Bar */}
+      {/* Medicine Search Bar (Hidden/Empty if catalog is empty) */}
       <h3>Add Medicine</h3>
-      <div style={{ marginBottom: '12px', position: 'relative' }}>
-        <input
-          style={styles.input}
-          placeholder="Search catalog or type custom name below..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        {searchTerm && filteredMaster.length > 0 && (
-          <div style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', width: '100%', zIndex: 10, maxHeight: '120px', overflowY: 'auto' }}>
-            {filteredMaster.map((med, idx) => (
-              <div
-                key={idx}
-                style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #eee' }}
-                onClick={() => handleSelectSearchedMedicine(med)}
-              >
-                <strong>{med.name}</strong> ({med.power})
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {masterMedicines.length > 0 ? (
+        <div style={{ marginBottom: '12px', position: 'relative' }}>
+          <input
+            style={styles.input}
+            placeholder="Search existing medicines..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && filteredMaster.length > 0 && (
+            <div style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', width: '100%', zIndex: 10, maxHeight: '120px', overflowY: 'auto' }}>
+              {filteredMaster.map((med, idx) => (
+                <div
+                  key={idx}
+                  style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #eee' }}
+                  onClick={() => handleSelectSearchedMedicine(med)}
+                >
+                  <strong>{med.name}</strong> ({med.power})
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+          No catalog medicines saved yet. Type medicine details below to prescribe and auto-save them.
+        </p>
+      )}
 
-      {/* Custom Input */}
+      {/* Direct Add Input */}
       <div style={{ display: 'grid', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
@@ -214,7 +219,7 @@ export default function PrescriptionView({ user, styles = {} }) {
         </button>
       </div>
 
-      {/* Prescription List */}
+      {/* Selected Items */}
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', padding: '8px 12px', borderRadius: '4px', marginBottom: '6px' }}>
