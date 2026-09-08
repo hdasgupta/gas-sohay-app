@@ -93,7 +93,7 @@ export default function App() {
   };
 
   return (
-    <ErrorBoundary>
+   
     <div style={styles.container}>
       <Header user={user} onLogout={handleLogout} styles={styles} />
       
@@ -117,7 +117,7 @@ export default function App() {
 
       <Alert message={status} styles={styles} />
 
-      {view === 'login' && <ErrorBoundary> <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} /> </ErrorBoundary>}
+      {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} />}
       {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
@@ -127,7 +127,7 @@ export default function App() {
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
     </div>
-    </ErrorBoundary>
+    
   );
 }
 
