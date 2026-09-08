@@ -42,12 +42,12 @@ export default function SignupView({ onSubmit, onNavigateLogin, styles }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert(isEmailVerified)
+    alert(isEmailVerified);
     if (!isEmailVerified) {
       setOtpStatus('Please verify your email address first.');
       return;
     }
-    alert(isPasswordValid)
+    alert(isPasswordValid);
     if (!isPasswordValid) return;
     alert("submitting...");
     onSubmit(formData);
