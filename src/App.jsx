@@ -6,13 +6,14 @@ import LoginView from './views/LoginView';
 import SignupView from './views/SignupView';
 import BookingView from './views/BookingView';
 import AdminView from './views/AdminView';
+import AppointmentListView from './views/AppointmentListView';
 
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState('login');
+  const [view, setView] = useState('login'); // 'login' | 'signup' | 'booking' | 'appointments' | 'admin' | 'confirmed'
   const [doctors, setDoctors] = useState([]);
   const [confirmation, setConfirmation] = useState(null);
   const [status, setStatus] = useState('');
@@ -48,21 +49,6 @@ export default function App() {
     });
   };
 
-  const handleSignUp = (formData) => {
-    setStatus('Registering user...');
-    callBackend('registerPatient', [formData], (res) => {
-      if (res.success) {
-        setUser(res.user);
-        saveSession(res.user);
-        setStatus('');
-        setView('booking');
-        loadDoctors();
-      } else {
-        setStatus(res.message);
-      }
-    });
-  };
-
   const handleBookAppointment = (payload) => {
     setStatus('Creating Google Calendar Event & Meet Link...');
     callBackend('bookAppointment', [payload], (res) => {
@@ -71,19 +57,6 @@ export default function App() {
         setStatus('');
         setView('confirmed');
       }
-    });
-  };
-
-  const handleSaveDoctor = (docForm, resetForm) => {
-    setStatus('Saving Doctor Data...');
-    const payload = {
-      ...docForm,
-      availability: docForm.availability.split(',').map((s) => s.trim())
-    };
-    callBackend('upsertDoctor', [payload], (res) => {
-      setStatus(res.message);
-      loadDoctors();
-      resetForm();
     });
   };
 
@@ -96,14 +69,28 @@ export default function App() {
   return (
     <div style={styles.container}>
       <Header user={user} onLogout={handleLogout} styles={styles} />
+      
+      {/* Navigation Bar for Logged-In Users */}
+      {user && user.role !== 'admin' && (
+        <div style={styles.navBar}>
+          <button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
+            Book Appointment
+          </button>
+          <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
+            My Appointments
+          </button>
+        </div>
+      )}
+
       <Alert message={status} styles={styles} />
 
       {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} />}
-      {view === 'signup' && <SignupView onSubmit={handleSignUp} onNavigateLogin={() => setView('login')} styles={styles} />}
+      {view === 'signup' && <SignupView onSubmit={() => setView('login')} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
-      {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={handleSaveDoctor} styles={styles} />}
+      {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
+      {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={() => loadDoctors()} styles={styles} />}
       {view === 'confirmed' && confirmation && (
-        <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView(user.role === 'admin' ? 'admin' : 'booking')} styles={styles} />
+        <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
     </div>
   );
@@ -118,9 +105,15 @@ const styles = {
   btnDanger: { background: '#ef4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' },
   label: { display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+  navBar: { display: 'flex', gap: '8px', marginBottom: '16px' },
+  navBtn: { flex: 1, padding: '8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' },
+  navActive: { flex: 1, padding: '8px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },
   link: { color: '#2563eb', cursor: 'pointer', fontWeight: 'bold' },
   alert: { padding: '10px', background: '#e0f2fe', color: '#0369a1', borderRadius: '4px', marginBottom: '12px', fontSize: '14px' },
-  docItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', padding: '8px 0' },
-  meetBox: { background: '#f8fafc', border: '1px solid #cbd5e1', padding: '15px', borderRadius: '6px', margin: '15px 0', textAlign: 'center' },
-  meetBtn: { display: 'inline-block', background: '#16a34a', color: '#fff', padding: '10px 16px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }
+  apptCard: { border: '1px solid #e2e8f0', padding: '12px', borderRadius: '6px', marginBottom: '12px', background: '#fafafa' },
+  apptHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
+  badgeActive: { background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' },
+  badgeExpired: { background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' },
+  meetBtn: { display: 'inline-block', background: '#16a34a', color: '#fff', padding: '8px 12px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold', fontSize: '13px' },
+  expiredNotice: { fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', marginTop: '6px' }
 };

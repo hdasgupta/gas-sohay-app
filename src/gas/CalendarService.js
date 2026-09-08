@@ -46,3 +46,49 @@ function sendAppointmentEmail(payload, meetLink) {
     `
   });
 }
+
+/**
+ * Fetches all appointments for a user and includes the Meet link only for active/future sessions.
+ */
+function getUserAppointments(userEmail) {
+  initDatabase();
+  var sheet = getOrCreateSheet('Appointments');
+  var data = sheet.getDataRange().getValues();
+  var appointments = [];
+  var now = new Date();
+
+  for (var i = 1; i < data.length; i++) {
+    var patientEmail = data[i][1];
+    var doctorEmail = data[i][2];
+
+    if (patientEmail === userEmail || doctorEmail === userEmail) {
+      var dateStr = data[i][3]; // Format: YYYY-MM-DD
+      var timeStr = data[i][4]; // Format: HH:MM
+      var rawMeetLink = data[i][5];
+      var status = data[i][6];
+
+      // Parse appointment end time (assuming 30-minute duration)
+      var apptStartTime = new Date(dateStr + 'T' + timeStr);
+      var apptEndTime = new Date(apptStartTime.getTime() + 30 * 60000);
+
+      // Present/Future criteria: Meeting end time has not passed yet
+      var isUpcomingOrPresent = now <= apptEndTime;
+
+      appointments.push({
+        id: data[i][0],
+        patientEmail: patientEmail,
+        doctorEmail: doctorEmail,
+        date: dateStr,
+        time: timeStr,
+        meetLink: isUpcomingOrPresent ? rawMeetLink : null,
+        status: isUpcomingOrPresent ? 'UPCOMING' : 'COMPLETED',
+        isUpcomingOrPresent: isUpcomingOrPresent
+      });
+    }
+  }
+
+  // Sort: Upcoming meetings first, then by date descending
+  return appointments.sort(function(a, b) {
+    return new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time);
+  });
+}
