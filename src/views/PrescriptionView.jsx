@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function PrescriptionView({ user, styles }) {
+export default function PrescriptionView({ user, styles = {} }) {
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [docLink, setDocLink] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Patient & Doctor Form State
   const [headerInfo, setHeaderInfo] = useState({
     orgName: 'CITY HEALTHCARE CLINIC',
     doctorName: user?.name || 'Dr. A. Sharma',
@@ -17,7 +16,6 @@ export default function PrescriptionView({ user, styles }) {
     date: new Date().toISOString().split('T')[0]
   });
 
-  // Current Medicine Input State
   const [currentMed, setCurrentMed] = useState({
     name: '',
     power: '',
@@ -25,32 +23,42 @@ export default function PrescriptionView({ user, styles }) {
     foodInstruction: 'After Food'
   });
 
-  // Added Prescription List
   const [prescriptionList, setPrescriptionList] = useState([]);
 
   useEffect(() => {
     callBackend('getMedicineMasterList', [], (data) => {
-      setMasterMedicines(data || []);
+      if (Array.isArray(data)) {
+        setMasterMedicines(data);
+      } else {
+        setMasterMedicines([]);
+      }
     });
   }, []);
 
+  // Safe filter check prevents React white-screen crashes
+  const filteredMaster = Array.isArray(masterMedicines)
+    ? masterMedicines.filter((m) =>
+        m && m.name ? m.name.toLowerCase().includes((searchTerm || '').toLowerCase()) : false
+      )
+    : [];
+
   const handleSelectSearchedMedicine = (med) => {
-    setCurrentMed({
-      ...currentMed,
-      name: med.name,
-      power: med.power
-    });
+    setCurrentMed((prev) => ({
+      ...prev,
+      name: med.name || '',
+      power: med.power || ''
+    }));
     setSearchTerm('');
   };
 
   const handleTimeCheckbox = (timeKey) => {
-    setCurrentMed({
-      ...currentMed,
+    setCurrentMed((prev) => ({
+      ...prev,
       takingTime: {
-        ...currentMed.takingTime,
-        [timeKey]: !currentMed.takingTime[timeKey]
+        ...prev.takingTime,
+        [timeKey]: !prev.takingTime[timeKey]
       }
-    });
+    }));
   };
 
   const handleAddMedicine = () => {
@@ -68,8 +76,8 @@ export default function PrescriptionView({ user, styles }) {
       return;
     }
 
-    setPrescriptionList([
-      ...prescriptionList,
+    setPrescriptionList((prev) => [
+      ...prev,
       {
         name: currentMed.name,
         power: currentMed.power,
@@ -78,7 +86,6 @@ export default function PrescriptionView({ user, styles }) {
       }
     ]);
 
-    // Reset current item
     setCurrentMed({
       name: '',
       power: '',
@@ -88,7 +95,7 @@ export default function PrescriptionView({ user, styles }) {
   };
 
   const handleRemoveMedicine = (index) => {
-    setPrescriptionList(prescriptionList.filter((_, idx) => idx !== index));
+    setPrescriptionList((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleGenerateDoc = () => {
@@ -102,12 +109,7 @@ export default function PrescriptionView({ user, styles }) {
     }
 
     setLoading(true);
-    const payload = {
-      ...headerInfo,
-      medicines: prescriptionList
-    };
-
-    callBackend('createPrescriptionDoc', [payload], (res) => {
+    callBackend('createPrescriptionDoc', [{ ...headerInfo, medicines: prescriptionList }], (res) => {
       setLoading(false);
       if (res && res.success) {
         setDocLink(res.docUrl);
@@ -117,12 +119,8 @@ export default function PrescriptionView({ user, styles }) {
     });
   };
 
-  const filteredMaster = masterMedicines.filter((m) =>
-    m.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
-    <div style={styles.card}>
+    <div style={styles.card || { padding: '20px', background: '#fff', border: '1px solid #ddd' }}>
       <h2>Prepare Digital Prescription</h2>
 
       {/* Header & Patient Details */}
@@ -141,7 +139,7 @@ export default function PrescriptionView({ user, styles }) {
 
       <hr />
 
-      {/* Medicine Search & Direct Entry */}
+      {/* Search Bar */}
       <h3>Add Medicine</h3>
       <div style={{ marginBottom: '12px', position: 'relative' }}>
         <input
@@ -165,6 +163,7 @@ export default function PrescriptionView({ user, styles }) {
         )}
       </div>
 
+      {/* Custom Input */}
       <div style={{ display: 'grid', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
@@ -215,7 +214,7 @@ export default function PrescriptionView({ user, styles }) {
         </button>
       </div>
 
-      {/* Added Items Preview */}
+      {/* Prescription List */}
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', padding: '8px 12px', borderRadius: '4px', marginBottom: '6px' }}>
@@ -229,7 +228,7 @@ export default function PrescriptionView({ user, styles }) {
         </div>
       ))}
 
-      {/* Document Generation Action */}
+      {/* Action Button */}
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={handleGenerateDoc}
@@ -243,7 +242,7 @@ export default function PrescriptionView({ user, styles }) {
           <div style={{ marginTop: '12px', padding: '10px', background: '#dcfce7', borderRadius: '4px' }}>
             <strong>Prescription Created!</strong>
             <br />
-            <a href={docLink} target="_blank" rel="noreferrer" style={{ color: '#15803d', fontWeight: 'bold' }}>
+            <a href={docLink} target="_blank" rel="noopener noreferrer" style={{ color: '#15803d', fontWeight: 'bold' }}>
               Open Google Doc Prescription ↗
             </a>
           </div>
