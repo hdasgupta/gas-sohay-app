@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
-  // Safe Fallback Styles (Prevents blank screen if styles prop is undefined)
+  // Crash-proof fallback styles
   const defaultStyles = {
     card: styles.card || { padding: '20px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', margin: '10px 0' },
     input: styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
@@ -16,7 +16,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [docLink, setDocLink] = useState('');
   const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
   const [headerInfo, setHeaderInfo] = useState({
     orgName: 'CITY HEALTHCARE CLINIC',
@@ -26,22 +25,18 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     patientAge: '',
     date: new Date().toISOString().split('T')[0]
   });
-  
 
   const [currentMed, setCurrentMed] = useState({
     name: '',
-    power: '',
     takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
     foodInstruction: 'After Food'
   });
-  
 
   const [prescriptionList, setPrescriptionList] = useState([]);
 
   useEffect(() => {
     try {
       callBackend('getMedicineMasterList', [], (data) => {
-        
         if (Array.isArray(data)) {
           setMasterMedicines(data);
         } else {
@@ -54,16 +49,20 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     }
   }, []);
 
-  // Safe search filter
-  const filteredMaster = (masterMedicines || []).filter((m) =>
-    m && m.name ? m.name.toLowerCase().includes((searchTerm || '').toLowerCase()) : false
-  );
+  // Require at least 4 characters before filtering
+  const showSuggestions = searchTerm.trim().length >= 4;
+  const filteredMaster = showSuggestions
+    ? (masterMedicines || []).filter((m) => {
+        const medName = typeof m === 'string' ? m : m?.name || '';
+        return medName.toLowerCase().includes(searchTerm.trim().toLowerCase());
+      })
+    : [];
 
   const handleSelectSearchedMedicine = (med) => {
+    const selectedName = typeof med === 'string' ? med : med?.name || '';
     setCurrentMed((prev) => ({
       ...prev,
-      name: med?.name || '',
-      power: med?.power || ''
+      name: selectedName
     }));
     setSearchTerm('');
   };
@@ -79,8 +78,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   };
 
   const handleAddMedicine = () => {
-    if (!currentMed.name || !currentMed.power) {
-      alert('Please provide medicine name and power.');
+    if (!currentMed.name.trim()) {
+      alert('Please enter a medicine name.');
       return;
     }
 
@@ -96,19 +95,19 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setPrescriptionList((prev) => [
       ...prev,
       {
-        name: currentMed.name,
-        power: currentMed.power,
+        name: currentMed.name.trim(),
         takingTime: selectedTimes,
         foodInstruction: currentMed.foodInstruction
       }
     ]);
 
+    // Reset current form input
     setCurrentMed({
       name: '',
-      power: '',
       takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
       foodInstruction: 'After Food'
     });
+    setSearchTerm('');
   };
 
   const handleRemoveMedicine = (index) => {
@@ -136,74 +135,113 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     });
   };
 
-  if (hasError) {
-    return <div style={defaultStyles.card}>An error occurred while loading the prescription module. Please refresh.</div>;
-  }
-
   return (
     <div style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
-      {/* Header & Patient Details */}
+      {/* Doctor & Patient Info Header */}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
-        <input style={defaultStyles.input} placeholder="Organization Name" value={headerInfo.orgName} onChange={(e) => setHeaderInfo({ ...headerInfo, orgName: e.target.value })} />
+        <input
+          style={defaultStyles.input}
+          placeholder="Organization Name"
+          value={headerInfo.orgName}
+          onChange={(e) => setHeaderInfo({ ...headerInfo, orgName: e.target.value })}
+        />
         <div style={{ display: 'flex', gap: '8px' }}>
-          <input style={defaultStyles.input} placeholder="Doctor Name" value={headerInfo.doctorName} onChange={(e) => setHeaderInfo({ ...headerInfo, doctorName: e.target.value })} />
-          <input style={defaultStyles.input} placeholder="Designation" value={headerInfo.doctorDesignation} onChange={(e) => setHeaderInfo({ ...headerInfo, doctorDesignation: e.target.value })} />
+          <input
+            style={defaultStyles.input}
+            placeholder="Doctor Name"
+            value={headerInfo.doctorName}
+            onChange={(e) => setHeaderInfo({ ...headerInfo, doctorName: e.target.value })}
+          />
+          <input
+            style={defaultStyles.input}
+            placeholder="Designation"
+            value={headerInfo.doctorDesignation}
+            onChange={(e) => setHeaderInfo({ ...headerInfo, doctorDesignation: e.target.value })}
+          />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <input style={defaultStyles.input} placeholder="Patient Name" value={headerInfo.patientName} onChange={(e) => setHeaderInfo({ ...headerInfo, patientName: e.target.value })} />
-          <input style={defaultStyles.input} type="number" placeholder="Patient Age" value={headerInfo.patientAge} onChange={(e) => setHeaderInfo({ ...headerInfo, patientAge: e.target.value })} />
-          <input style={defaultStyles.input} type="date" value={headerInfo.date} onChange={(e) => setHeaderInfo({ ...headerInfo, date: e.target.value })} />
+          <input
+            style={defaultStyles.input}
+            placeholder="Patient Name"
+            value={headerInfo.patientName}
+            onChange={(e) => setHeaderInfo({ ...headerInfo, patientName: e.target.value })}
+          />
+          <input
+            style={defaultStyles.input}
+            type="number"
+            placeholder="Patient Age"
+            value={headerInfo.patientAge}
+            onChange={(e) => setHeaderInfo({ ...headerInfo, patientAge: e.target.value })}
+          />
+          <input
+            style={defaultStyles.input}
+            type="date"
+            value={headerInfo.date}
+            onChange={(e) => setHeaderInfo({ ...headerInfo, date: e.target.value })}
+          />
         </div>
       </div>
 
       <hr style={{ margin: '16px 0', border: '0', borderTop: '1px solid #e2e8f0' }} />
 
-      {/* Search Bar */}
       <h3>Add Medicine</h3>
-      {masterMedicines.length > 0 ? (
-        <div style={{ marginBottom: '12px', position: 'relative' }}>
-          <input
-            style={defaultStyles.input}
-            placeholder="Search existing medicines..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && filteredMaster.length > 0 && (
-            <div style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', width: '100%', zIndex: 10, maxHeight: '120px', overflowY: 'auto' }}>
-              {filteredMaster.map((med, idx) => (
+
+      {/* Autocomplete Search Input */}
+      <div style={{ marginBottom: '12px', position: 'relative' }}>
+        <input
+          style={defaultStyles.input}
+          placeholder="Search medicine (type at least 4 letters)..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        
+        {searchTerm.length > 0 && searchTerm.length < 4 && (
+          <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '-6px', marginBottom: '6px' }}>
+            Type {4 - searchTerm.length} more letter{4 - searchTerm.length > 1 ? 's' : ''} for suggestions...
+          </span>
+        )}
+
+        {showSuggestions && filteredMaster.length > 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              background: '#fff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '4px',
+              width: '100%',
+              zIndex: 10,
+              maxHeight: '150px',
+              overflowY: 'auto',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            {filteredMaster.map((med, idx) => {
+              const medName = typeof med === 'string' ? med : med?.name || '';
+              return (
                 <div
                   key={idx}
-                  style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #eee' }}
+                  style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
                   onClick={() => handleSelectSearchedMedicine(med)}
                 >
-                  <strong>{med.name}</strong> ({med.power})
+                  <strong>{medName}</strong>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
-          No catalog medicines saved yet. Type medicine details below to create your first prescription.
-        </p>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-      {/* Manual Input */}
+      {/* Entry Form */}
       <div style={{ display: 'grid', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div>
+          <label style={defaultStyles.label}>Medicine Name:</label>
           <input
             style={defaultStyles.input}
             placeholder="Medicine Name (e.g. Paracetamol)"
             value={currentMed.name}
             onChange={(e) => setCurrentMed({ ...currentMed, name: e.target.value })}
-          />
-          <input
-            style={defaultStyles.input}
-            placeholder="Power/Dosage (e.g. 500mg)"
-            value={currentMed.power}
-            onChange={(e) => setCurrentMed({ ...currentMed, power: e.target.value })}
           />
         </div>
 
@@ -241,21 +279,34 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </button>
       </div>
 
-      {/* Selected List */}
+      {/* Active Prescription List */}
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
-        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', padding: '8px 12px', borderRadius: '4px', marginBottom: '6px' }}>
+        <div
+          key={idx}
+          style={{
+            display: 'flex',
+            justify: 'space-between',
+            alignItems: 'center',
+            background: '#f1f5f9',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            marginBottom: '6px'
+          }}
+        >
           <div>
-            <strong>{idx + 1}. {item.name}</strong> ({item.power})
+            <strong>{idx + 1}. {item.name}</strong>
             <div style={{ fontSize: '12px', color: '#475569' }}>
               Times: {item.takingTime.join(', ')} | ({item.foodInstruction})
             </div>
           </div>
-          <button style={defaultStyles.btnDanger} onClick={() => handleRemoveMedicine(idx)}>Remove</button>
+          <button style={defaultStyles.btnDanger} onClick={() => handleRemoveMedicine(idx)}>
+            Remove
+          </button>
         </div>
       ))}
 
-      {/* Generate Button */}
+      {/* Generate Document Action */}
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={handleGenerateDoc}

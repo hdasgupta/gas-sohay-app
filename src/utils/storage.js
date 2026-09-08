@@ -14,7 +14,6 @@ export const saveSession = (user) => {
 
 export const getSession = () => {
   const saved = localStorage.getItem('app_session');
-  
   return saved ? decrypt(saved) : null;
 };
 
