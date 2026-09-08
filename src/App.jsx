@@ -121,7 +121,7 @@ export default function App() {
       {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
-      {view === 'prescription' && <ErrorBoundary> <PrescriptionView user={user} styles={styles} /> </ErrorBoundary>}
+      {view === 'prescription' &&  <PrescriptionView user={user} styles={styles} />}
       {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={() => loadDoctors()} styles={styles} />}
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
