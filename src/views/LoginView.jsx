@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 export default function LoginView({ onSubmit, onNavigateSignup, styles }) {
   const [authForm, setAuthForm] = useState({ email: '', password: '' });
+  alert("in login");
 
   const handleSubmit = (e) => {
     e.preventDefault();
