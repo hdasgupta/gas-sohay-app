@@ -35,6 +35,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   const [currentMed, setCurrentMed] = useState({
     name: '',
+    quantity: '',
+    isSos: false,
     takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
     foodInstruction: 'After Food'
   });
@@ -114,6 +116,11 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       .filter((k) => currentMed.takingTime[k])
       .map((k) => k.charAt(0).toUpperCase() + k.slice(1));
 
+    if (!currentMed.isSos && selectedTimes.length === 0) {
+      alert('Select at least one taking time or check SOS.');
+      return;
+    }
+
     if (selectedTimes.length === 0) {
       alert('Select at least one taking time.');
       return;
@@ -123,6 +130,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       ...prev,
       {
         name: currentMed.name.trim(),
+        quantity: currentMed.quantity.trim() || '1 pcs',
+        isSos: currentMed.isSos,
         takingTime: selectedTimes,
         foodInstruction: currentMed.foodInstruction
       }
@@ -130,6 +139,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
     setCurrentMed({
       name: '',
+      quantity: '',
+      isSos: false,
       takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
       foodInstruction: 'After Food'
     });
@@ -316,31 +327,58 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         )}
       </div>
 
-      {/* Form Entry */}
-      <div style={{ display: 'grid', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
-        <div>
-          <label style={defaultStyles.label}>Medicine Name:</label>
-          <input
-            style={defaultStyles.input}
-            placeholder="Medicine Name (e.g. Paracetamol)"
-            value={currentMed.name}
-            onChange={(e) => setCurrentMed({ ...currentMed, name: e.target.value })}
-          />
+      { /* Medicine Form Input */ }
+<div style={{ display: 'grid', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ flex: 2 }}>
+            <label style={defaultStyles.label}>Medicine Name:</label>
+            <input
+              style={defaultStyles.input}
+              placeholder="e.g. Paracetamol Tablet, Benadryl Syrup"
+              value={currentMed.name}
+              onChange={(e) => handleMedicineNameChange(e.target.value)}
+            />
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <label style={defaultStyles.label}>Quantity / Dose:</label>
+            <input
+              style={defaultStyles.input}
+              placeholder="e.g. 1 pcs, 10 ml, 2 capsules"
+              value={currentMed.quantity}
+              onChange={(e) => setCurrentMed({ ...currentMed, quantity: e.target.value })}
+            />
+          </div>
         </div>
 
-        <div>
-          <label style={defaultStyles.label}>Taking Time:</label>
-          <div style={{ display: 'flex', gap: '10px', fontSize: '13px', margin: '4px 0' }}>
-            {['breakfast', 'lunch', 'hightea', 'dinner'].map((time) => (
-              <label key={time} style={{ textTransform: 'capitalize' }}>
-                <input
-                  type="checkbox"
-                  checked={currentMed.takingTime?.[time] || false}
-                  onChange={() => handleTimeCheckbox(time)}
-                />{' '}
-                {time}
-              </label>
-            ))}
+        {/* SOS Checkbox & Taking Times */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <div>
+            <label style={defaultStyles.label}>Taking Time:</label>
+            <div style={{ display: 'flex', gap: '10px', fontSize: '13px', margin: '4px 0' }}>
+              {['breakfast', 'lunch', 'hightea', 'dinner'].map((time) => (
+                <label key={time} style={{ textTransform: 'capitalize' }}>
+                  <input
+                    type="checkbox"
+                    checked={currentMed.takingTime?.[time] || false}
+                    onChange={() => handleTimeCheckbox(time)}
+                  />{' '}
+                  {time}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* SOS Checkbox */}
+          <div style={{ background: '#fef3c7', padding: '6px 12px', borderRadius: '4px', border: '1px solid #fde68a' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>
+              <input
+                type="checkbox"
+                checked={currentMed.isSos}
+                onChange={(e) => setCurrentMed({ ...currentMed, isSos: e.target.checked })}
+              />
+              SOS (As Needed)
+            </label>
           </div>
         </div>
 

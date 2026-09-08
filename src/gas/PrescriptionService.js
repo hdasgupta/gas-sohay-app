@@ -54,83 +54,205 @@ function saveMedicineToMaster(name, power) {
 }
 
 /**
- * Creates a formatted Google Doc Prescription and saves any new medicines to catalog.
+ * Main backend function called by callBackend('createPrescriptionDoc', [payload])
  */
 function createPrescriptionDoc(payload) {
-  var docName = 'Prescription_' + payload.patientName.replace(/\s+/g, '_') + '_' + payload.date;
-  var doc = DocumentApp.create(docName);
-  var body = doc.getBody();
+  try {
+    if (!payload || !payload.patientName || !payload.medicines) {
+      throw new Error("Invalid or missing prescription payload.");
+    }
 
-  body.setMarginTop(36).setMarginBottom(36).setMarginLeft(36).setMarginRight(36);
+    // 1. Create a new Google Document
+    var docName = "Prescription_" + sanitizeFileName(payload.patientName) + "_" + payload.date;
+    var doc = DocumentApp.create(docName);
+    var body = doc.getBody();
 
-  // Header
-  var orgTitle = body.appendParagraph(payload.orgName || 'HEALTHCARE MEDICAL CENTER');
-  orgTitle.setHeading(DocumentApp.ParagraphHeading.HEADING1)
-          .setAlignment(DocumentApp.HorizontalAlignment.CENTER)
-          .setBold(true);
+    // Set standard document margins (0.5 inch / 36 pt)
+    body.setMarginTop(36);
+    body.setMarginBottom(36);
+    body.setMarginLeft(36);
+    body.setMarginRight(36);
 
-  var subHeader = body.appendParagraph("Multispeciality Clinic & Digital Health Care\n----------------------------------------------------------------------------------------------------");
-  subHeader.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    // 2. Add Clinic / Hospital Header
+    var clinicHeader = body.appendParagraph((payload.orgName || 'CITY HEALTHCARE CLINIC').toUpperCase());
+    clinicHeader.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    clinicHeader.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    clinicHeader.setFontSize(16);
+    clinicHeader.setBold(true);
+    clinicHeader.setForegroundColor("#1E3A8A");
 
-  // Info Block
-  var infoTable = body.appendTable([
-    ['Dr. Name:', payload.doctorName, 'Date:', payload.date],
-    ['Designation:', payload.doctorDesignation, 'Patient Name:', payload.patientName],
-    ['', '', 'Patient Age:', payload.patientAge + ' Years']
-  ]);
-  infoTable.setBorderWidth(0);
+    var doctorDetails = body.appendParagraph(
+      (payload.doctorName || 'Dr. Doctor') + "\n" +
+      (payload.doctorDesignation || payload.doctorSpeciality || '')
+    );
+    doctorDetails.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    doctorDetails.setFontSize(10);
+    doctorDetails.setForegroundColor("#475569");
 
-  body.appendParagraph("\nRx / Prescribed Medications").setBold(true).setFontSize(14);
+    // Add Horizontal Line Divider
+    body.appendHorizontalRule();
 
-  // Table Data
-  var tableData = [['#', 'Medicine Name', 'Power / Dosage', 'Taking Time', 'Food Instruction']];
+    // 3. Add Patient Details Box
+    var patientTableData = [
+      [
+        "Patient: " + payload.patientName,
+        "Age: " + payload.patientAge + " yrs",
+        "Date: " + payload.date
+      ]
+    ];
+    var patientTable = body.appendTable(patientTableData);
+    patientTable.setBorderWidth(0); // Borderless for clean layout
+    
+    // Format Patient Table Row
+    var patientRow = patientTable.getRow(0);
+    for (var p = 0; p < patientRow.getNumChildren(); p++) {
+      var pCell = patientRow.getCell(p);
+      pCell.setBackgroundColor("#F8FAFC");
+      pCell.setPaddingTop(8);
+      pCell.setPaddingBottom(8);
+      var pPara = pCell.getChild(0).asParagraph();
+      pPara.setFontSize(10);
+      pPara.setBold(true);
+      pPara.setForegroundColor("#334155");
+    }
 
-  for (var i = 0; i < payload.medicines.length; i++) {
-    var med = payload.medicines[i];
-    var times = Array.isArray(med.takingTime) ? med.takingTime.join(', ') : med.takingTime;
-    tableData.push([
-      (i + 1).toString(),
-      med.name,
-      med.power,
-      times,
-      med.foodInstruction
-    ]);
+    body.appendParagraph("").setFontSize(8); // Spacer
 
-    // Save newly prescribed medicine into the Medicines sheet for future autocompletion
-    saveMedicineToMaster(med.name, med.power);
+    // 4. Rx Heading
+    var rxHeader = body.appendParagraph("Rx (Prescribed Medicines)");
+    rxHeader.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    rxHeader.setFontSize(14);
+    rxHeader.setBold(true);
+    rxHeader.setForegroundColor("#2563EB");
+
+    // 5. Medicines Table Header & Data
+    var headers = ["#", "Medicine Name", "Qty / Dose", "Timing", "Instruction"];
+    var tableData = [headers];
+
+    if (Array.isArray(payload.medicines)) {
+      payload.medicines.forEach(function(med, index) {
+        // Compose Timing Column Text
+        var timingList = Array.isArray(med.takingTime) ? med.takingTime.join(", ") : "";
+        var timingText = "";
+
+        if (med.isSos) {
+          timingText = timingList ? "SOS (" + timingList + ")" : "SOS (As Needed)";
+        } else {
+          timingText = timingList || "As Directed";
+        }
+
+        tableData.push([
+          (index + 1).toString(),
+          med.name || "-",
+          med.quantity || "1 pcs",
+          timingText,
+          med.foodInstruction || "-"
+        ]);
+      });
+    }
+
+    var medTable = body.appendTable(tableData);
+    medTable.setBorderColor("#CBD5E1");
+    medTable.setBorderWidth(1);
+
+    // Style Medicines Table Header Row
+    var headerRow = medTable.getRow(0);
+    for (var i = 0; i < headerRow.getNumChildren(); i++) {
+      var headerCell = headerRow.getCell(i);
+      headerCell.setBackgroundColor("#2563EB");
+      headerCell.setPaddingTop(8);
+      headerCell.setPaddingBottom(8);
+      var headPara = headerCell.getChild(0).asParagraph();
+      headPara.setForegroundColor("#FFFFFF");
+      headPara.setBold(true);
+      headPara.setFontSize(10);
+    }
+
+    // Style Medicines Table Content Rows
+    for (var r = 1; r < medTable.getNumRows(); r++) {
+      var row = medTable.getRow(r);
+      var rowBg = (r % 2 === 0) ? "#F8FAFC" : "#FFFFFF"; // Alternating row color
+      
+      for (var c = 0; c < row.getNumChildren(); c++) {
+        var cell = row.getCell(c);
+        cell.setBackgroundColor(rowBg);
+        cell.setPaddingTop(6);
+        cell.setPaddingBottom(6);
+        
+        var cellPara = cell.getChild(0).asParagraph();
+        cellPara.setFontSize(10);
+        cellPara.setForegroundColor("#1E293B");
+
+        // Highlight SOS tag if present in the Timing column
+        if (c === 3 && cellPara.getText().indexOf("SOS") !== -1) {
+          cellPara.setBold(true);
+          cellPara.setForegroundColor("#B45309"); // Dark Amber
+        }
+      }
+    }
+
+    // Adjust Table Column Widths (approximate)
+    medTable.setColumnWidth(0, 30);  // #
+    medTable.setColumnWidth(1, 200); // Name
+    medTable.setColumnWidth(2, 90);  // Quantity
+    medTable.setColumnWidth(3, 110); // Timing
+    medTable.setColumnWidth(4, 90);  // Instruction
+
+    // 6. Signature Footer
+    body.appendParagraph("\n\n\n\n");
+    var sigPara = body.appendParagraph("_____________________________________\nSignature / Stamp");
+    sigPara.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+    sigPara.setFontSize(10);
+    sigPara.setForegroundColor("#64748B");
+
+    // Save & Close Document
+    doc.saveAndClose();
+
+    return {
+      success: true,
+      docUrl: doc.getUrl(),
+      docId: doc.getId()
+    };
+
+  } catch (err) {
+    Logger.log("Error generating prescription doc: " + err.toString());
+    return {
+      success: false,
+      error: err.toString()
+    };
   }
+}
 
-  var medTable = body.appendTable(tableData);
-  medTable.getRow(0).setBold(true);
+/**
+ * Helper to sanitize filenames
+ */
+function sanitizeFileName(name) {
+  return String(name).replace(/[^a-zA-Z0-9_-]/g, "_");
+}
 
-  for (var cellIdx = 0; cellIdx < 5; cellIdx++) {
-    medTable.getRow(0).getCell(cellIdx).setBackgroundColor('#F1F5F9');
-  }
+/**
+ * Master List Endpoint Stubs (If reading from Google Sheets or hardcoded)
+ */
+function getMedicineMasterList() {
+  return [
+    "Paracetamol 500mg Tablet",
+    "Azithromycin 500mg Tablet",
+    "Amoxicillin 250mg Capsule",
+    "Pantoprazole 40mg Tablet",
+    "Benadryl Cough Syrup",
+    "Cetirizine 10mg Tablet",
+    "Multivitamin Capsule",
+    "Digene Gel Syrup"
+  ];
+}
 
-  body.appendParagraph("\n\n\n\n");
-  var sigPara = body.appendParagraph("_______________________\nSignature of Doctor\n" + payload.doctorName);
-  sigPara.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
-
-  doc.saveAndClose();
-
-  var file = DriveApp.getFileById(doc.getId());
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-
-  // Log in Prescriptions sheet
-  var pSheet = getOrCreateSheet('Prescriptions');
-  pSheet.appendRow([
-    'RX-' + new Date().getTime(),
-    payload.doctorName,
-    payload.patientName,
-    payload.patientAge,
-    payload.date,
-    doc.getUrl()
-  ]);
-
-  return {
-    success: true,
-    docUrl: doc.getUrl()
-  };
+function getPatientMasterList() {
+  return [
+    { name: "Rahul Das", age: 34 },
+    { name: "Suman Ganguly", age: 45 },
+    { name: "Priya Sharma", age: 28 },
+    { name: "Amit Roy", age: 52 }
+  ];
 }
 
 /**
