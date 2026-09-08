@@ -40,6 +40,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   });
 
   const [prescriptionList, setPrescriptionList] = useState([]);
+  
+  const todayDate = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     // Fetch Medicine Master List
@@ -251,7 +253,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             />
           </div>
 
-          { /* Unchangeable Date Input */ }
           <div style={{ flex: 1 }}>
             <label style={defaultStyles.label}>Date (Today - Locked)</label>
             <input
