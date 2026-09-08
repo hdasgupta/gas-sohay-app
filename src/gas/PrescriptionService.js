@@ -132,3 +132,40 @@ function createPrescriptionDoc(payload) {
     docUrl: doc.getUrl()
   };
 }
+
+/**
+ * Retrieves unique patient list for autocomplete suggestions.
+ */
+function getPatientMasterList() {
+  initDatabase();
+  var sheet = getOrCreateSheet('Patients');
+  var patients = [];
+
+  if (sheet.getLastRow() > 1) {
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0]) {
+        patients.push({
+          name: data[i][0].toString().trim(),
+          age: data[i][1] ? data[i][1].toString().trim() : ''
+        });
+      }
+    }
+  } else {
+    // Fallback: Read unique patient names from 'Prescriptions' sheet if 'Patients' sheet is blank
+    var pSheet = getOrCreateSheet('Prescriptions');
+    if (pSheet.getLastRow() > 1) {
+      var pData = pSheet.getDataRange().getValues();
+      var seen = {};
+      for (var j = 1; j < pData.length; j++) {
+        var pName = pData[j][2]; // Patient Name Column
+        var pAge = pData[j][3];  // Patient Age Column
+        if (pName && !seen[pName.toString().toLowerCase()]) {
+          seen[pName.toString().toLowerCase()] = true;
+          patients.push({ name: pName.toString().trim(), age: pAge ? pAge.toString().trim() : '' });
+        }
+      }
+    }
+  }
+  return patients;
+}

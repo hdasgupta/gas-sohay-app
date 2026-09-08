@@ -2,29 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
-  // Crash-proof fallback styles
+  // Safe default styles with distinct read-only field appearance
   const defaultStyles = {
     card: styles.card || { padding: '20px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', margin: '10px 0' },
     input: styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
+    readOnlyInput: { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#f1f5f9', color: '#475569', cursor: 'not-allowed', boxSizing: 'border-box' },
     label: styles.label || { display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' },
     btnPrimary: styles.btnPrimary || { width: '100%', padding: '10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },
     btnSecondary: styles.btnSecondary || { width: '100%', padding: '8px', background: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' },
     btnDanger: styles.btnDanger || { background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }
   };
 
+  // Unchangeable Doctor & Clinic Details
+  const fixedClinicInfo = {
+    orgName: user?.orgName || 'CITY HEALTHCARE CLINIC',
+    doctorName: user?.name || 'Dr. A. Sharma',
+    doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (General Medicine)'
+  };
+
   const [masterMedicines, setMasterMedicines] = useState([]);
+  const [masterPatients, setMasterPatients] = useState([]);
+
+  // Form State
+  const [patientInput, setPatientInput] = useState('');
+  const [patientAge, setPatientAge] = useState('');
+  const [prescriptionDate, setPrescriptionDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [docLink, setDocLink] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const [headerInfo, setHeaderInfo] = useState({
-    orgName: 'CITY HEALTHCARE CLINIC',
-    doctorName: user?.name || 'Dr. Doctor',
-    doctorDesignation: 'MBBS, MD',
-    patientName: '',
-    patientAge: '',
-    date: new Date().toISOString().split('T')[0]
-  });
 
   const [currentMed, setCurrentMed] = useState({
     name: '',
@@ -35,35 +42,53 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const [prescriptionList, setPrescriptionList] = useState([]);
 
   useEffect(() => {
+    // Fetch Medicine Master List
     try {
       callBackend('getMedicineMasterList', [], (data) => {
-        if (Array.isArray(data)) {
-          setMasterMedicines(data);
-        } else {
-          setMasterMedicines([]);
-        }
+        setMasterMedicines(Array.isArray(data) ? data : []);
       });
     } catch (err) {
       console.error('Failed to load medicine list:', err);
-      setMasterMedicines([]);
+    }
+
+    // Fetch Patient Master List for Suggestions
+    try {
+      callBackend('getPatientMasterList', [], (data) => {
+        setMasterPatients(Array.isArray(data) ? data : []);
+      });
+    } catch (err) {
+      console.error('Failed to load patient list:', err);
     }
   }, []);
 
-  // Require at least 4 characters before filtering
-  const showSuggestions = searchTerm.trim().length >= 4;
-  const filteredMaster = showSuggestions
-    ? (masterMedicines || []).filter((m) => {
+  // Filter Patients based on input
+  const filteredPatients = patientInput.trim().length >= 2
+    ? masterPatients.filter((p) => {
+        const pName = typeof p === 'string' ? p : p?.name || '';
+        return pName.toLowerCase().includes(patientInput.trim().toLowerCase());
+      })
+    : [];
+
+  // Filter Medicines (Minimum 4 letters required)
+  const showMedicineSuggestions = searchTerm.trim().length >= 4;
+  const filteredMedicines = showMedicineSuggestions
+    ? masterMedicines.filter((m) => {
         const medName = typeof m === 'string' ? m : m?.name || '';
         return medName.toLowerCase().includes(searchTerm.trim().toLowerCase());
       })
     : [];
 
+  const handleSelectPatient = (patient) => {
+    const pName = typeof patient === 'string' ? patient : patient?.name || '';
+    const pAge = typeof patient === 'object' && patient?.age ? patient.age : '';
+    setPatientInput(pName);
+    if (pAge) setPatientAge(pAge);
+    setShowPatientDropdown(false);
+  };
+
   const handleSelectSearchedMedicine = (med) => {
     const selectedName = typeof med === 'string' ? med : med?.name || '';
-    setCurrentMed((prev) => ({
-      ...prev,
-      name: selectedName
-    }));
+    setCurrentMed((prev) => ({ ...prev, name: selectedName }));
     setSearchTerm('');
   };
 
@@ -101,7 +126,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       }
     ]);
 
-    // Reset current form input
     setCurrentMed({
       name: '',
       takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
@@ -115,7 +139,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   };
 
   const handleGenerateDoc = () => {
-    if (!headerInfo.patientName || !headerInfo.patientAge) {
+    if (!patientInput.trim() || !patientAge) {
       alert('Please fill in Patient Name and Age.');
       return;
     }
@@ -125,7 +149,17 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     }
 
     setLoading(true);
-    callBackend('createPrescriptionDoc', [{ ...headerInfo, medicines: prescriptionList }], (res) => {
+
+    const payload = {
+      ...fixedClinicInfo,
+      doctorDesignation: fixedClinicInfo.doctorSpeciality,
+      patientName: patientInput.trim(),
+      patientAge: patientAge,
+      date: prescriptionDate,
+      medicines: prescriptionList
+    };
+
+    callBackend('createPrescriptionDoc', [payload], (res) => {
       setLoading(false);
       if (res && res.success) {
         setDocLink(res.docUrl);
@@ -139,48 +173,93 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     <div style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
-      {/* Doctor & Patient Info Header */}
+      {/* Unchangeable Organization & Doctor Information */}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
-        <input
-          style={defaultStyles.input}
-          placeholder="Organization Name"
-          value={headerInfo.orgName}
-          onChange={(e) => setHeaderInfo({ ...headerInfo, orgName: e.target.value })}
-        />
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input
-            style={defaultStyles.input}
-            placeholder="Doctor Name"
-            value={headerInfo.doctorName}
-            onChange={(e) => setHeaderInfo({ ...headerInfo, doctorName: e.target.value })}
-          />
-          <input
-            style={defaultStyles.input}
-            placeholder="Designation"
-            value={headerInfo.doctorDesignation}
-            onChange={(e) => setHeaderInfo({ ...headerInfo, doctorDesignation: e.target.value })}
-          />
+        <div>
+          <label style={defaultStyles.label}>Organization / Clinic Name (Locked)</label>
+          <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.orgName} readOnly />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <input
-            style={defaultStyles.input}
-            placeholder="Patient Name"
-            value={headerInfo.patientName}
-            onChange={(e) => setHeaderInfo({ ...headerInfo, patientName: e.target.value })}
-          />
-          <input
-            style={defaultStyles.input}
-            type="number"
-            placeholder="Patient Age"
-            value={headerInfo.patientAge}
-            onChange={(e) => setHeaderInfo({ ...headerInfo, patientAge: e.target.value })}
-          />
-          <input
-            style={defaultStyles.input}
-            type="date"
-            value={headerInfo.date}
-            onChange={(e) => setHeaderInfo({ ...headerInfo, date: e.target.value })}
-          />
+          <div style={{ flex: 1 }}>
+            <label style={defaultStyles.label}>Doctor Name (Locked)</label>
+            <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorName} readOnly />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={defaultStyles.label}>Speciality / Designation (Locked)</label>
+            <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorSpeciality} readOnly />
+          </div>
+        </div>
+
+        {/* Patient Details with Autocomplete Suggestion */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ flex: 2, position: 'relative' }}>
+            <label style={defaultStyles.label}>Patient Name</label>
+            <input
+              style={defaultStyles.input}
+              placeholder="Type patient name..."
+              value={patientInput}
+              onChange={(e) => {
+                setPatientInput(e.target.value);
+                setShowPatientDropdown(true);
+              }}
+              onFocus={() => setShowPatientDropdown(true)}
+            />
+
+            {/* Patient Suggestions Dropdown */}
+            {showPatientDropdown && filteredPatients.length > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  background: '#fff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '4px',
+                  zIndex: 20,
+                  maxHeight: '140px',
+                  overflowY: 'auto',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                {filteredPatients.map((patient, idx) => {
+                  const name = typeof patient === 'string' ? patient : patient?.name || '';
+                  const age = typeof patient === 'object' && patient?.age ? ` (${patient.age} yrs)` : '';
+                  return (
+                    <div
+                      key={idx}
+                      style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
+                      onClick={() => handleSelectPatient(patient)}
+                    >
+                      <strong>{name}</strong>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>{age}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <label style={defaultStyles.label}>Patient Age</label>
+            <input
+              style={defaultStyles.input}
+              type="number"
+              placeholder="Age"
+              value={patientAge}
+              onChange={(e) => setPatientAge(e.target.value)}
+            />
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <label style={defaultStyles.label}>Date</label>
+            <input
+              style={defaultStyles.input}
+              type="date"
+              value={prescriptionDate}
+              onChange={(e) => setPrescriptionDate(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
@@ -188,7 +267,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       <h3>Add Medicine</h3>
 
-      {/* Autocomplete Search Input */}
+      {/* Autocomplete Search Input (Min 4 letters) */}
       <div style={{ marginBottom: '12px', position: 'relative' }}>
         <input
           style={defaultStyles.input}
@@ -196,28 +275,30 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        
+
         {searchTerm.length > 0 && searchTerm.length < 4 && (
           <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '-6px', marginBottom: '6px' }}>
             Type {4 - searchTerm.length} more letter{4 - searchTerm.length > 1 ? 's' : ''} for suggestions...
           </span>
         )}
 
-        {showSuggestions && filteredMaster.length > 0 && (
+        {showMedicineSuggestions && filteredMedicines.length > 0 && (
           <div
             style={{
               position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
               background: '#fff',
               border: '1px solid #cbd5e1',
               borderRadius: '4px',
-              width: '100%',
               zIndex: 10,
               maxHeight: '150px',
               overflowY: 'auto',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
             }}
           >
-            {filteredMaster.map((med, idx) => {
+            {filteredMedicines.map((med, idx) => {
               const medName = typeof med === 'string' ? med : med?.name || '';
               return (
                 <div
@@ -233,7 +314,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         )}
       </div>
 
-      {/* Entry Form */}
+      {/* Form Entry */}
       <div style={{ display: 'grid', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
         <div>
           <label style={defaultStyles.label}>Medicine Name:</label>
@@ -279,7 +360,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </button>
       </div>
 
-      {/* Active Prescription List */}
+      {/* Active List */}
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
         <div
@@ -306,7 +387,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
       ))}
 
-      {/* Generate Document Action */}
+      {/* Submission Action */}
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={handleGenerateDoc}
