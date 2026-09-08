@@ -57,7 +57,7 @@ function searchPatientByEmail(email) {
   var userSheet = getOrCreateSheet('Users');
   var users = userSheet.getDataRange().getValues();
   for (var i = 1; i < users.length; i++) {
-    if (users[i][3] === email && ) {
+    if (users[i][3] === email) {
       return {
          id: users[i][0], 
          name: users[i][1], 
