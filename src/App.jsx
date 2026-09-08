@@ -106,7 +106,7 @@ const styles = {
   label: { display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
   navBar: { display: 'flex', gap: '8px', marginBottom: '16px' },
-  navBtn: { flex: 1, padding: '8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' },
+  navBtn: { flex: 1, padding: '8px', background: '#1e293b', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' },
   navActive: { flex: 1, padding: '8px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },
   link: { color: '#2563eb', cursor: 'pointer', fontWeight: 'bold' },
   alert: { padding: '10px', background: '#e0f2fe', color: '#0369a1', borderRadius: '4px', marginBottom: '12px', fontSize: '14px' },
