@@ -117,7 +117,7 @@ export default function App() {
 
       <Alert message={status} styles={styles} />
 
-      {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} />}
+      {view === 'login' && <ErrorBoundary> <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} /> </ErrorBoundary>}
       {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
