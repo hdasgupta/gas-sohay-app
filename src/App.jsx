@@ -92,6 +92,7 @@ export default function App() {
   };
 
   return (
+    <ErrorBoundary>
     <div style={styles.container}>
       <Header user={user} onLogout={handleLogout} styles={styles} />
       
@@ -125,6 +126,7 @@ export default function App() {
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
     </div>
+    </ErrorBoundary>
   );
 }
 
