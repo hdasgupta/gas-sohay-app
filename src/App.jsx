@@ -34,6 +34,21 @@ export default function App() {
   const loadDoctors = () => {
     callBackend('getDoctorsList', [], (data) => setDoctors(data || []));
   };
+  
+  const handleSignUp = (formData) => {
+  setStatus('Registering user...');
+  callBackend('registerPatient', [formData], (res) => {
+    if (res.success) {
+      setUser(res.user);
+      saveSession(res.user);
+      setStatus('');
+      setView('booking');
+      loadDoctors();
+    } else {
+      setStatus(res.message);
+    }
+  });
+};
 
   const handleLogin = ({ email, password }) => {
     setStatus('Authenticating...');
@@ -89,7 +104,7 @@ export default function App() {
       <Alert message={status} styles={styles} />
 
       {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} />}
-      {view === 'signup' && <SignupView onSubmit={() => setView('login')} onNavigateLogin={() => setView('login')} styles={styles} />}
+      {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
       {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={() => loadDoctors()} styles={styles} />}
