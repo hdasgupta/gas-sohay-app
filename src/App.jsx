@@ -100,9 +100,9 @@ export default function App() {
       {/* Navigation Bar for Logged-In Users */}
       {user && user.role !== 'admin' && (
         <div style={styles.navBar}>
-          <button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
+          {user.role === 'patient' && <button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
             Book Appointment
-          </button>
+          </button>}
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
             My Appointments
           </button>
