@@ -27,9 +27,15 @@ export default function App() {
   }, []);
 
   const routeUserByRole = (usr) => {
-    setView(usr.role === 'admin' ? 'admin' : 'booking');
-    loadDoctors();
-  };
+  if (usr.role === 'admin') {
+    setView('admin');
+  } else if (usr.role === 'doctor') {
+    setView('prescription');
+  } else {
+    setView('booking');
+  }
+  loadDoctors();
+};
 
   const loadDoctors = () => {
     callBackend('getDoctorsList', [], (data) => setDoctors(data || []));
@@ -98,6 +104,12 @@ export default function App() {
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
             My Appointments
           </button>
+          <button
+            style={view === 'prescription' ? styles.navActive : styles.navBtn}
+            onClick={() => setView('prescription')}
+          >
+            Prescription
+          </button>
         </div>
       )}
 
@@ -107,6 +119,7 @@ export default function App() {
       {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
+      {view === 'prescription' && <PrescriptionView user={user} styles={styles} />}
       {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={() => loadDoctors()} styles={styles} />}
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
