@@ -134,38 +134,51 @@ function createPrescriptionDoc(payload) {
 }
 
 /**
- * Retrieves unique patient list for autocomplete suggestions.
+ * Fetches patient records directly from the 'Users' sheet.
+ * Automatically filters by 'Patient' role if a Role column is present.
  */
 function getPatientMasterList() {
   initDatabase();
-  var sheet = getOrCreateSheet('Patients');
-  var patients = [];
+  var sheet = getOrCreateSheet('Users');
+  var lastRow = sheet.getLastRow();
 
-  if (sheet.getLastRow() > 1) {
-    var data = sheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0]) {
+  if (lastRow <= 1) {
+    return [];
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(function(h) { 
+    return h.toString().toLowerCase().trim(); 
+  });
+
+  // Dynamic column detection
+  var nameIdx = headers.indexOf('name');
+  var ageIdx = headers.indexOf('age');
+  var roleIdx = headers.indexOf('role');
+
+  // Fallback to column 0 if header naming varies
+  if (nameIdx === -1) nameIdx = 0;
+
+  var patients = [];
+  var seen = {};
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var name = row[nameIdx] ? row[nameIdx].toString().trim() : '';
+    var role = roleIdx !== -1 && row[roleIdx] ? row[roleIdx].toString().trim().toLowerCase() : '';
+
+    // Include row if name is present and role is 'patient' (or if no role column exists)
+    if (name && (roleIdx === -1 || role === 'patient' || role === '')) {
+      var key = name.toLowerCase();
+      if (!seen[key]) {
+        seen[key] = true;
         patients.push({
-          name: data[i][0].toString().trim(),
-          age: data[i][1] ? data[i][1].toString().trim() : ''
+          name: name,
+          age: ageIdx !== -1 && row[ageIdx] ? row[ageIdx].toString().trim() : ''
         });
       }
     }
-  } else {
-    // Fallback: Read unique patient names from 'Prescriptions' sheet if 'Patients' sheet is blank
-    var pSheet = getOrCreateSheet('Prescriptions');
-    if (pSheet.getLastRow() > 1) {
-      var pData = pSheet.getDataRange().getValues();
-      var seen = {};
-      for (var j = 1; j < pData.length; j++) {
-        var pName = pData[j][2]; // Patient Name Column
-        var pAge = pData[j][3];  // Patient Age Column
-        if (pName && !seen[pName.toString().toLowerCase()]) {
-          seen[pName.toString().toLowerCase()] = true;
-          patients.push({ name: pName.toString().trim(), age: pAge ? pAge.toString().trim() : '' });
-        }
-      }
-    }
   }
+
   return patients;
 }
