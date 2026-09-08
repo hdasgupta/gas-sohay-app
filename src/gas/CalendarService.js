@@ -74,6 +74,9 @@ function getUserAppointments(userEmail) {
 
       // Present/Future criteria: Meeting end time has not passed yet
       var isUpcomingOrPresent = now <= apptEndTime;
+      
+      console.log(doctorEmail)
+      console.log(JSON.stringify(getDoctorByEmail(doctorEmail)))
 
       appointments.push({
         id: data[i][0],
