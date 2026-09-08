@@ -46,5 +46,5 @@ function upsertDoctor(doc) {
 
 function getDoctorByEmail(email) {
   // Tab to edit
-  return getDoctorsList().map((doctor) => doctor.email === email)[0]
+  return getDoctorsList().filter((doctor) => doctor.email === email)[0]
 }
