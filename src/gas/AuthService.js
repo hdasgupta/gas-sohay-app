@@ -11,7 +11,15 @@ function authenticateUser(email, password) {
     if (users[i][3] === email && users[i][5] === password) {
       return {
         success: true,
-        user: { id: users[i][0], name: users[i][1], location: users[i][2], email: users[i][3], phone: users[i][4], role: users[i][6] }
+        user: { 
+          id: users[i][0], 
+          name: users[i][1], 
+          location: users[i][2], 
+          email: users[i][3], 
+          phone: users[i][4], 
+          role: users[i][6] 
+          
+        }
       };
     }
   }
@@ -23,7 +31,15 @@ function authenticateUser(email, password) {
     if (docs[j][3] === email && docs[j][5] === password) {
       return {
         success: true,
-        user: { id: docs[j][0], name: docs[j][1], location: 'Clinic', email: docs[j][3], phone: docs[j][4], role: 'doctor' }
+        user: { 
+          id: docs[j][0],
+          name: docs[j][1], 
+          location: 'Clinic', 
+          email: docs[j][3], 
+          phone: docs[j][4], 
+          role: 'doctor' 
+          
+        }
       };
     }
   }
