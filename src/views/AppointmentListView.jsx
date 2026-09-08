@@ -41,7 +41,7 @@ export default function AppointmentListView({ user, styles }) {
             </p>
 
             <p style={{ margin: '4px 0', fontSize: '13px', color: '#64748b' }}>
-              {user.role === 'doctor' ? `Patient: ${appt.patientEmail}` : `Doctor: ${appt.doctorEmail}`}
+              {user.role === 'doctor' ? `Patient: ${appt.patient}` : `Doctor: ${appt.doctor}`}
             </p>
 
             {appt.meetLink ? (
