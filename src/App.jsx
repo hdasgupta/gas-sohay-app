@@ -106,12 +106,12 @@ export default function App() {
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
             My Appointments
           </button>
-          <button
+          {user.role==='doctor' && <button
             style={view === 'prescription' ? styles.navActive : styles.navBtn}
             onClick={() => setView('prescription')}
           >
             Prescription
-          </button>
+          </button>}
         </div>
       )}
 

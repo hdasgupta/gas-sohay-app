@@ -34,6 +34,7 @@ function authenticateUser(email, password) {
         user: { 
           id: docs[j][0],
           name: docs[j][1], 
+          speciality: docs[j][1],
           location: 'Clinic', 
           email: docs[j][3], 
           phone: docs[j][4], 

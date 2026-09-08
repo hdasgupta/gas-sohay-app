@@ -15,7 +15,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   // Unchangeable Doctor & Clinic Details
   const fixedClinicInfo = {
-    orgName: user?.orgName || 'CITY HEALTHCARE CLINIC',
+    orgName: user?.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH',
     doctorName: user?.name || 'Dr. A. Sharma',
     doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (General Medicine)'
   };
@@ -176,7 +176,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       {/* Unchangeable Organization & Doctor Information */}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
-          <label style={defaultStyles.label}>Organization / Clinic Name (Locked)</label>
+          <label style={defaultStyles.label}>Organization / Clinic Name</label>
           <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.orgName} readOnly />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
