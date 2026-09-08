@@ -26,7 +26,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     patientAge: '',
     date: new Date().toISOString().split('T')[0]
   });
-  alert(headerInfo);
+  
 
   const [currentMed, setCurrentMed] = useState({
     name: '',
@@ -34,14 +34,14 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
     foodInstruction: 'After Food'
   });
-  alert(currentMed);
+  
 
   const [prescriptionList, setPrescriptionList] = useState([]);
 
   useEffect(() => {
     try {
       callBackend('getMedicineMasterList', [], (data) => {
-        alert(JSON.stringify(data));
+        
         if (Array.isArray(data)) {
           setMasterMedicines(data);
         } else {
