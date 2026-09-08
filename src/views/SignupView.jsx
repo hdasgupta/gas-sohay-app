@@ -46,6 +46,7 @@ export default function SignupView({ onSubmit, onNavigateLogin, styles }) {
       setOtpStatus('Please verify your email address first.');
       return;
     }
+    alert(isPasswordValid)
     if (!isPasswordValid) return;
     alert("submitting...");
     onSubmit(formData);
