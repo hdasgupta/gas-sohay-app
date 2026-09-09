@@ -100,12 +100,12 @@ export default function App() {
       {/* Navigation Bar for Logged-In Users */}
       {user && user.role !== 'admin' && (
         <div style={styles.navBar}>
-          {user.role === 'patient' && <button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
+          {user.role === 'patient' && <><button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
             Book Appointment
           </button>
           <button onClick={() => setCurrentTab('family')} style={{ padding: '8px 12px', cursor: 'pointer', fontWeight: currentTab === 'family' ? 'bold' : 'normal' }}>
           Family Account
-        </button>}
+        </button></>}
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
             My Appointments
           </button>
