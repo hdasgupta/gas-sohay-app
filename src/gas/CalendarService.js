@@ -87,7 +87,7 @@ function getUserAppointments(userEmail) {
         meetLink: isUpcomingOrPresent ? rawMeetLink : null,
         status: isUpcomingOrPresent ? 'UPCOMING' : 'COMPLETED',
         isUpcomingOrPresent: isUpcomingOrPresent, 
-        prescriptionLink, 
+        prescriptionLink
       });
     }
   }
