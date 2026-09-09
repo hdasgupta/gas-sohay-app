@@ -40,5 +40,5 @@ function testCreatePrescription() {
 
 function testUserAppountments() {
   // Tab to edit
-  UserAppointments("himaghna.dasgupta@gmail.com") 
+  getUserAppointments("himaghna.dasgupta@gmail.com") 
 }
