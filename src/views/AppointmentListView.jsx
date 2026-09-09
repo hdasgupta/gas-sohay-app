@@ -31,6 +31,42 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
 
   if (loading) return <div style={cardStyle}>Loading appointment schedule...</div>;
 
+  // Shared cell style for preventing text wrapping
+  const cellStyle = {
+    padding: '12px 14px',
+    whiteSpace: 'nowrap',
+    borderBottom: '1px solid #f1f5f9'
+  };
+
+  const headerCellStyle = {
+    padding: '12px 14px',
+    whiteSpace: 'nowrap',
+    borderBottom: '2px solid #e2e8f0',
+    color: '#475569',
+    background: '#ffffff',
+    textAlign: 'left'
+  };
+
+  // Sticky 1st Column Styles
+  const stickyHeaderStyle = {
+    ...headerCellStyle,
+    position: 'sticky',
+    left: 0,
+    zIndex: 2,
+    boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)',
+    borderRight: '1px solid #e2e8f0'
+  };
+
+  const stickyCellStyle = {
+    ...cellStyle,
+    position: 'sticky',
+    left: 0,
+    zIndex: 1,
+    background: '#ffffff',
+    boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)',
+    borderRight: '1px solid #e2e8f0'
+  };
+
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
@@ -83,7 +119,8 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                   borderColor: selectedFilterEmail === m.email ? '#2563eb' : '#cbd5e1',
                   background: selectedFilterEmail === m.email ? '#eff6ff' : '#ffffff',
                   color: selectedFilterEmail === m.email ? '#1e40af' : '#334155',
-                  fontWeight: selectedFilterEmail === m.email ? 'bold' : 'normal'
+                  fontWeight: selectedFilterEmail === m.email ? 'bold' : 'normal',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 👤 {m.name} {m.age ? `(${m.age} yrs)` : ''} {m.email === user.email ? '★' : ''}
@@ -93,39 +130,40 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
         </div>
       )}
 
-      {/* Appointments Data Table */}
+      {/* Appointments Data Table Container with Horizontal Scroll */}
       {filteredAppointments.length === 0 ? (
         <p style={{ color: '#64748b', textAlign: 'center', margin: '30px 0' }}>No appointments found for the selected view.</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+          <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', fontSize: '14px' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
-                <th style={{ padding: '10px' }}>Patient Name</th>
-                <th style={{ padding: '10px' }}>Email</th>
-                <th style={{ padding: '10px' }}>Date</th>
-                <th style={{ padding: '10px' }}>Time</th>
-                <th style={{ padding: '10px' }}>Status</th>
-                <th style={{ padding: '10px' }}>Prescription</th>
+              <tr>
+                <th style={stickyHeaderStyle}>Patient Name</th>
+                <th style={headerCellStyle}>Email</th>
+                <th style={headerCellStyle}>Date</th>
+                <th style={headerCellStyle}>Time Slot</th>
+                <th style={headerCellStyle}>Status</th>
+                <th style={headerCellStyle}>Prescription Link</th>
               </tr>
             </thead>
             <tbody>
               {filteredAppointments.map((app, index) => (
-                <tr key={app.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '10px', fontWeight: 'bold' }}>
-                    {app.patient.name}
-                    {app.patientAge && <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal', marginLeft: '4px' }}>({app.patientAge}y)</span>}
+                <tr key={app.id || index}>
+                  {/* Frozen 1st Column */}
+                  <td style={stickyCellStyle}>
+                    <strong style={{ color: '#0f172a' }}>{app.patient.name}</strong>
+                    {app.patientAge && <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '4px' }}>({app.patientAge}y)</span>}
                     {app.patient.email === user.email && (
-                      <span style={{ fontSize: '11px', color: '#2563eb', marginLeft: '6px' }}>(You)</span>
+                      <span style={{ fontSize: '11px', color: '#2563eb', marginLeft: '6px', fontWeight: 'bold' }}>(You)</span>
                     )}
                   </td>
-                  <td style={{ padding: '10px', color: '#475569', fontSize: '13px' }}>{app.patient.email}</td>
-                  <td style={{ padding: '10px' }}>{app.date}</td>
-                  <td style={{ padding: '10px' }}>{app.time}</td>
-                  <td style={{ padding: '10px' }}>
+                  <td style={{ ...cellStyle, color: '#475569', fontSize: '13px' }}>{app.patient.email}</td>
+                  <td style={cellStyle}>{app.date}</td>
+                  <td style={cellStyle}>{app.time}</td>
+                  <td style={cellStyle}>
                     <span
                       style={{
-                        padding: '2px 8px',
+                        padding: '3px 10px',
                         borderRadius: '12px',
                         fontSize: '12px',
                         fontWeight: 'bold',
@@ -136,7 +174,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                       {app.status || 'Scheduled'}
                     </span>
                   </td>
-                  <td style={{ padding: '10px' }}>
+                  <td style={cellStyle}>
                     {app.prescriptionUrl ? (
                       <a
                         href={app.prescriptionUrl}
