@@ -25,6 +25,7 @@ export default function BookingView({ user = {}, styles = {} }) {
   useEffect(() => {
     callBackend('getDoctorsList', [], (docList) => {
       if (docList && docList.length > 0) {
+        alert(JSON.stringify(docList));
         setDoctors(docList);
         setSelectedDoctorEmail(docList[0].email);
       }
@@ -32,16 +33,13 @@ export default function BookingView({ user = {}, styles = {} }) {
 
     if (user.email) {
       callBackend('getFamilyDetailsByUser', [user.email], (data) => {
+        alert(JSON.stringify(data))
         if (data && data.members && data.members.length > 0) {
           setFamilyMembers(data.members);
         }
       });
       
-      callBackend('getDoctorByEmail', [user.email], (data) => {
-  if (data && data.availability && data.availability.length > 0) {
-    setAvailableSlots(data.availability);
-  }
-});
+      
     }
   }, [user.email]);
 
@@ -54,6 +52,12 @@ export default function BookingView({ user = {}, styles = {} }) {
         setLoadingSlots(false);
         setAppointmentTime('');
       });
+      
+      callBackend('getDoctorByEmail', [user.email], (data) => {
+  if (data && data.availability && data.availability.length > 0) {
+    setAvailableSlots(data.availability);
+  }
+});
     }
   }, [selectedDoctorEmail, appointmentDate]);
 
@@ -167,7 +171,7 @@ export default function BookingView({ user = {}, styles = {} }) {
             required
           >
             <option value="">-- Choose Time Slot --</option>
-            {availabl.map((slot) => {
+            {availableSlots.length && availableSlots.map((slot) => {
               const isBooked = bookedSlots.includes(slot);
               return (
                 <option key={slot} value={slot} disabled={isBooked}>
