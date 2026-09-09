@@ -25,6 +25,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
     }
   }, [user.email]);
 
+  alert(loading);
   if (loading) return <div style={cardStyle}>Loading appointments...</div>;
 
   return (
