@@ -6,7 +6,7 @@ function testAppointment() {
   bookedByEmail: "himaghna.dasgupta@gmail.com",
   doctorEmail:"test@gmail.com",
   date: JSON.stringify("2026-09-10"),
-  time: JSON.strungify("09:00")
+  time: JSON.stringify("09:00")
 })
 }
 
