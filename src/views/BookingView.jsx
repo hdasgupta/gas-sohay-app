@@ -80,8 +80,8 @@ export default function BookingView({ user = {}, styles = {} }) {
       patientName: selectedPatientName,
       bookedByEmail: user.email,
       doctorEmail: selectedDoctorEmail,
-      date: appointmentDate,
-      time: appointmentTime
+      date: JSON.stringify(appointmentDate),
+      time: JSON. strungify(appointmentTime) 
     };
 
     callBackend('bookAppointment', [payload], (res) => {
