@@ -106,8 +106,8 @@ function getAppointmentsForUserAndFamily(userEmail) {
         doctor: getDoctorByEmail(rowDoctorEmail),
         date: apptData[i][3],
         time: apptData[i][4],
-        status: apptData[i][5] || 'Scheduled',
-        prescriptionUrl: apptData[i][6] || ''
+        status: apptData[i][6] || 'Scheduled',
+        prescriptionUrl: apptData[i][7] || ''
       });
     }
   }

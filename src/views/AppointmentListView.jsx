@@ -113,13 +113,13 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
               {filteredAppointments.map((app, index) => (
                 <tr key={app.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '10px', fontWeight: 'bold' }}>
-                    {app.patientName}
+                    {app.patient.name}
                     {app.patientAge && <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal', marginLeft: '4px' }}>({app.patientAge}y)</span>}
-                    {app.patientEmail === user.email && (
+                    {app.patient.email === user.email && (
                       <span style={{ fontSize: '11px', color: '#2563eb', marginLeft: '6px' }}>(You)</span>
                     )}
                   </td>
-                  <td style={{ padding: '10px', color: '#475569', fontSize: '13px' }}>{app.patientEmail}</td>
+                  <td style={{ padding: '10px', color: '#475569', fontSize: '13px' }}>{app.patient.email}</td>
                   <td style={{ padding: '10px' }}>{app.date}</td>
                   <td style={{ padding: '10px' }}>{app.time}</td>
                   <td style={{ padding: '10px' }}>
