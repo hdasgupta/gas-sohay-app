@@ -23,7 +23,7 @@ export default function BookingView({ user = {}, styles = {} }) {
 
   // Load doctors and family members on mount
   useEffect(() => {
-    callBackend('getDoctors', [], (docList) => {
+    callBackend('getDoctorsList', [], (docList) => {
       if (docList && docList.length > 0) {
         setDoctors(docList);
         setSelectedDoctorEmail(docList[0].email);
@@ -167,7 +167,7 @@ export default function BookingView({ user = {}, styles = {} }) {
             required
           >
             <option value="">-- Choose Time Slot --</option>
-            {availableSlots.map((slot) => {
+            {availabl.map((slot) => {
               const isBooked = bookedSlots.includes(slot);
               return (
                 <option key={slot} value={slot} disabled={isBooked}>
