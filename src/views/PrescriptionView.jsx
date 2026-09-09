@@ -81,6 +81,9 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         return medName.toLowerCase().includes(searchTerm.trim().toLowerCase());
       })
     : [];
+    
+    
+    alert(filteredMedicines)
 
   const handleSelectPatient = (patient) => {
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
