@@ -85,7 +85,7 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
             {familyData.members?.map((member, idx) => (
               <div key={idx} style={{ padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <strong>{member.name}</strong> <span style={{ fontSize: '12px', color: '#64748b' }}>({member.age} yrs)</span>
+                  <strong>{member.name}</strong> 
                   <div style={{ fontSize: '12px', color: '#475569' }}>{member.email}</div>
                 </div>
                 {member.email === user.email && (
