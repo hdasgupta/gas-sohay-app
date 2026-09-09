@@ -33,7 +33,7 @@ function upsertDoctor(doc) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === doc.id || data[i][3] === doc.email) {
       sheet.getRange(i + 1, 2, 1, 6).setValues([[
-        doc.name, doc.specialty, doc.email, doc.phone, doc.password, availJson
+        doc.name, doc.specialty, doc.email, doc.phone, hashPassword(doc.password), availJson
       ]]);
       return { success: true, message: 'Doctor record updated successfully.' };
     }

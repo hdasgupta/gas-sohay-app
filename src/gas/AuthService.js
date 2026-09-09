@@ -29,7 +29,7 @@ function authenticateUser(email, password) {
   var sheet = getOrCreateSheet('Users');
   const cleanEmail = email.toString().trim().toLowerCase();
   const inputHash = hashPassword(password);
-  const data = sheet.getDataRange().getValues();
+  var data = sheet.getDataRange().getValues();
 
   for (let i = 1; i < data.length; i++) {
     const rowEmail = data[i][3] ? data[i][3].toString().trim().toLowerCase() : '';
@@ -55,7 +55,35 @@ function authenticateUser(email, password) {
       }
     }
   }
+  
+  sheet = getOrCreateSheet('Doctors');
 
+  data = sheet.getDataRange().getValues();
+
+for (let i = 1; i < data.length; i++) {
+  const rowEmail = data[i][3] ? data[i][3].toString().trim().toLowerCase() : '';
+  const storedHash = data[i][5] ? data[i][5].toString().trim() : '';
+  
+  if (rowEmail === cleanEmail) {
+    // Compare calculated hash against stored hash
+    if (storedHash === inputHash) {
+      return {
+        success: true,
+        user: {
+          id: data[i][0],
+          name: data[i][1],
+          speciality: data[i][2],
+          email: data[i][3],
+          phone: data[i][4],
+          availability: JSON.stringify(data[i][6]) 
+          
+        }
+      };
+    } else {
+      return { success: false, error: "Invalid email or password." };
+    }
+  }
+}
   return { success: false, error: "Invalid email or password." };
 
   

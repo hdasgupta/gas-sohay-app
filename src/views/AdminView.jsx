@@ -6,7 +6,7 @@ export default function AdminView({ doctors, onSaveDoctor, styles }) {
   const [docForm, setDocForm] = useState({ id: '', name: '', specialty: '', email: '', phone: '', password: '', availability: '' });
 
   const handleEdit = (d) => {
-    setDocForm({ ...d, availability: d.availability.join(', ') });
+    setDocForm({ ...d, availability: d.availability.join(',').map((s)=> s.trim())});
   };
 
   const handleSubmit = (e) => {
