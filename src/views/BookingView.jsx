@@ -48,6 +48,7 @@ export default function BookingView({ user = {}, styles = {} }) {
     if (selectedDoctorEmail && appointmentDate) {
       setLoadingSlots(true);
       callBackend('getBookedSlotsForDoctorAndDate', [selectedDoctorEmail, appointmentDate], (slots) => {
+        
         setBookedSlots(slots || []);
         setLoadingSlots(false);
         setAppointmentTime('');

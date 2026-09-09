@@ -202,8 +202,8 @@ function getBookedSlotsForDoctorAndDate(doctorEmail, dateStr) {
   const targetDoctor = doctorEmail.toString().trim().toLowerCase();
   
   for (let i = 1; i < data.length; i++) {
-    const rawDate = data[i][3];
-    const rowTime = data[i][4] ? data[i][4].toString().trim() : '';
+    const rawDate = JSON.parse(data[i][3]);
+    const rowTime = data[i][4] ? JSON.parse(data[i][4]).toString().trim(): '';
     const status = data[i][6] ? data[i][6].toString().trim().toLowerCase() : '';
     const rowDoctor = data[i][2] ? data[i][2].toString().trim().toLowerCase() : '';
     
