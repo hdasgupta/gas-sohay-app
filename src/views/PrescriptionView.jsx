@@ -52,7 +52,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         setMasterMedicines(Array.isArray(data) ? data : []);
       });
     } catch (err) {
-      console.error('Failed to load medicine list:', err);
+      alert('Failed to load medicine list:'+ err);
     }
 
     // Fetch Patient Master List for Suggestions
@@ -61,7 +61,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         setMasterPatients(Array.isArray(data) ? data : []);
       });
     } catch (err) {
-      console.error('Failed to load patient list:', err);
+      alert('Failed to load patient list:'+ err);
     }
   }, []);
 
