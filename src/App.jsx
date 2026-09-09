@@ -104,7 +104,7 @@ export default function App() {
           {user.role === 'patient' && <><button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
             Book Appointment
           </button>
-          <button onClick={() => setCurrentTab('family')} style={{ padding: '8px 12px', cursor: 'pointer', fontWeight: currentTab === 'family' ? 'bold' : 'normal' }}>
+          <button onClick={() => setView('family')} style={{ padding: '8px 12px', cursor: 'pointer', fontWeight: view === 'family' ? 'bold' : 'normal' }}>
           Family Account
         </button></>}
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
@@ -126,7 +126,7 @@ export default function App() {
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
       {view === 'prescription' &&  <PrescriptionView user={user} styles={styles} />}
-      {currentTab === 'family' && <FamilyManagementView user={user} />}
+      {view === 'family' && <FamilyManagementView user={user} />}
       {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={() => loadDoctors()} styles={styles} />}
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
