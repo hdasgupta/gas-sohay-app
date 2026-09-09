@@ -83,7 +83,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     : [];
     
     
-    alert(filteredMedicines)
+    alert(masterMedicines)
 
   const handleSelectPatient = (patient) => {
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
