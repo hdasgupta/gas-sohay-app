@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
-  // Safe default styles with distinct read-only field appearance
+  // Safe default styles
   const defaultStyles = {
     card: styles.card || { padding: '20px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', margin: '10px 0' },
     input: styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
@@ -13,23 +13,24 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     btnDanger: styles.btnDanger || { background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }
   };
 
-  // Unchangeable Doctor & Clinic Details
+  // Locked Clinic & Doctor Info
   const fixedClinicInfo = {
-    orgName: user?.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH',
+    orgName: user?.orgName || 'CITY HEALTHCARE CLINIC',
     doctorName: user?.name || 'Dr. A. Sharma',
     doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (General Medicine)'
   };
 
+  const todayDate = new Date().toISOString().split('T')[0];
+
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [masterPatients, setMasterPatients] = useState([]);
-
+  
   // Loading state for master data
   const [isMedicinesLoading, setIsMedicinesLoading] = useState(true);
 
-  // Form State
+  // Patient & Prescription State
   const [patientInput, setPatientInput] = useState('');
   const [patientAge, setPatientAge] = useState('');
-  const [prescriptionDate, setPrescriptionDate] = useState(new Date().toISOString().split('T')[0]);
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,8 +46,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   });
 
   const [prescriptionList, setPrescriptionList] = useState([]);
-  
-  const todayDate = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     let medDone = false;
@@ -57,31 +56,35 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         setIsMedicinesLoading(false);
       }
     };
-    // Fetch Medicine Master List
+
+    // Load Master Medicines
     try {
       callBackend('getMedicineMasterList', [], (data) => {
-        
         setMasterMedicines(Array.isArray(data) ? data : []);
         medDone = true;
         checkLoadingFinished();
       });
     } catch (err) {
-      alert('Failed to load medicine list:'+ err);
+      console.error('Failed to load medicine list:', err);
       medDone = true;
       checkLoadingFinished();
     }
 
-    // Fetch Patient Master List for Suggestions
+    // Load Master Patients
     try {
       callBackend('getPatientMasterList', [], (data) => {
         setMasterPatients(Array.isArray(data) ? data : []);
+        patientDone = true;
+        checkLoadingFinished();
       });
     } catch (err) {
-      alert('Failed to load patient list:'+ err);
+      console.error('Failed to load patient list:', err);
+      patientDone = true;
+      checkLoadingFinished();
     }
   }, []);
 
-  // Filter Patients based on input
+  // Filter Patients
   const filteredPatients = patientInput.trim().length >= 2
     ? masterPatients.filter((p) => {
         const pName = typeof p === 'string' ? p : p?.name || '';
@@ -89,7 +92,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       })
     : [];
 
-  // Filter Medicines (Minimum 4 letters required)
+  // Filter Medicines (Minimum 4 letters)
   const showMedicineSuggestions = searchTerm.trim().length >= 4;
   const filteredMedicines = showMedicineSuggestions
     ? masterMedicines.filter((m) => {
@@ -97,9 +100,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         return medName.toLowerCase().includes(searchTerm.trim().toLowerCase());
       })
     : [];
-    
-    
-   // alert(masterMedicines)
 
   const handleSelectPatient = (patient) => {
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
@@ -108,19 +108,20 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     if (pAge) setPatientAge(pAge);
     setShowPatientDropdown(false);
   };
-  
+
+  // Helper to update medicine name and set default quantity
   const handleMedicineNameChange = (name) => {
-  const isTablet = name.trim().toLowerCase().endsWith('tablet');
-  setCurrentMed((prev) => ({
-    ...prev,
-    name: name,
-    quantity: isTablet ? '1 pcs' : (prev.quantity === '1 pcs' ? '' : prev.quantity)
-  }));
-};condition ? true : false
+    const isTablet = name.trim().toLowerCase().endsWith('tablet');
+    setCurrentMed((prev) => ({
+      ...prev,
+      name: name,
+      quantity: isTablet ? '1 pcs' : (prev.quantity === '1 pcs' ? '' : prev.quantity)
+    }));
+  };
 
   const handleSelectSearchedMedicine = (med) => {
     const selectedName = typeof med === 'string' ? med : med?.name || '';
-    setCurrentMed((prev) => ({ ...prev, name: selectedName }));
+    handleMedicineNameChange(selectedName);
     setSearchTerm('');
   };
 
@@ -149,11 +150,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       return;
     }
 
-    if (selectedTimes.length === 0) {
-      alert('Select at least one taking time.');
-      return;
-    }
-
     setPrescriptionList((prev) => [
       ...prev,
       {
@@ -165,6 +161,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       }
     ]);
 
+    // Reset Form
     setCurrentMed({
       name: '',
       quantity: '',
@@ -196,7 +193,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       doctorDesignation: fixedClinicInfo.doctorSpeciality,
       patientName: patientInput.trim(),
       patientAge: patientAge,
-      date: prescriptionDate,
+      date: todayDate,
       medicines: prescriptionList
     };
 
@@ -214,10 +211,10 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     <div style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
-      {/* Unchangeable Organization & Doctor Information */}
+      {/* Unchangeable Doctor & Clinic Details */}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
-          <label style={defaultStyles.label}>Organization / Clinic Name</label>
+          <label style={defaultStyles.label}>Organization / Clinic Name (Locked)</label>
           <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.orgName} readOnly />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -231,7 +228,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           </div>
         </div>
 
-        {/* Patient Details with Autocomplete Suggestion */}
+        {/* Patient Details & Locked Date */}
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 2, position: 'relative' }}>
             <label style={defaultStyles.label}>Patient Name</label>
@@ -246,7 +243,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               onFocus={() => setShowPatientDropdown(true)}
             />
 
-            {/* Patient Suggestions Dropdown */}
+            {/* Patient Dropdown */}
             {showPatientDropdown && filteredPatients.length > 0 && (
               <div
                 style={{
@@ -293,7 +290,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           </div>
 
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Date</label>
+            <label style={defaultStyles.label}>Date (Locked)</label>
             <input
               style={defaultStyles.readOnlyInput}
               type="date"
@@ -328,54 +325,56 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           <span>Loading medicine catalog and patient master list, please wait...</span>
         </div>
       ) : (
-      <div style={{ marginBottom: '12px', position: 'relative' }}>
-        <input
-          style={defaultStyles.input}
-          placeholder="Search medicine (type at least 4 letters)..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        /* Autocomplete Search Input */
+        <div style={{ marginBottom: '12px', position: 'relative' }}>
+          <input
+            style={defaultStyles.input}
+            placeholder="Search medicine catalog (type at least 4 letters)..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-        {searchTerm.length > 0 && searchTerm.length < 4 && (
-          <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '-6px', marginBottom: '6px' }}>
-            Type {4 - searchTerm.length} more letter{4 - searchTerm.length > 1 ? 's' : ''} for suggestions...
-          </span>
-        )}
+          {searchTerm.length > 0 && searchTerm.length < 4 && (
+            <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '-6px', marginBottom: '6px' }}>
+              Type {4 - searchTerm.length} more letter{4 - searchTerm.length > 1 ? 's' : ''} for suggestions...
+            </span>
+          )}
 
-        {showMedicineSuggestions && filteredMedicines.length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: '#fff',
-              border: '1px solid #cbd5e1',
-              borderRadius: '4px',
-              zIndex: 10,
-              maxHeight: '150px',
-              overflowY: 'auto',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            {filteredMedicines.map((med, idx) => {
-              const medName = typeof med === 'string' ? med : med?.name || '';
-              return (
-                <div
-                  key={idx}
-                  style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
-                  onClick={() => handleSelectSearchedMedicine(med)}
-                >
-                  <strong>{medName}</strong>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+          {showMedicineSuggestions && filteredMedicines.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: '#fff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '4px',
+                zIndex: 10,
+                maxHeight: '150px',
+                overflowY: 'auto',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {filteredMedicines.map((med, idx) => {
+                const medName = typeof med === 'string' ? med : med?.name || '';
+                return (
+                  <div
+                    key={idx}
+                    style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
+                    onClick={() => handleSelectSearchedMedicine(med)}
+                  >
+                    <strong>{medName}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
-      { /* Medicine Form Input */ }
-<div style={{ display: 'grid', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
+
+      {/* Medicine Form Input */}
+      <div style={{ display: 'grid', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 2 }}>
             <label style={defaultStyles.label}>Medicine Name:</label>
@@ -430,7 +429,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
 
         <div>
-          <label style={defaultStyles.label}>Food Timing:</label>
+          <label style={defaultStyles.label}>Food Instruction:</label>
           <select
             style={defaultStyles.input}
             value={currentMed.foodInstruction}
@@ -447,7 +446,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </button>
       </div>
 
-      {/* Active List */}
+      {/* Active Prescription Items */}
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
         <div
@@ -463,9 +462,14 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           }}
         >
           <div>
-            <strong>{idx + 1}. {item.name}</strong>
+            <strong>{idx + 1}. {item.name}</strong> — <em>{item.quantity}</em>
+            {item.isSos && (
+              <span style={{ marginLeft: '8px', background: '#fef08a', color: '#854d0e', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                SOS
+              </span>
+            )}
             <div style={{ fontSize: '12px', color: '#475569' }}>
-              Times: {item.takingTime.join(', ')} | ({item.foodInstruction})
+              Times: {item.takingTime.length > 0 ? item.takingTime.join(', ') : 'As needed'} | ({item.foodInstruction})
             </div>
           </div>
           <button style={defaultStyles.btnDanger} onClick={() => handleRemoveMedicine(idx)}>
@@ -478,8 +482,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={handleGenerateDoc}
-          disabled={loading}
-          style={{ ...defaultStyles.btnPrimary, background: loading ? '#94a3b8' : '#2563eb' }}
+          disabled={loading || isMedicinesLoading}
+          style={{ ...defaultStyles.btnPrimary, background: (loading || isMedicinesLoading) ? '#94a3b8' : '#2563eb' }}
         >
           {loading ? 'Generating Google Doc...' : 'Generate Google Doc Prescription'}
         </button>
