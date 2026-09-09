@@ -83,7 +83,7 @@ export default function BookingView({ user = {}, styles = {} }) {
       date: JSON.stringify(appointmentDate),
       time: JSON. strungify(appointmentTime) 
     };
-
+    alert(JSON.stringify(payload))
     callBackend('bookAppointment', [payload], (res) => {
       setSubmitting(false);
       if (res && res.success) {
