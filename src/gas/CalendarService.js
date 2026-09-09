@@ -184,34 +184,41 @@ function getTodayPatientsForDoctor(doctorEmail) {
 }
 
 /**
- * Returns an array of time slots that are already booked for a specific date.
+ * Returns time slots already booked for a specific doctor on a specific date.
  * Excludes cancelled appointments.
  */
-function getBookedSlotsForDate(dateStr) {
-  if (!dateStr) return [];
-
+function getBookedSlotsForDoctorAndDate(doctorEmail, dateStr) {
+  if (!doctorEmail || !dateStr) return [];
+  
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
   if (!sheet) return [];
-
+  
   const data = sheet.getDataRange().getValues();
   const bookedSlots = [];
-
+  const targetDoctor = doctorEmail.toString().trim().toLowerCase();
+  
   for (let i = 1; i < data.length; i++) {
     const rawDate = data[i][3];
     const rowTime = data[i][4] ? data[i][4].toString().trim() : '';
     const status = data[i][6] ? data[i][6].toString().trim().toLowerCase() : '';
-
+    const rowDoctor = data[i][2] ? data[i][2].toString().trim().toLowerCase() : '';
+    
     let formattedRowDate = '';
     if (rawDate instanceof Date) {
       formattedRowDate = Utilities.formatDate(rawDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
     } else if (rawDate) {
       formattedRowDate = rawDate.toString().trim();
     }
-
-    if (formattedRowDate === dateStr && status !== 'cancelled' && rowTime) {
+    
+    if (
+      formattedRowDate === dateStr &&
+      rowDoctor === targetDoctor &&
+      status !== 'cancelled' &&
+      rowTime
+    ) {
       bookedSlots.push(rowTime);
     }
   }
-
+  
   return bookedSlots;
 }

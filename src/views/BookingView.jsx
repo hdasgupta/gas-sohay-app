@@ -6,22 +6,30 @@ export default function BookingView({ user = {}, styles = {} }) {
   const inputStyle = styles.input || { width: '100%', padding: '10px', marginBottom: '14px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' };
   const btnStyle = styles.btnPrimary || { width: '100%', padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
 
-  // Calculate Today's Date in YYYY-MM-DD for min date restriction
   const todayStr = new Date().toISOString().split('T')[0];
 
+  const [availableSlots, setAvailableSlots] = useState([]);
+
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctorEmail, setSelectedDoctorEmail] = useState('');
   const [familyMembers, setFamilyMembers] = useState([]);
   const [selectedPatientEmail, setSelectedPatientEmail] = useState(user.email || '');
   const [selectedPatientName, setSelectedPatientName] = useState(user.name || '');
   const [appointmentDate, setAppointmentDate] = useState(todayStr);
   const [appointmentTime, setAppointmentTime] = useState('');
-  
-  const [availableSlots, setAvailableSlots] = useState([]);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load family members on mount
+  // Load doctors and family members on mount
   useEffect(() => {
+    callBackend('getDoctors', [], (docList) => {
+      if (docList && docList.length > 0) {
+        setDoctors(docList);
+        setSelectedDoctorEmail(docList[0].email);
+      }
+    });
+
     if (user.email) {
       callBackend('getFamilyDetailsByUser', [user.email], (data) => {
         if (data && data.members && data.members.length > 0) {
@@ -30,7 +38,6 @@ export default function BookingView({ user = {}, styles = {} }) {
       });
       
       callBackend('getDoctorByEmail', [user.email], (data) => {
-        alert(JSON.stringify(data));
   if (data && data.availability && data.availability.length > 0) {
     setAvailableSlots(data.availability);
   }
@@ -38,17 +45,17 @@ export default function BookingView({ user = {}, styles = {} }) {
     }
   }, [user.email]);
 
-  // Fetch booked slots whenever selected date changes
+  // Fetch booked slots whenever selected Doctor or Date changes
   useEffect(() => {
-    if (appointmentDate) {
+    if (selectedDoctorEmail && appointmentDate) {
       setLoadingSlots(true);
-      callBackend('getBookedSlotsForDate', [appointmentDate], (slots) => {
+      callBackend('getBookedSlotsForDoctorAndDate', [selectedDoctorEmail, appointmentDate], (slots) => {
         setBookedSlots(slots || []);
         setLoadingSlots(false);
-        setAppointmentTime(''); // Reset selected time on date change
+        setAppointmentTime('');
       });
     }
-  }, [appointmentDate]);
+  }, [selectedDoctorEmail, appointmentDate]);
 
   const handlePatientSelectChange = (e) => {
     const chosenEmail = e.target.value;
@@ -59,8 +66,8 @@ export default function BookingView({ user = {}, styles = {} }) {
 
   const handleBookAppointment = (e) => {
     e.preventDefault();
-    if (!appointmentDate || !appointmentTime) {
-      return alert('Please select a valid date and available time slot.');
+    if (!selectedDoctorEmail || !appointmentDate || !appointmentTime) {
+      return alert('Please select a doctor, date, and available time slot.');
     }
 
     setSubmitting(true);
@@ -68,6 +75,7 @@ export default function BookingView({ user = {}, styles = {} }) {
       patientEmail: selectedPatientEmail,
       patientName: selectedPatientName,
       bookedByEmail: user.email,
+      doctorEmail: selectedDoctorEmail,
       date: appointmentDate,
       time: appointmentTime
     };
@@ -76,8 +84,9 @@ export default function BookingView({ user = {}, styles = {} }) {
       setSubmitting(false);
       if (res && res.success) {
         alert(`Appointment booked successfully for ${selectedPatientName} on ${appointmentDate} at ${appointmentTime}!`);
-        // Refresh booked slots for the date
-        callBackend('getBookedSlotsForDate', [appointmentDate], (slots) => {
+        
+        // Refresh booked slots
+        callBackend('getBookedSlotsForDoctorAndDate', [selectedDoctorEmail, appointmentDate], (slots) => {
           setBookedSlots(slots || []);
           setAppointmentTime('');
         });
@@ -89,10 +98,10 @@ export default function BookingView({ user = {}, styles = {} }) {
 
   return (
     <div style={cardStyle}>
-      <h2 style={{ marginTop: 0, marginBottom: '16px' }}>Book Patient Appointment</h2>
+      <h2 style={{ marginTop: 0, marginBottom: '16px' }}>Book Doctor Appointment</h2>
 
       <form onSubmit={handleBookAppointment}>
-        {/* Family Member / Patient Selection */}
+        {/* Family Member Selection */}
         <div style={{ marginBottom: '14px' }}>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
             Book Appointment For
@@ -110,7 +119,27 @@ export default function BookingView({ user = {}, styles = {} }) {
           )}
         </div>
 
-        {/* Date Selection (Restricted to Today Onwards) */}
+        {/* Doctor Selection */}
+        <div style={{ marginBottom: '14px' }}>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
+            Select Doctor
+          </label>
+          <select
+            style={inputStyle}
+            value={selectedDoctorEmail}
+            onChange={(e) => setSelectedDoctorEmail(e.target.value)}
+            required
+          >
+            {doctors.length === 0 && <option value="">Loading doctors...</option>}
+            {doctors.map((doc) => (
+              <option key={doc.email} value={doc.email}>
+                {doc.name} — {doc.specialty}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Date Selection (Today Onwards) */}
         <div style={{ marginBottom: '14px' }}>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
             Appointment Date
@@ -125,16 +154,16 @@ export default function BookingView({ user = {}, styles = {} }) {
           />
         </div>
 
-        {/* Time Slot Dropdown with Disabled Occupied Slots */}
+        {/* Time Slot Selection */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
-            Select Time Slot {loadingSlots && <span style={{ color: '#2563eb', fontWeight: 'normal' }}>(Checking availability...)</span>}
+            Select Time Slot {loadingSlots && <span style={{ color: '#2563eb', fontWeight: 'normal' }}>(Checking doctor's schedule...)</span>}
           </label>
           <select
             style={{ ...inputStyle, background: loadingSlots ? '#f1f5f9' : '#ffffff' }}
             value={appointmentTime}
             onChange={(e) => setAppointmentTime(e.target.value)}
-            disabled={loadingSlots || !appointmentDate}
+            disabled={loadingSlots || !appointmentDate || !selectedDoctorEmail}
             required
           >
             <option value="">-- Choose Time Slot --</option>
@@ -142,7 +171,7 @@ export default function BookingView({ user = {}, styles = {} }) {
               const isBooked = bookedSlots.includes(slot);
               return (
                 <option key={slot} value={slot} disabled={isBooked}>
-                  {slot} {isBooked ? '(Already Booked)' : ''}
+                  {slot} {isBooked ? '(Doctor Occupied)' : ''}
                 </option>
               );
             })}
