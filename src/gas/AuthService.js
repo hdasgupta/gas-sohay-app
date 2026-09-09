@@ -61,29 +61,6 @@ function authenticateUser(email, password) {
   
   }
 
-  // Check Doctors (Doctors logging in directly)
-  var docSheet = getOrCreateSheet('Doctors');
-  var docs = docSheet.getDataRange().getValues();
-  for (var j = 1; j < docs.length; j++) {
-    if (docs[j][3] === email && docs[j][5] === password) {
-      return {
-        success: true,
-        user: { 
-          id: docs[j][0],
-          name: docs[j][1], 
-          speciality: docs[j][2],
-          location: 'Clinic', 
-          email: docs[j][3], 
-          phone: docs[j][4], 
-          role: 'doctor' 
-          
-        }
-      };
-    }
-  }
-
-  return { success: false, message: 'Invalid email or password' };
-}
 
 /**
  * Generates and emails a 6-digit OTP code to the patient, stored in cache for 10 minutes.
