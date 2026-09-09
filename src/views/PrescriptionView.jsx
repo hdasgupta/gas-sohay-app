@@ -23,6 +23,9 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [masterPatients, setMasterPatients] = useState([]);
 
+  // Loading state for master data
+  const [isMedicinesLoading, setIsMedicinesLoading] = useState(true);
+
   // Form State
   const [patientInput, setPatientInput] = useState('');
   const [patientAge, setPatientAge] = useState('');
@@ -46,14 +49,26 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const todayDate = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
+    let medDone = false;
+    let patientDone = false;
+
+    const checkLoadingFinished = () => {
+      if (medDone && patientDone) {
+        setIsMedicinesLoading(false);
+      }
+    };
     // Fetch Medicine Master List
     try {
       callBackend('getMedicineMasterList', [], (data) => {
-        alert(data)
+        
         setMasterMedicines(Array.isArray(data) ? data : []);
+        medDone = true;
+        checkLoadingFinished();
       });
     } catch (err) {
       alert('Failed to load medicine list:'+ err);
+      medDone = true;
+      checkLoadingFinished();
     }
 
     // Fetch Patient Master List for Suggestions
@@ -93,6 +108,15 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     if (pAge) setPatientAge(pAge);
     setShowPatientDropdown(false);
   };
+  
+  const handleMedicineNameChange = (name) => {
+  const isTablet = name.trim().toLowerCase().endsWith('tablet');
+  setCurrentMed((prev) => ({
+    ...prev,
+    name: name,
+    quantity: isTablet ? '1 pcs' : (prev.quantity === '1 pcs' ? '' : prev.quantity)
+  }));
+};condition ? true : false
 
   const handleSelectSearchedMedicine = (med) => {
     const selectedName = typeof med === 'string' ? med : med?.name || '';
@@ -284,7 +308,26 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       <h3>Add Medicine</h3>
 
-      {/* Autocomplete Search Input (Min 4 letters) */}
+      {/* Loading banner while master data is being fetched */}
+      {isMedicinesLoading ? (
+        <div
+          style={{
+            padding: '12px 16px',
+            background: '#e0f2fe',
+            border: '1px solid #7dd3fc',
+            borderRadius: '6px',
+            color: '#0369a1',
+            marginBottom: '16px',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <span className="spinner" style={{ fontWeight: 'bold' }}>⏳</span>
+          <span>Loading medicine catalog and patient master list, please wait...</span>
+        </div>
+      ) : (
       <div style={{ marginBottom: '12px', position: 'relative' }}>
         <input
           style={defaultStyles.input}
@@ -330,7 +373,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           </div>
         )}
       </div>
-
+      )}
       { /* Medicine Form Input */ }
 <div style={{ display: 'grid', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
