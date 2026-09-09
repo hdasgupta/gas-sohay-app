@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
-  // Safe default styles
   const defaultStyles = {
     card: styles.card || { padding: '20px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', margin: '10px 0' },
     input: styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
@@ -13,10 +12,10 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     btnDanger: styles.btnDanger || { background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }
   };
 
-  // Organization & Doctor Information
   const fixedClinicInfo = {
     orgName: user?.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH',
     doctorName: user?.name || 'Dr. A. Sharma',
+    doctorEmail: user?.email || 'dr.sharma@example.com',
     doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (Psychiatry)'
   };
 
@@ -26,8 +25,9 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const [masterPatients, setMasterPatients] = useState([]);
   const [isMedicinesLoading, setIsMedicinesLoading] = useState(true);
 
-  // Patient & Prescription State
+  // Patient Fields
   const [patientInput, setPatientInput] = useState('');
+  const [patientEmail, setPatientEmail] = useState(''); // Stored silently in background
   const [patientAge, setPatientAge] = useState('');
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
 
@@ -51,9 +51,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     let patientDone = false;
 
     const checkLoadingFinished = () => {
-      if (medDone && patientDone) {
-        setIsMedicinesLoading(false);
-      }
+      if (medDone && patientDone) setIsMedicinesLoading(false);
     };
 
     try {
@@ -63,7 +61,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         checkLoadingFinished();
       });
     } catch (err) {
-      console.error('Failed to load medicine list:', err);
       medDone = true;
       checkLoadingFinished();
     }
@@ -75,15 +72,14 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         checkLoadingFinished();
       });
     } catch (err) {
-      console.error('Failed to load patient list:', err);
       patientDone = true;
       checkLoadingFinished();
     }
   }, []);
 
-  // Reset all user input fields to initial blank state
   const resetForm = () => {
     setPatientInput('');
+    setPatientEmail('');
     setPatientAge('');
     setShowPatientDropdown(false);
     setSearchTerm('');
@@ -91,7 +87,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setCurrentMed(initialMedState);
   };
 
-  // Filter Patients
   const filteredPatients = patientInput.trim().length >= 2
     ? masterPatients.filter((p) => {
         const pName = typeof p === 'string' ? p : p?.name || '';
@@ -99,7 +94,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       })
     : [];
 
-  // Filter Medicines (Minimum 4 letters)
   const showMedicineSuggestions = searchTerm.trim().length >= 4;
   const filteredMedicines = showMedicineSuggestions
     ? masterMedicines.filter((m) => {
@@ -108,10 +102,14 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       })
     : [];
 
+  // Patient Selection captures and stores email silently
   const handleSelectPatient = (patient) => {
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
+    const pEmail = typeof patient === 'object' && patient?.email ? patient.email : '';
     const pAge = typeof patient === 'object' && patient?.age ? patient.age : '';
+
     setPatientInput(pName);
+    setPatientEmail(pEmail); // Store patient email internally
     if (pAge) setPatientAge(pAge);
     setShowPatientDropdown(false);
   };
@@ -175,7 +173,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setPrescriptionList((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  const handleGenerateDoc = () => {
+  const handleGenerateDoc = (overrideConfirmed = false) => {
     if (!patientInput.trim() || !patientAge) {
       alert('Please fill in Patient Name and Age.');
       return;
@@ -191,19 +189,32 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       ...fixedClinicInfo,
       doctorDesignation: fixedClinicInfo.doctorSpeciality,
       patientName: patientInput.trim(),
+      patientEmail: patientEmail.trim(), // Sent to backend seamlessly
       patientAge: patientAge,
       date: todayDate,
-      medicines: prescriptionList
+      medicines: prescriptionList,
+      overrideConfirmed: overrideConfirmed
     };
 
     callBackend('createPrescriptionDoc', [payload], (res) => {
       setLoading(false);
+
+      if (res && res.requiresConfirmation) {
+        const confirmOverride = window.confirm(
+          `A prescription is already attached to the appointment on ${res.appointmentDate} at ${res.appointmentTime}.\n\nDo you want to override it with this new prescription?`
+        );
+
+        if (confirmOverride) {
+          handleGenerateDoc(true);
+        }
+        return;
+      }
+
       if (res && res.success) {
         setDocLink(res.docUrl);
-        // Reset the form completely on success
         resetForm();
       } else {
-        alert('Failed to generate prescription document.');
+        alert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'));
       }
     });
   };
@@ -219,24 +230,26 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Doctor Name (Locked)</label>
-            <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorName} readOnly />
+            <label style={defaultStyles.label}>Doctor Name & Email (Locked)</label>
+            <input style={defaultStyles.readOnlyInput} value={`${fixedClinicInfo.doctorName} (${fixedClinicInfo.doctorEmail})`} readOnly />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Speciality / Designation (Locked)</label>
+            <label style={defaultStyles.label}>Speciality (Locked)</label>
             <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorSpeciality} readOnly />
           </div>
         </div>
 
+        {/* Patient Selection Row */}
         <div style={{ display: 'flex', gap: '8px' }}>
-          <div style={{ flex: 2, position: 'relative' }}>
+          <div style={{ flex: 3, position: 'relative' }}>
             <label style={defaultStyles.label}>Patient Name</label>
             <input
               style={defaultStyles.input}
-              placeholder="Type patient name..."
+              placeholder="Type or select patient name..."
               value={patientInput}
               onChange={(e) => {
                 setPatientInput(e.target.value);
+                setPatientEmail(''); // Clear hidden email if user types a new manual name
                 setShowPatientDropdown(true);
               }}
               onFocus={() => setShowPatientDropdown(true)}
@@ -289,12 +302,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
           <div style={{ flex: 1 }}>
             <label style={defaultStyles.label}>Date (Locked)</label>
-            <input
-              style={defaultStyles.readOnlyInput}
-              type="date"
-              value={todayDate}
-              readOnly
-            />
+            <input style={defaultStyles.readOnlyInput} type="date" value={todayDate} readOnly />
           </div>
         </div>
       </div>
@@ -304,22 +312,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       <h3>Add Medicine</h3>
 
       {isMedicinesLoading ? (
-        <div
-          style={{
-            padding: '12px 16px',
-            background: '#e0f2fe',
-            border: '1px solid #7dd3fc',
-            borderRadius: '6px',
-            color: '#0369a1',
-            marginBottom: '16px',
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <span>⏳</span>
-          <span>Loading medicine catalog and patient master list, please wait...</span>
+        <div style={{ padding: '12px', background: '#e0f2fe', borderRadius: '6px', color: '#0369a1', marginBottom: '16px', fontSize: '14px' }}>
+          ⏳ Loading catalog data...
         </div>
       ) : (
         <div style={{ marginBottom: '12px', position: 'relative' }}>
@@ -330,36 +324,12 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          {searchTerm.length > 0 && searchTerm.length < 4 && (
-            <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '-6px', marginBottom: '6px' }}>
-              Type {4 - searchTerm.length} more letter{4 - searchTerm.length > 1 ? 's' : ''} for suggestions...
-            </span>
-          )}
-
           {showMedicineSuggestions && filteredMedicines.length > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                right: 0,
-                background: '#fff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '4px',
-                zIndex: 10,
-                maxHeight: '150px',
-                overflowY: 'auto',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
-            >
+            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #cbd5e1', borderRadius: '4px', zIndex: 10, maxHeight: '150px', overflowY: 'auto' }}>
               {filteredMedicines.map((med, idx) => {
                 const medName = typeof med === 'string' ? med : med?.name || '';
                 return (
-                  <div
-                    key={idx}
-                    style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
-                    onClick={() => handleSelectSearchedMedicine(med)}
-                  >
+                  <div key={idx} style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }} onClick={() => handleSelectSearchedMedicine(med)}>
                     <strong>{medName}</strong>
                   </div>
                 );
@@ -373,22 +343,11 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 2 }}>
             <label style={defaultStyles.label}>Medicine Name:</label>
-            <input
-              style={defaultStyles.input}
-              placeholder="e.g. Paracetamol Tablet, Benadryl Syrup"
-              value={currentMed.name}
-              onChange={(e) => handleMedicineNameChange(e.target.value)}
-            />
+            <input style={defaultStyles.input} placeholder="e.g. Paracetamol Tablet" value={currentMed.name} onChange={(e) => handleMedicineNameChange(e.target.value)} />
           </div>
-
           <div style={{ flex: 1 }}>
             <label style={defaultStyles.label}>Quantity / Dose:</label>
-            <input
-              style={defaultStyles.input}
-              placeholder="e.g. 1 pcs, 10 ml, 2 capsules"
-              value={currentMed.quantity}
-              onChange={(e) => setCurrentMed({ ...currentMed, quantity: e.target.value })}
-            />
+            <input style={defaultStyles.input} placeholder="e.g. 1 pcs" value={currentMed.quantity} onChange={(e) => setCurrentMed({ ...currentMed, quantity: e.target.value })} />
           </div>
         </div>
 
@@ -398,12 +357,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             <div style={{ display: 'flex', gap: '10px', fontSize: '13px', margin: '4px 0' }}>
               {['breakfast', 'lunch', 'hightea', 'dinner'].map((time) => (
                 <label key={time} style={{ textTransform: 'capitalize' }}>
-                  <input
-                    type="checkbox"
-                    checked={currentMed.takingTime?.[time] || false}
-                    onChange={() => handleTimeCheckbox(time)}
-                  />{' '}
-                  {time}
+                  <input type="checkbox" checked={currentMed.takingTime?.[time] || false} onChange={() => handleTimeCheckbox(time)} /> {time}
                 </label>
               ))}
             </div>
@@ -411,11 +365,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
           <div style={{ background: '#fef3c7', padding: '6px 12px', borderRadius: '4px', border: '1px solid #fde68a' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>
-              <input
-                type="checkbox"
-                checked={currentMed.isSos}
-                onChange={(e) => setCurrentMed({ ...currentMed, isSos: e.target.checked })}
-              />
+              <input type="checkbox" checked={currentMed.isSos} onChange={(e) => setCurrentMed({ ...currentMed, isSos: e.target.checked })} />
               SOS (As Needed)
             </label>
           </div>
@@ -423,11 +373,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
         <div>
           <label style={defaultStyles.label}>Food Instruction:</label>
-          <select
-            style={defaultStyles.input}
-            value={currentMed.foodInstruction}
-            onChange={(e) => setCurrentMed({ ...currentMed, foodInstruction: e.target.value })}
-          >
+          <select style={defaultStyles.input} value={currentMed.foodInstruction} onChange={(e) => setCurrentMed({ ...currentMed, foodInstruction: e.target.value })}>
             <option value="Before Food">Before Food</option>
             <option value="After Food">After Food</option>
             <option value="With Food">With Food</option>
@@ -441,38 +387,19 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
-        <div
-          key={idx}
-          style={{
-            display: 'flex',
-            justify: 'space-between',
-            alignItems: 'center',
-            background: '#f1f5f9',
-            padding: '8px 12px',
-            borderRadius: '4px',
-            marginBottom: '6px'
-          }}
-        >
+        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', padding: '8px 12px', borderRadius: '4px', marginBottom: '6px' }}>
           <div>
             <strong>{idx + 1}. {item.name}</strong> — <em>{item.quantity}</em>
-            {item.isSos && (
-              <span style={{ marginLeft: '8px', background: '#fef08a', color: '#854d0e', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
-                SOS
-              </span>
-            )}
-            <div style={{ fontSize: '12px', color: '#475569' }}>
-              Times: {item.takingTime.length > 0 ? item.takingTime.join(', ') : 'As needed'} | ({item.foodInstruction})
-            </div>
+            {item.isSos && <span style={{ marginLeft: '8px', background: '#fef08a', color: '#854d0e', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>SOS</span>}
+            <div style={{ fontSize: '12px', color: '#475569' }}>Times: {item.takingTime.length > 0 ? item.takingTime.join(', ') : 'As needed'} | ({item.foodInstruction})</div>
           </div>
-          <button style={defaultStyles.btnDanger} onClick={() => handleRemoveMedicine(idx)}>
-            Remove
-          </button>
+          <button style={defaultStyles.btnDanger} onClick={() => handleRemoveMedicine(idx)}>Remove</button>
         </div>
       ))}
 
       <div style={{ marginTop: '20px' }}>
         <button
-          onClick={handleGenerateDoc}
+          onClick={() => handleGenerateDoc(false)}
           disabled={loading || isMedicinesLoading}
           style={{ ...defaultStyles.btnPrimary, background: (loading || isMedicinesLoading) ? '#94a3b8' : '#2563eb' }}
         >
@@ -481,7 +408,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
         {docLink && (
           <div style={{ marginTop: '12px', padding: '10px', background: '#dcfce7', borderRadius: '4px' }}>
-            <strong>Prescription Created!</strong>
+            <strong>Prescription Created & Attached to Appointment!</strong>
             <br />
             <a href={docLink} target="_blank" rel="noopener noreferrer" style={{ color: '#15803d', fontWeight: 'bold' }}>
               Open Google Doc Prescription ↗
