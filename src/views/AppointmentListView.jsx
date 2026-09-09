@@ -18,7 +18,9 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
   };
 
   useEffect(() => {
+    alert(user.email);
     if (user.email) {
+      
       fetchAppointments();
     }
   }, [user.email]);
