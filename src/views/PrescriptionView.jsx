@@ -66,7 +66,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     }
 
     try {
-      callBackend('getPatientMasterList', [], (data) => {
+      callBackend('getTodayPatientsForDoctor', [use.email], (data) => {
         setMasterPatients(Array.isArray(data) ? data : []);
         patientDone = true;
         checkLoadingFinished();

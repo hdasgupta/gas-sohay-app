@@ -106,6 +106,7 @@ function getAppointmentsForUserAndFamily(userEmail) {
         doctor: getDoctorByEmail(rowDoctorEmail),
         date: apptData[i][3],
         time: apptData[i][4],
+        meetLink: apptData[i][5],
         status: apptData[i][6] || 'Scheduled',
         prescriptionUrl: apptData[i][7] || ''
       });
@@ -118,3 +119,66 @@ function getAppointmentsForUserAndFamily(userEmail) {
   };
 }
 
+/**
+ * Returns a unique list of patients who have an appointment today with a specific doctor.
+ * 
+ * Expected Appointments Sheet Column Layout:
+ * [0: ApptID, 1: PatientName, 2: PatientEmail, 3: Date, 4: Time, 5: Status, 6: PrescriptionUrl, 7: DoctorEmail]
+ * 
+ * @param {string} doctorEmail - Email of the doctor to query appointments for.
+ * @return {Array<Object>} Array of unique patient records for today.
+ */
+function getTodayPatientsForDoctor(doctorEmail) {
+  if (!doctorEmail) return [];
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  if (!sheet) return [];
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return []; // Empty or header-only sheet
+
+  // Format current date to 'YYYY-MM-DD' matching the sheet date format
+  const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+  const targetDoctor = doctorEmail.trim().toLowerCase();
+
+  const uniquePatientsMap = {};
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+
+    const patientEmail = row[1] ? row[1].toString().trim().toLowerCase() : '';
+    const rawDate = row[3];
+    const timeSlot = row[4] ? row[5].toString().trim() : '';
+    const meetLink = row[5];
+    const status = row[6] ? row[6].toString().trim() : 'Scheduled';
+    const prescriptionUrl = row[7] || '';
+    const rowDoctorEmail = row[2] ? row[7].toString().trim().toLowerCase() : '';
+
+    // Convert Date object or string to standard 'YYYY-MM-DD'
+    const apptDateStr = rawDate instanceof Date
+      ? Utilities.formatDate(rawDate, Session.getScriptTimeZone(), "yyyy-MM-dd")
+      : rawDate ? rawDate.toString().trim() : '';
+
+    // Matching criteria: Date is today, doctor matches (or empty row DoctorEmail fallback), valid patient email, not cancelled
+    const isToday = apptDateStr === todayStr;
+    const isDoctorMatch = !rowDoctorEmail || rowDoctorEmail === targetDoctor;
+    const isValidStatus = status.toLowerCase() !== 'cancelled';
+
+    if (isToday && isDoctorMatch && patientEmail && isValidStatus) {
+      // Store or update in hash map to guarantee uniqueness per patient email
+      if (!uniquePatientsMap[patientEmail]) {
+        uniquePatientsMap[patientEmail] = {
+          name: patientName,
+          email: row[2], // Preserve original string case
+          time: timeSlot,
+          meetLink, 
+          status: status,
+          prescriptionUrl: prescriptionUrl,
+          apptId: row[0]
+        };
+      }
+    }
+  }
+
+  return Object.values(uniquePatientsMap);
+}
