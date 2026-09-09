@@ -104,7 +104,7 @@ export default function App() {
           {user.role === 'patient' && <><button style={view === 'booking' ? styles.navActive : styles.navBtn} onClick={() => setView('booking')}>
             Book Appointment
           </button>
-          <button onClick={() => setView('family')} style={{ padding: '8px 12px', cursor: 'pointer', fontWeight: view === 'family' ? 'bold' : 'normal' }}>
+          <button onClick={() => setView('family')} style={view === 'family' ? styles.navActive : styles.navBtn}>
           Family Account
         </button></>}
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
