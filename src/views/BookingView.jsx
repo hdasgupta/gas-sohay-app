@@ -81,9 +81,9 @@ export default function BookingView({ user = {}, styles = {} }) {
       bookedByEmail: user.email,
       doctorEmail: selectedDoctorEmail,
       date: JSON.stringify(appointmentDate),
-      time: JSON. strungify(appointmentTime) 
+      time: JSON. stringify(appointmentTime) 
     };
-    alert(JSON.stringify(payload))
+    //alert(JSON.stringify(payload))
     callBackend('bookAppointment', [payload], (res) => {
       setSubmitting(false);
       if (res && res.success) {
