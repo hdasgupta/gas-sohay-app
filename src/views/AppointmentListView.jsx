@@ -7,7 +7,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
 
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  alert("")
   const fetchAppointments = () => {
     setLoading(true);
     callBackend('getAppointmentsByUser', [user.email], (data) => {
