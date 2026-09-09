@@ -227,7 +227,7 @@ function createPrescriptionDoc(payload) {
 // 4. Save the PDF file in Google Drive
     var pdfFile = folder.createFile(pdfBlob);
     Logger.log('PDF created successfully: ' + pdfFile.getName());
-
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     // 5. Delete the original Google Doc
     // Standard DriveApp method (Moves to Trash - permanently purged after 30 days):
     // file.setTrashed(true);
