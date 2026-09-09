@@ -7,13 +7,15 @@ function bookAppointment(payload) {
     JSON.parse(payload.time));
   var endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 mins
 
+  var patient = getPatientByEmail(payload.patientEmail);
+  var doctor = getDoctorByEmail(payload.doctorEmail);
   // Advanced Calendar Service Google Meet Integration
   var eventPayload = {
-    summary: 'Medical Appointment: ' + payload.doctorName,
-    description: 'Patient: ' + payload.userName + '\nPhone: ' + payload.userPhone,
+    summary: 'Medical Appointment: ' + doctor.name,
+    description: 'Patient: ' + patient.name + '\nPhone: ' + patient.phone,
     start: { dateTime: startDateTime.toISOString() },
     end: { dateTime: endDateTime.toISOString() },
-    attendees: [{ email: payload.userEmail }, { email: payload.doctorEmail }],
+    attendees: [{ email: patient.email}, { email: doctor.email}],
     conferenceData: {
       createRequest: {
         requestId: 'req-' + new Date().getTime(),
@@ -37,12 +39,14 @@ function bookAppointment(payload) {
 }
 
 function sendAppointmentEmail(payload, meetLink) {
+  var patient = getPatientByEmail(payload.patientEmail);
+  var doctor = getDoctorByEmail(payload.doctorEmail);
   MailApp.sendEmail({
     to: payload.userEmail,
     subject: 'Appointment Confirmed - Google Meet Link Inside',
     htmlBody: `
       <h2>Appointment Confirmed</h2>
-      <p><b>Doctor:</b> ${payload.doctorName}</p>
+      <p><b>Doctor:</b> ${doctor.name}</p>
       <p><b>Date & Time:</b> ${payload.date} at ${payload.time}</p>
       <p><b>Google Meet Link:</b> <a href="${meetLink}">${meetLink}</a></p>
     `
