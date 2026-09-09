@@ -8,7 +8,7 @@ import BookingView from './views/BookingView';
 import AdminView from './views/AdminView';
 import AppointmentListView from './views/AppointmentListView';
 import PrescriptionView from './views/PrescriptionView';
-import PrescriptionView from './views/FamilyManagementView';
+import FamilyManagementView from './views/FamilyManagementView';
 
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
