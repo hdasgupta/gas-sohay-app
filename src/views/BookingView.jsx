@@ -164,7 +164,7 @@ export default function BookingView({ user = {}, styles = {} }) {
             Select Time Slot {loadingSlots && <span style={{ color: '#2563eb', fontWeight: 'normal' }}>(Checking doctor's schedule...)</span>}
           </label>
           <select
-            style={{ ...inputStyle, background: loadingSlots ? '#f1f5f9' : '#ffffff' }}
+            style={inputStyle}
             value={appointmentTime}
             onChange={(e) => setAppointmentTime(e.target.value)}
             disabled={loadingSlots || !appointmentDate || !selectedDoctorEmail}
