@@ -41,12 +41,12 @@ function authenticateUser(email, password) {
         return {
           success: true,
           user: { 
-            id: users[i][0], 
-            name: users[i][1], 
-            location: users[i][2], 
-            email: users[i][3], 
-            phone: users[i][4], 
-            role: users[i][6] 
+            id: data[i][0], 
+            name: data[i][1], 
+            location: data[i][2], 
+            email: data[i][3], 
+            phone: data[i][4], 
+            role: data[i][6] 
           
           }
         };
