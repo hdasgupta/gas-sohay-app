@@ -194,7 +194,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                       >
                         📄 Download Prescription
                       </a>
-                    ) : {upcoming && app.meetingLink ? (
+                    ) : upcoming && app.meetingLink ? (
                       <a
                           href={app.meetingLink}
                           target="_blank"
@@ -203,7 +203,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                         >
                           🎥 Join Meeting
                       </a>
-                    )}}
+                    )}
                   </td>
                 </tr>
               )})}
