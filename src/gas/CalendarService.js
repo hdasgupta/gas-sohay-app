@@ -69,7 +69,7 @@ function getUserAppointments(userEmail) {
       var timeStr = JSON.parse(data[i][4]); // Format: HH:MM
       var rawMeetLink = data[i][5];
       var status = data[i][6];
-
+      var prescriptionLink = data[i][7];
       // Parse appointment end time (assuming 30-minute duration)
       var apptStartTime = new Date(dateStr + 'T' + timeStr);
       var apptEndTime = new Date(apptStartTime.getTime() + 30 * 60000);
@@ -86,7 +86,8 @@ function getUserAppointments(userEmail) {
         time: timeStr,
         meetLink: isUpcomingOrPresent ? rawMeetLink : null,
         status: isUpcomingOrPresent ? 'UPCOMING' : 'COMPLETED',
-        isUpcomingOrPresent: isUpcomingOrPresent
+        isUpcomingOrPresent: isUpcomingOrPresent, 
+        prescriptionLink, 
       });
     }
   }
