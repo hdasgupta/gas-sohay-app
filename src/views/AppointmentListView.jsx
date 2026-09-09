@@ -26,7 +26,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
 
   const filteredAppointments = appointments.filter((app) => {
     if (selectedFilterEmail === 'ALL') return true;
-    return app.patientEmail.toLowerCase() === selectedFilterEmail.toLowerCase();
+    return app.patient.email.toLowerCase() === selectedFilterEmail.toLowerCase();
   });
 
   if (loading) return <div style={cardStyle}>Loading appointment schedule...</div>;
