@@ -4,15 +4,15 @@
 function initDatabase() {
   getOrCreateSheet('Users', ['ID', 'Name', 'Location', 'Email', 'Phone', 'Password', 'Role']);
   getOrCreateSheet('Doctors', ['ID', 'Name', 'Specialty', 'Email', 'Phone', 'Password', 'AvailabilityJSON']);
-  getOrCreateSheet('Appointments', ['ID', 'PatientEmail', 'DoctorEmail', 'Date', 'Time', 'MeetLink', 'Status']);
-  getOrCreateSheet('Medicines', ['Name and Power']);
+  getOrCreateSheet('Appointments', ['ID', 'PatientEmail', 'DoctorEmail', 'Date', 'Time', 'MeetLink', 'Status', 'PrescriptionUrl']);
+  getOrCreateSheet('Medicines', ['NameAndPower']);
   getOrCreateSheet('Families', ['Id', 'Name', 'Email', 'Date']);
 
   // Pre-seed Default Admin Account if Users sheet is empty
   var userSheet = getOrCreateSheet('Users');
   
   if (userSheet.getLastRow() == 1) {
-    userSheet.appendRow(['ADM-1', 'System Admin', 'HQ', 'admin@hospital.com', '0000000000', 'admin123', 'admin']);
+    userSheet.appendRow(['ADM-1', 'System Admin', 'HQ', 'admin@hospital.com', '0000000000', hashPassword('admin123'), 'admin']);
   }
 }
 

@@ -1,27 +1,64 @@
 /**
+ * Hashes a plain-text password using SHA-256.
+ * @param {string} password Plain-text password string.
+ * @return {string} Hex-encoded SHA-256 hash.
+ */
+function hashPassword(password) {
+  if (!password) return '';
+  const rawHash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    password,
+    Utilities.Charset.UTF_8
+  );
+  
+  // Convert byte array to hexadecimal string
+  return rawHash.map(function(byte) {
+    const hex = (byte < 0 ? byte + 256 : byte).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+}
+ 
+ 
+/**
  * Validates credentials across Users and Doctors sheets.
  */
 function authenticateUser(email, password) {
   initDatabase();
   
   // Check Users (Patients & Admins)
-  var userSheet = getOrCreateSheet('Users');
-  var users = userSheet.getDataRange().getValues();
-  for (var i = 1; i < users.length; i++) {
-    if (users[i][3] === email && users[i][5] === password) {
-      return {
-        success: true,
-        user: { 
-          id: users[i][0], 
-          name: users[i][1], 
-          location: users[i][2], 
-          email: users[i][3], 
-          phone: users[i][4], 
-          role: users[i][6] 
+  var sheet = getOrCreateSheet('Users');
+  const cleanEmail = email.toString().trim().toLowerCase();
+  const inputHash = hashPassword(password);
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    const rowEmail = data[i][1] ? data[i][1].toString().trim().toLowerCase() : '';
+    const storedHash = data[i][2] ? data[i][2].toString().trim() : '';
+
+    if (rowEmail === cleanEmail) {
+      // Compare calculated hash against stored hash
+      if (storedHash === inputHash) {
+        return {
+          success: true,
+          user: { 
+            id: users[i][0], 
+            name: users[i][1], 
+            location: users[i][2], 
+            email: users[i][3], 
+            phone: users[i][4], 
+            role: users[i][6] 
           
-        }
-      };
+          }
+        };
+      } else {
+        return { success: false, error: "Invalid email or password." };
+      }
     }
+  }
+
+  return { success: false, error: "Invalid email or password." };
+
+  
   }
 
   // Check Doctors (Doctors logging in directly)
@@ -107,7 +144,7 @@ function registerPatient(data) {
   }
 
   var userId = 'USR-' + new Date().getTime();
-  sheet.appendRow([userId, data.name, data.location, data.email, data.phone, data.password, 'patient']);
+  sheet.appendRow([userId, data.name, data.location, data.email, data.phone, hashPassword(data.password), 'patient']);
 
   return {
     success: true,
