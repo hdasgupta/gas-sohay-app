@@ -67,7 +67,7 @@ export default function App() {
         setStatus('');
         routeUserByRole(res.user);
       } else {
-        setStatus(res.message);
+        setStatus(res.error);
       }
     });
   };
