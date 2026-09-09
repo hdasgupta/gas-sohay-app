@@ -9,7 +9,7 @@ export function callBackend(functionName, args = [], callback) {
       })
       .withFailureHandler((err) => {
         console.error('Apps Script Error:', err);
-        alert('Server error: ' + err.message);
+        alert('Server error: ' + JSON.stringify(err));
       })[functionName](...args);
   } else {
     alert('Running outside Google Apps Script environment.');
