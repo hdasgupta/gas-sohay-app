@@ -7,7 +7,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
 
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  alert(JSON.stringify(user));
+  
   const fetchAppointments = () => {
     setLoading(true);
     callBackend('getUserAppointments', [user.email], (data) => {
@@ -18,14 +18,14 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
   };
 
   useEffect(() => {
-    alert(user.email);
+    
     if (user.email) {
       
       fetchAppointments();
     }
   }, [user.email]);
 
-  alert(loading);
+  
   if (loading) return <div style={cardStyle}>Loading appointments...</div>;
 
   return (
