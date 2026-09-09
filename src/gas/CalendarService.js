@@ -182,3 +182,36 @@ function getTodayPatientsForDoctor(doctorEmail) {
 
   return Object.values(uniquePatientsMap);
 }
+
+/**
+ * Returns an array of time slots that are already booked for a specific date.
+ * Excludes cancelled appointments.
+ */
+function getBookedSlotsForDate(dateStr) {
+  if (!dateStr) return [];
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  if (!sheet) return [];
+
+  const data = sheet.getDataRange().getValues();
+  const bookedSlots = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const rawDate = data[i][3];
+    const rowTime = data[i][4] ? data[i][4].toString().trim() : '';
+    const status = data[i][6] ? data[i][6].toString().trim().toLowerCase() : '';
+
+    let formattedRowDate = '';
+    if (rawDate instanceof Date) {
+      formattedRowDate = Utilities.formatDate(rawDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    } else if (rawDate) {
+      formattedRowDate = rawDate.toString().trim();
+    }
+
+    if (formattedRowDate === dateStr && status !== 'cancelled' && rowTime) {
+      bookedSlots.push(rowTime);
+    }
+  }
+
+  return bookedSlots;
+}
