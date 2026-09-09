@@ -1,7 +1,7 @@
 // src/utils/backend.js
 
 export function callBackend(functionName, args = [], callback) {
-  try {}
+  try {
   if (typeof google !== 'undefined' && google.script && google.script.run) {
     google.script.run
       .withSuccessHandler((response) => {
