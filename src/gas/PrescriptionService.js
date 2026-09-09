@@ -74,7 +74,9 @@ function createPrescriptionDoc(payload) {
     body.setMarginRight(36);
 
     // 2. Add Clinic / Hospital Header
-    var clinicHeader = body.appendParagraph((payload.orgName || 'CITY HEALTHCARE CLINIC').toUpperCase());
+    // Add Clinic / Hospital Header
+    var clinicHeader = body.appendParagraph((payload.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH').toUpperCase());
+
     clinicHeader.setHeading(DocumentApp.ParagraphHeading.HEADING1);
     clinicHeader.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
     clinicHeader.setFontSize(16);
