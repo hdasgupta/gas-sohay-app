@@ -19,7 +19,7 @@ function getMedicineMasterList() {
     if (data[i][0] && data[i][0].toString().trim() !== '') {
       medicines.push({
         name: data[i][0].toString().trim(),
-        power: data[i][1] ? data[i][1].toString().trim() : ''
+        
       });
     }
   }
@@ -230,21 +230,6 @@ function sanitizeFileName(name) {
   return String(name).replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
-/**
- * Master List Endpoint Stubs (If reading from Google Sheets or hardcoded)
- */
-function getMedicineMasterList() {
-  return [
-    "Paracetamol 500mg Tablet",
-    "Azithromycin 500mg Tablet",
-    "Amoxicillin 250mg Capsule",
-    "Pantoprazole 40mg Tablet",
-    "Benadryl Cough Syrup",
-    "Cetirizine 10mg Tablet",
-    "Multivitamin Capsule",
-    "Digene Gel Syrup"
-  ];
-}
 
 function getPatientMasterList() {
   return [
