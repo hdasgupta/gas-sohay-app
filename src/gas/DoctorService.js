@@ -46,5 +46,7 @@ function upsertDoctor(doc) {
 
 function getDoctorByEmail(email) {
   // Tab to edit
-  return getDoctorsList().filter((doctor) => doctor.email === email)[0]
+  const doctor =  getDoctorsList().filter((doctor) => doctor.email === email)[0];
+  console.log(JSON.stringify(doctor));
+  return doctor
 }
