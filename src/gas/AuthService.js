@@ -32,8 +32,8 @@ function authenticateUser(email, password) {
   const data = sheet.getDataRange().getValues();
 
   for (let i = 1; i < data.length; i++) {
-    const rowEmail = data[i][1] ? data[i][1].toString().trim().toLowerCase() : '';
-    const storedHash = data[i][2] ? data[i][2].toString().trim() : '';
+    const rowEmail = data[i][3] ? data[i][1].toString().trim().toLowerCase() : '';
+    const storedHash = data[i][5] ? data[i][2].toString().trim() : '';
 
     if (rowEmail === cleanEmail) {
       // Compare calculated hash against stored hash
