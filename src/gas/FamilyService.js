@@ -2,9 +2,10 @@
  * Creates a new family and assigns the primary user as the first member.
  */
 function createFamily(payload) {
+  initDatabase()
   const { familyName, userEmail } = payload;
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Families");
-  const patientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Patients");
+  const sheet = getOrCreateSheet("Families");
+  const patientSheet = getOrCreateSheet("Patients");
   
   if (!sheet) throw new Error("Families sheet not found.");
 
@@ -31,7 +32,7 @@ function createFamily(payload) {
  */
 function addFamilyMember(payload) {
   const { familyId, memberEmail } = payload;
-  const patientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Patients");
+  const patientSheet = getOrCreateSheet("Patients");
   const data = patientSheet.getDataRange().getValues();
   
   let patientRowIndex = -1;
@@ -64,8 +65,8 @@ function addFamilyMember(payload) {
  * Retrieves family information and member list for a given user email.
  */
 function getFamilyDetailsByUser(userEmail) {
-  const patientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Patients");
-  const familySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Families");
+  const patientSheet = getOrCreateSheet("Patients");
+  const familySheet = getOrCreateSheet("Families");
   
   if (!patientSheet) return null;
 
@@ -109,7 +110,7 @@ function getFamilyDetailsByUser(userEmail) {
 }
 
 function assignPatientToFamily(email, familyId) {
-  const patientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Patients");
+  const patientSheet = getOrCreateSheet("Patients");
   const data = patientSheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
     if (data[i][1].toString().toLowerCase() === email.toLowerCase()) {
