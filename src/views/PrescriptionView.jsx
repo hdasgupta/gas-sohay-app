@@ -13,18 +13,17 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     btnDanger: styles.btnDanger || { background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }
   };
 
-  // Locked Clinic & Doctor Info
+  // Organization & Doctor Information
   const fixedClinicInfo = {
-    orgName: user?.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH', doctorName: user?.name || 'Dr. A. Sharma',
-    doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (General Medicine)'
+    orgName: user?.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH',
+    doctorName: user?.name || 'Dr. A. Sharma',
+    doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (Psychiatry)'
   };
 
   const todayDate = new Date().toISOString().split('T')[0];
 
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [masterPatients, setMasterPatients] = useState([]);
-  
-  // Loading state for master data
   const [isMedicinesLoading, setIsMedicinesLoading] = useState(true);
 
   // Patient & Prescription State
@@ -36,14 +35,15 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const [docLink, setDocLink] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [currentMed, setCurrentMed] = useState({
+  const initialMedState = {
     name: '',
     quantity: '',
     isSos: false,
     takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
     foodInstruction: 'After Food'
-  });
+  };
 
+  const [currentMed, setCurrentMed] = useState(initialMedState);
   const [prescriptionList, setPrescriptionList] = useState([]);
 
   useEffect(() => {
@@ -56,7 +56,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       }
     };
 
-    // Load Master Medicines
     try {
       callBackend('getMedicineMasterList', [], (data) => {
         setMasterMedicines(Array.isArray(data) ? data : []);
@@ -69,7 +68,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       checkLoadingFinished();
     }
 
-    // Load Master Patients
     try {
       callBackend('getPatientMasterList', [], (data) => {
         setMasterPatients(Array.isArray(data) ? data : []);
@@ -82,6 +80,16 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       checkLoadingFinished();
     }
   }, []);
+
+  // Reset all user input fields to initial blank state
+  const resetForm = () => {
+    setPatientInput('');
+    setPatientAge('');
+    setShowPatientDropdown(false);
+    setSearchTerm('');
+    setPrescriptionList([]);
+    setCurrentMed(initialMedState);
+  };
 
   // Filter Patients
   const filteredPatients = patientInput.trim().length >= 2
@@ -108,7 +116,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setShowPatientDropdown(false);
   };
 
-  // Helper to update medicine name and set default quantity
   const handleMedicineNameChange = (name) => {
     const isTablet = name.trim().toLowerCase().endsWith('tablet');
     setCurrentMed((prev) => ({
@@ -160,14 +167,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       }
     ]);
 
-    // Reset Form
-    setCurrentMed({
-      name: '',
-      quantity: '',
-      isSos: false,
-      takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
-      foodInstruction: 'After Food'
-    });
+    setCurrentMed(initialMedState);
     setSearchTerm('');
   };
 
@@ -200,6 +200,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       setLoading(false);
       if (res && res.success) {
         setDocLink(res.docUrl);
+        // Reset the form completely on success
+        resetForm();
       } else {
         alert('Failed to generate prescription document.');
       }
@@ -210,24 +212,22 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     <div style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
-      {/* Unchangeable Doctor & Clinic Details */}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
-          <label style={defaultStyles.label}>Organization Name</label>
+          <label style={defaultStyles.label}>Organization Name (Locked)</label>
           <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.orgName} readOnly />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Doctor Name</label>
+            <label style={defaultStyles.label}>Doctor Name (Locked)</label>
             <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorName} readOnly />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Speciality</label>
+            <label style={defaultStyles.label}>Speciality / Designation (Locked)</label>
             <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorSpeciality} readOnly />
           </div>
         </div>
 
-        {/* Patient Details & Locked Date */}
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 2, position: 'relative' }}>
             <label style={defaultStyles.label}>Patient Name</label>
@@ -242,7 +242,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               onFocus={() => setShowPatientDropdown(true)}
             />
 
-            {/* Patient Dropdown */}
             {showPatientDropdown && filteredPatients.length > 0 && (
               <div
                 style={{
@@ -304,7 +303,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       <h3>Add Medicine</h3>
 
-      {/* Loading banner while master data is being fetched */}
       {isMedicinesLoading ? (
         <div
           style={{
@@ -320,11 +318,10 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             gap: '8px'
           }}
         >
-          <span className="spinner" style={{ fontWeight: 'bold' }}>⏳</span>
+          <span>⏳</span>
           <span>Loading medicine catalog and patient master list, please wait...</span>
         </div>
       ) : (
-        /* Autocomplete Search Input */
         <div style={{ marginBottom: '12px', position: 'relative' }}>
           <input
             style={defaultStyles.input}
@@ -372,7 +369,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
       )}
 
-      {/* Medicine Form Input */}
       <div style={{ display: 'grid', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 2 }}>
@@ -396,7 +392,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           </div>
         </div>
 
-        {/* SOS Checkbox & Taking Times */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
           <div>
             <label style={defaultStyles.label}>Taking Time:</label>
@@ -414,7 +409,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             </div>
           </div>
 
-          {/* SOS Checkbox */}
           <div style={{ background: '#fef3c7', padding: '6px 12px', borderRadius: '4px', border: '1px solid #fde68a' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>
               <input
@@ -445,7 +439,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </button>
       </div>
 
-      {/* Active Prescription Items */}
       <h3 style={{ marginTop: '16px' }}>Prescription Items ({prescriptionList.length})</h3>
       {prescriptionList.map((item, idx) => (
         <div
@@ -477,7 +470,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
       ))}
 
-      {/* Submission Action */}
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={handleGenerateDoc}
