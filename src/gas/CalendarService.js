@@ -50,52 +50,71 @@ function sendAppointmentEmail(payload, meetLink) {
 }
 
 /**
- * Fetches all appointments for a user and includes the Meet link only for active/future sessions.
+ * Retrieves appointments and member information.
+ * If the user belongs to a family, fetches appointments for all enrolled family members.
+ * If the user is an individual patient, retrieves only their personal appointments.
  */
-function getUserAppointments(userEmail) {
-  initDatabase();
-  var sheet = getOrCreateSheet('Appointments');
-  var data = sheet.getDataRange().getValues();
-  var appointments = [];
-  var now = new Date();
+function getAppointmentsForUserAndFamily(userEmail) {
+  if (!userEmail) return { familyInfo: null, appointments: [] };
 
-  console.log(JSON.stringify(data), data[1][1], data[1][2], userEmail)
-  for (var i = 1; i < data.length; i++) {
-    var patientEmail = data[i][1];
-    var doctorEmail = data[i][2];
+  const familyData = getFamilyDetailsByUser(userEmail);
+  const memberMap = {};
+  const emailsToFetch = [];
 
-    if (patientEmail === userEmail || doctorEmail === userEmail) {
-      var dateStr = JSON.parse(data[i][3]); // Format: YYYY-MM-DD
-      var timeStr = JSON.parse(data[i][4]); // Format: HH:MM
-      var rawMeetLink = data[i][5];
-      var status = data[i][6];
-      var prescriptionLink = data[i][7];
-      // Parse appointment end time (assuming 30-minute duration)
-      var apptStartTime = new Date(dateStr + 'T' + timeStr);
-      var apptEndTime = new Date(apptStartTime.getTime() + 30 * 60000);
+  if (familyData && familyData.members && familyData.members.length > 0) {
+    familyData.members.forEach((m) => {
+      const lowerEmail = m.email.toLowerCase();
+      emailsToFetch.push(lowerEmail);
+      memberMap[lowerEmail] = m;
+    });
+  } else {
+    // Individual patient (not in a family)
+    const patientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Users");
+    let patientName = userEmail;
 
-      // Present/Future criteria: Meeting end time has not passed yet
-      var isUpcomingOrPresent = now <= apptEndTime;
-      
+    if (patientSheet) {
+      const pData = patientSheet.getDataRange().getValues();
+      for (let i = 1; i < pData.length; i++) {
+        if (pData[i][3] && pData[i][3].toString().toLowerCase() === userEmail.toLowerCase()) {
+          patientName = pData[i][1];
+          
+          break;
+        }
+      }
+    }
 
+    const lowerEmail = userEmail.toLowerCase();
+    emailsToFetch.push(lowerEmail);
+    memberMap[lowerEmail] = { name: patientName, email: userEmail };
+  }
+
+  const apptSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  if (!apptSheet) return { familyInfo: familyData || null, appointments: [] };
+
+  const apptData = apptSheet.getDataRange().getValues();
+  const appointments = [];
+
+  // Sheet structure: [0: ApptID, 1: PatientName, 2: PatientEmail, 3: Date, 4: Time, 5: Status, 6: PrescriptionUrl]
+  for (let i = 1; i < apptData.length; i++) {
+    const rowPatientEmail = apptData[i][1] ? apptData[i][1].toString().toLowerCase() : '';
+    const rowDoctorEmail = apptData[i][2] ? apptData[i][2].toString().toLowerCase() : '';
+    if (emailsToFetch.includes(rowPatientEmail)) {
+      const memberInfo = memberMap[rowPatientEmail];
       appointments.push({
-        id: data[i][0],
-        patient: getPatientByEmail (patientEmail),
-        doctor: getDoctorByEmail(doctorEmail),
-        date: dateStr,
-        time: timeStr,
-        meetLink: isUpcomingOrPresent ? rawMeetLink : null,
-        status: isUpcomingOrPresent ? 'UPCOMING' : 'COMPLETED',
-        isUpcomingOrPresent: isUpcomingOrPresent, 
-        prescriptionLink
+        id: apptData[i][0],
+        patient: getPatientByEmail(rowPatientEmail),
+        doctor: getDoctorByEmail(rowDoctorEmail),
+        date: apptData[i][3],
+        time: apptData[i][4],
+        status: apptData[i][5] || 'Scheduled',
+        prescriptionUrl: apptData[i][6] || ''
       });
     }
   }
-  
-  console.log(JSON.stringify(appointments)) ;
 
-  // Sort: Upcoming meetings first, then by date descending
-  return appointments.sort(function(a, b) {
-    return new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time);
-  });
+  return {
+    familyInfo: familyData || null,
+    appointments: appointments
+  };
 }
+
