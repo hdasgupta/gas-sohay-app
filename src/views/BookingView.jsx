@@ -30,6 +30,7 @@ export default function BookingView({ user = {}, styles = {} }) {
       });
       
       callBackend('getDoctorByEmail', [user.email], (data) => {
+        alert(JSON.stringify(data));
   if (data && data.availability && data.availability.length > 0) {
     setAvailableSlots(data.availability);
   }
