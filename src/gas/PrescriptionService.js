@@ -215,9 +215,7 @@ function createPrescriptionDoc(payload) {
     doc.saveAndClose();
 
     // 4. Update the prescription link in the Appointments Google Sheet
-    if (appointmentInfo && appointmentInfo.rowIndex) {
-      updateAppointmentPrescriptionUrl(appointmentInfo.rowIndex, doc.getUrl());
-    }
+    
     
     const docId = doc.getId();
 
@@ -238,6 +236,10 @@ pdfBlob.setName(fileName + '.pdf');
 var pdfFile = folder.createFile(pdfBlob);
 Logger.log('PDF created successfully: ' + pdfFile.getName());
 pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+if (appointmentInfo && appointmentInfo.rowIndex) {
+  updateAppointmentPrescriptionUrl(appointmentInfo.rowIndex, pdfFile.getUrl());
+}
 // 5. Delete the original Google Doc
 // Standard DriveApp method (Moves to Trash - permanently purged after 30 days):
 // file.setTrashed(true);
@@ -317,7 +319,7 @@ function findLatestAppointment(doctorEmail, patientEmail) {
 function updateAppointmentPrescriptionUrl(rowIndex, docUrl) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
   if (sheet && rowIndex > 1) {
-    sheet.getRange(rowIndex, 6).setValue(docUrl); // Column F
+    sheet.getRange(rowIndex, 8).setValue(docUrl); // Column F
   }
 }
 
