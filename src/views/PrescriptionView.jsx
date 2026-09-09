@@ -15,8 +15,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   // Locked Clinic & Doctor Info
   const fixedClinicInfo = {
-    orgName: user?.orgName || 'CITY HEALTHCARE CLINIC',
-    doctorName: user?.name || 'Dr. A. Sharma',
+    orgName: user?.orgName || 'WEST BENGAL FORUM FOR MENTAL HEALTH', doctorName: user?.name || 'Dr. A. Sharma',
     doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (General Medicine)'
   };
 
