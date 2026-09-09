@@ -24,6 +24,14 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
     }
   }, [user.email]);
 
+  const isUpcoming = (dateStr, status) => {
+    if (status && status.toLowerCase() === 'cancelled') return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const apptDate = new Date(dateStr);
+    return apptDate >= today;
+  };
+
   const filteredAppointments = appointments.filter((app) => {
     if (selectedFilterEmail === 'ALL') return true;
     return app.patient.email.toLowerCase() === selectedFilterEmail.toLowerCase();
@@ -143,11 +151,13 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                 <th style={headerCellStyle}>Date</th>
                 <th style={headerCellStyle}>Time Slot</th>
                 <th style={headerCellStyle}>Status</th>
-                <th style={headerCellStyle}>Prescription Link</th>
+                <th style={headerCellStyle}>Meeting / Prescription Link</th>
               </tr>
             </thead>
             <tbody>
-              {filteredAppointments.map((app, index) => (
+              {filteredAppointments.map((app, index) => {
+                const upcoming = isUpcoming(app.date, app.status);
+                return (
                 <tr key={app.id || index}>
                   {/* Frozen 1st Column */}
                   <td style={stickyCellStyle}>
@@ -184,12 +194,19 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                       >
                         📄 Download Prescription
                       </a>
-                    ) : (
-                      <span style={{ color: '#94a3b8', fontSize: '13px' }}>N/A</span>
-                    )}
+                    ) : {upcoming && app.meetingLink ? (
+                      <a
+                          href={app.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={btnJoin}
+                        >
+                          🎥 Join Meeting
+                      </a>
+                    )}}
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
