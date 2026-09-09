@@ -15,6 +15,6 @@ export function callBackend(functionName, args = [], callback) {
     alert('Running outside Google Apps Script environment.');
   }
 } catch(e) {
-  alert(JSON.stingify(e)
+  alert(JSON.stingify(e));
 }
 }
