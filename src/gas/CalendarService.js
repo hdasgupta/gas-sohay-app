@@ -80,8 +80,8 @@ function getUserAppointments(userEmail) {
 
       appointments.push({
         id: data[i][0],
-        patient: getPatientByEmail (patientEmail).name,
-        doctor: getDoctorByEmail(doctorEmail).name,
+        patient: getPatientByEmail (patientEmail),
+        doctor: getDoctorByEmail(doctorEmail),
         date: dateStr,
         time: timeStr,
         meetLink: isUpcomingOrPresent ? rawMeetLink : null,

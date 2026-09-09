@@ -46,8 +46,8 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
               {appointments.map((app, index) => (
                 <tr key={app.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '10px', fontWeight: 'bold' }}>
-                    {app.patientName}
-                    {app.patientEmail === user.email && (
+                    {app.patient.name}
+                    {app.patient.email === user.email && (
                       <span style={{ fontSize: '11px', color: '#2563eb', marginLeft: '6px' }}>(You)</span>
                     )}
                   </td>
