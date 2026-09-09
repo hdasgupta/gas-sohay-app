@@ -25,7 +25,7 @@ export default function BookingView({ user = {}, styles = {} }) {
   useEffect(() => {
     callBackend('getDoctorsList', [], (docList) => {
       if (docList && docList.length > 0) {
-        alert(JSON.stringify(docList));
+        
         setDoctors(docList);
         setSelectedDoctorEmail(docList[0].email);
       }
@@ -33,7 +33,7 @@ export default function BookingView({ user = {}, styles = {} }) {
 
     if (user.email) {
       callBackend('getFamilyDetailsByUser', [user.email], (data) => {
-        alert(JSON.stringify(data))
+        
         if (data && data.members && data.members.length > 0) {
           setFamilyMembers(data.members);
         }
@@ -53,7 +53,7 @@ export default function BookingView({ user = {}, styles = {} }) {
         setAppointmentTime('');
       });
       
-      callBackend('getDoctorByEmail', [user.email], (data) => {
+      callBackend('getDoctorByEmail', [selectedDoctorEmail], (data) => {
   if (data && data.availability && data.availability.length > 0) {
     setAvailableSlots(data.availability);
   }
