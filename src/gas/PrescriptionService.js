@@ -302,7 +302,7 @@ function findLatestAppointment(doctorEmail, patientEmail) {
           rowIndex: i + 1, // 1-based index in Sheet
           date: String(apptDate),
           time: String(apptTime),
-          prescriptionUrl: row[5] ? String(row[5]).trim() : ""
+          prescriptionUrl: row[7] ? String(row[7]).trim() : ""
         };
       }
     }
