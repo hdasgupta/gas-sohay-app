@@ -42,7 +42,7 @@ function sendAppointmentEmail(payload, meetLink) {
   var patient = getPatientByEmail(payload.patientEmail);
   var doctor = getDoctorByEmail(payload.doctorEmail);
   MailApp.sendEmail({
-    to: payload.userEmail,
+    to: payload.patientEmail,
     subject: 'Appointment Confirmed - Google Meet Link Inside',
     htmlBody: `
       <h2>Appointment Confirmed</h2>
