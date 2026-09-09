@@ -182,7 +182,7 @@ export default function AppointmentListView({ user = {}, styles = {} }) {
                         rel="noopener noreferrer"
                         style={btnSecondary}
                       >
-                        📄 View Prescription
+                        📄 Download Prescription
                       </a>
                     ) : (
                       <span style={{ color: '#94a3b8', fontSize: '13px' }}>N/A</span>

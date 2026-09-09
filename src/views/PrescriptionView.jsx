@@ -411,7 +411,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             <strong>Prescription Created & Attached to Appointment!</strong>
             <br />
             <a href={docLink} target="_blank" rel="noopener noreferrer" style={{ color: '#15803d', fontWeight: 'bold' }}>
-              Open Google Doc Prescription ↗
+              Download rescription ↗
             </a>
           </div>
         )}

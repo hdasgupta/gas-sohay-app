@@ -237,8 +237,10 @@ var pdfFile = folder.createFile(pdfBlob);
 Logger.log('PDF created successfully: ' + pdfFile.getName());
 pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
+const pdfDownloadUrl = "https://drive.google.com/uc?export=download&id=" + pdfFile.getId();
+
 if (appointmentInfo && appointmentInfo.rowIndex) {
-  updateAppointmentPrescriptionUrl(appointmentInfo.rowIndex, pdfFile.getUrl());
+  updateAppointmentPrescriptionUrl(appointmentInfo.rowIndex, pdfDownloadUrl);
 }
 // 5. Delete the original Google Doc
 // Standard DriveApp method (Moves to Trash - permanently purged after 30 days):
@@ -250,7 +252,7 @@ Drive.Files.remove(file.getId());
 
 return {
   success: true,
-  docUrl: pdfFile.getUrl(),
+  docUrl: pdfDownloadUrl,
   docId: pdfFile.getId(), 
   appointmentUpdated: !!(appointmentInfo && appointmentInfo.rowIndex)
 };
@@ -289,9 +291,11 @@ function findLatestAppointment(doctorEmail, patientEmail) {
     var row = data[i];
     var pEmail = String(row[1] || "").toLowerCase().trim();
     var dEmail = String(row[2] || "").toLowerCase().trim();
+    var apptDate = row[3];
+    const today = new Date().toISOString().split('T')[0];
 
-    if (pEmail === patientEmail && dEmail === doctorEmail) {
-      var apptDate = row[3];
+    if (pEmail === patientEmail && dEmail === doctorEmail && apptDate === today) {
+      
       var apptTime = row[4];
       
       // Calculate timestamp for comparison
