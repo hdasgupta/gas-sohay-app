@@ -49,6 +49,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     // Fetch Medicine Master List
     try {
       callBackend('getMedicineMasterList', [], (data) => {
+        alert(data)
         setMasterMedicines(Array.isArray(data) ? data : []);
       });
     } catch (err) {
@@ -83,7 +84,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     : [];
     
     
-    alert(masterMedicines)
+   // alert(masterMedicines)
 
   const handleSelectPatient = (patient) => {
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
