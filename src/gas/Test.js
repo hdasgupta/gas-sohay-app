@@ -37,3 +37,8 @@ function testCreatePrescription() {
   );
   console.log(JSON.stringify(doc, null, 4));
 }
+
+function testUserAppountments() {
+  // Tab to edit
+  UserAppointments("himaghna.dasgupta@gmail.com") 
+}
