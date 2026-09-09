@@ -209,11 +209,37 @@ function createPrescriptionDoc(payload) {
 
     // Save & Close Document
     doc.saveAndClose();
+    const docId = doc.getId();
+    
+    const file = DriveApp.getFileById(docId);
+   
+
+    var fileName = file.getName();
+
+    // 2. Identify target folder (same folder as the original document)
+    var parents = file.getParents();
+    var folder = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+
+    // 3. Convert document to PDF
+    var pdfBlob = file.getAs('application/pdf');
+    pdfBlob.setName(fileName + '.pdf');
+
+// 4. Save the PDF file in Google Drive
+    var pdfFile = folder.createFile(pdfBlob);
+    Logger.log('PDF created successfully: ' + pdfFile.getName());
+
+    // 5. Delete the original Google Doc
+    // Standard DriveApp method (Moves to Trash - permanently purged after 30 days):
+    // file.setTrashed(true);
+
+    // Note: To permanently delete immediately bypassing Trash, enable "Drive API" 
+    // under Services in Apps Script and use:
+    Drive.Files.remove(file.getId());
 
     return {
       success: true,
-      docUrl: doc.getUrl(),
-      docId: doc.getId()
+      docUrl: pdfFile.getUrl(),
+      docId: pdfFile.getId()
     };
 
   } catch (err) {

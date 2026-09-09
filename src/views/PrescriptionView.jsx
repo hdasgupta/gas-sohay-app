@@ -213,16 +213,16 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       {/* Unchangeable Doctor & Clinic Details */}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
-          <label style={defaultStyles.label}>Organization / Clinic Name (Locked)</label>
+          <label style={defaultStyles.label}>Organization Name</label>
           <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.orgName} readOnly />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Doctor Name (Locked)</label>
+            <label style={defaultStyles.label}>Doctor Name</label>
             <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorName} readOnly />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Speciality / Designation (Locked)</label>
+            <label style={defaultStyles.label}>Speciality</label>
             <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorSpeciality} readOnly />
           </div>
         </div>
