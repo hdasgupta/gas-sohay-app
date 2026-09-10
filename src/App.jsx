@@ -131,11 +131,8 @@ export default function App() {
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
       {view === 'prescription' &&  <PrescriptionView user={user} styles={styles} />}
       {view === 'family' && <FamilyManagementView user={user} />}
-      {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={(form, reset) => {
-        addUpdateDoctor(form, ()=> {reset(); loadDoctors();});
-        
-        
-      }} styles={styles} />}
+      {view === 'admin' && <AdminView
+         styles={styles} />}
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
