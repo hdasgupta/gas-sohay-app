@@ -125,6 +125,25 @@ export default function AdminView({ styles = {} }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const validatePasswordComplexity = (pwd) => {
+    if (pwd.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return 'Password must contain at least one uppercase letter (A-Z).';
+    }
+    if (!/[a-z]/.test(pwd)) {
+      return 'Password must contain at least one lowercase letter (a-z).';
+    }
+    if (!/[0-9]/.test(pwd)) {
+      return 'Password must contain at least one number (0-9).';
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>\-_=+\\|/\[\];']/.test(pwd)) {
+      return 'Password must contain at least one special character.';
+    }
+    return null;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -138,12 +157,14 @@ export default function AdminView({ styles = {} }) {
       return setError('Email, Phone, and Password are required for new doctors.');
     }
 
+    // Password validation logic
     if (formData.password) {
       if (formData.password !== formData.confirmPassword) {
         return setError('Passwords do not match.');
       }
-      if (formData.password.length < 6) {
-        return setError('Password must be at least 6 characters.');
+      const pwdError = validatePasswordComplexity(formData.password);
+      if (pwdError) {
+        return setError(pwdError);
       }
     }
 
@@ -180,7 +201,7 @@ export default function AdminView({ styles = {} }) {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-      {/* Dynamic Form */}
+      {/* Form Section */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ margin: 0 }}>{editingId ? `Edit Doctor (${editingId})` : 'Add New Doctor'}</h2>
@@ -191,8 +212,8 @@ export default function AdminView({ styles = {} }) {
           )}
         </div>
 
-        {error && <div style={{ color: '#dc2626', marginBottom: '12px', padding: '8px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px' }}>{error}</div>}
-        {success && <div style={{ color: '#16a34a', marginBottom: '12px', padding: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px' }}>{success}</div>}
+        {error && <div style={{ color: '#dc2626', marginBottom: '12px', padding: '8px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px' }}>{error}</div>}
+        {success && <div style={{ color: '#16a34a', marginBottom: '12px', padding: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
 
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -242,17 +263,21 @@ export default function AdminView({ styles = {} }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                Password {editingId ? '(Leave blank to keep unchanged)' : '*'}
+                Password {editingId ? '(Optional on edit)' : '*'}
               </label>
               <input style={inputStyle} type="password" name="password" value={formData.password} onChange={handleInputChange} required={!editingId} />
             </div>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                Confirm Password {editingId ? '(Leave blank to keep unchanged)' : '*'}
+                Confirm Password {editingId ? '(Optional on edit)' : '*'}
               </label>
               <input style={inputStyle} type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} required={!editingId} />
             </div>
           </div>
+
+          <p style={{ fontSize: '11px', color: '#64748b', marginTop: '-6px', marginBottom: '12px' }}>
+            * Password rules: Minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+          </p>
 
           {/* Weekday Selector */}
           <div style={{ marginTop: '8px', marginBottom: '16px' }}>
