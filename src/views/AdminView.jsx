@@ -6,6 +6,7 @@ const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Satur
 export default function AdminView({ styles = {} }) {
   const cardStyle = styles.card || { padding: '24px', background: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '24px' };
   const inputStyle = styles.input || { width: '100%', padding: '10px', marginBottom: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' };
+  const disabledInputStyle = { ...inputStyle, background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' };
   const btnStyle = styles.btnPrimary || { width: '100%', padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
   const tableHeaderStyle = { padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' };
   const tableCellStyle = { padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' };
@@ -37,7 +38,7 @@ export default function AdminView({ styles = {} }) {
 
   const fetchDoctors = () => {
     setLoadingList(true);
-    callBackend('getDoctorsList', [], (list) => {
+    callBackend('getAdminDoctorsList', [], (list) => {
       setDoctorsList(list || []);
       setLoadingList(false);
     });
@@ -54,7 +55,6 @@ export default function AdminView({ styles = {} }) {
     );
   };
 
-  // Format 24hr time string to 12hr AM/PM
   const format12Hr = (time24) => {
     if (!time24) return '';
     const [h, m] = time24.split(':');
@@ -65,7 +65,6 @@ export default function AdminView({ styles = {} }) {
     return `${formattedHours}:${m} ${suffix}`;
   };
 
-  // Dynamic Slot Controls
   const handleAddSlot = () => {
     if (!startTime || !endTime) {
       return setError('Select both start and end time for the slot.');
@@ -131,12 +130,12 @@ export default function AdminView({ styles = {} }) {
     setError('');
     setSuccess('');
 
-    if (!formData.name || !formData.speciality || !formData.email || !formData.phone) {
-      return setError('Name, Speciality, Email, and Phone are required.');
+    if (!formData.name || !formData.speciality) {
+      return setError('Name and Speciality are required.');
     }
 
-    if (!editingId && !formData.password) {
-      return setError('Password is required for new doctors.');
+    if (!editingId && (!formData.email || !formData.phone || !formData.password)) {
+      return setError('Email, Phone, and Password are required for new doctors.');
     }
 
     if (formData.password) {
@@ -149,11 +148,11 @@ export default function AdminView({ styles = {} }) {
     }
 
     if (selectedDays.length === 0) {
-      return setError('Please select at least one available weekday.');
+      return setError('Select at least one available weekday.');
     }
 
     if (customSlots.length === 0) {
-      return setError('Please add at least one dynamic time slot.');
+      return setError('Add at least one dynamic time slot.');
     }
 
     setSubmitting(true);
@@ -181,7 +180,7 @@ export default function AdminView({ styles = {} }) {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-      {/* Form Section */}
+      {/* Dynamic Form */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ margin: 0 }}>{editingId ? `Edit Doctor (${editingId})` : 'Add New Doctor'}</h2>
@@ -203,18 +202,40 @@ export default function AdminView({ styles = {} }) {
             </div>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Speciality *</label>
-              <input style={inputStyle} name="speciality" value={formData.speciality} onChange={handleInputChange} placeholder="General Medicine, Orthopedics, etc." required />
+              <input style={inputStyle} name="speciality" value={formData.speciality} onChange={handleInputChange} placeholder="Cardiology, General, etc." required />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email Address *</label>
-              <input style={inputStyle} type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="doctor@example.com" required />
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
+                Email Address {editingId ? '(Immutable)' : '*'}
+              </label>
+              <input
+                style={editingId ? disabledInputStyle : inputStyle}
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="doctor@example.com"
+                disabled={Boolean(editingId)}
+                required={!editingId}
+              />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Phone Number *</label>
-              <input style={inputStyle} type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="10-digit phone number" required />
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
+                Phone Number {editingId ? '(Immutable)' : '*'}
+              </label>
+              <input
+                style={editingId ? disabledInputStyle : inputStyle}
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="10-digit phone number"
+                disabled={Boolean(editingId)}
+                required={!editingId}
+              />
             </div>
           </div>
 
@@ -233,7 +254,7 @@ export default function AdminView({ styles = {} }) {
             </div>
           </div>
 
-          {/* Weekday Multi-Select */}
+          {/* Weekday Selector */}
           <div style={{ marginTop: '8px', marginBottom: '16px' }}>
             <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Available Weekdays *</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -310,7 +331,7 @@ export default function AdminView({ styles = {} }) {
             {/* Configured Slot Chips */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {customSlots.length === 0 ? (
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>No time slots added yet. Use time pickers above.</span>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>No time slots configured. Select times above to add.</span>
               ) : (
                 customSlots.map((slot) => (
                   <span
@@ -351,12 +372,12 @@ export default function AdminView({ styles = {} }) {
           </div>
 
           <button type="submit" disabled={submitting} style={btnStyle}>
-            {submitting ? 'Saving...' : editingId ? 'Update Doctor Record' : 'Add Doctor'}
+            {submitting ? 'Saving...' : editingId ? 'Update Doctor Details' : 'Add Doctor'}
           </button>
         </form>
       </div>
 
-      {/* Doctor List Section */}
+      {/* Doctor List Table */}
       <div style={cardStyle}>
         <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Registered Doctors List</h3>
 

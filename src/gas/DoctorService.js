@@ -27,10 +27,64 @@ function getDoctorsList() {
  */
 function saveDoctor(payload) {
   const { id, name, speciality, email, phone, password, confirmPassword, availability } = payload;
+  const isEditing = Boolean(id);
 
-  // 1. Mandatory Fields Validation
-  if (!name || !speciality || !email || !phone || !availability) {
-    return { success: false, error: "Name, speciality, email, phone, and availability are required." };
+  // 1. Mandatory Common Validations
+  if (!name || !speciality || !availability) {
+    return { success: false, error: "Name, speciality, and availability are required." };
+  }
+
+  if (!availability.days || availability.days.length === 0) {
+    return { success: false, error: "Select at least one available weekday." };
+  }
+
+  if (!availability.slots || availability.slots.length === 0) {
+    return { success: false, error: "Add at least one dynamic time slot." };
+  }
+
+  // 2. Ensure 'Doctors' sheet exists
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Doctors");
+    sheet.appendRow(["id", "name", "speciality", "email", "phone", "password", "availabilityjson"]);
+  }
+
+  const data = sheet.getDataRange().getValues();
+  const availabilityJsonStr = JSON.stringify(availability);
+
+  // 3. Handle Doctor Update (Immutable Email & Phone)
+  if (isEditing) {
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim() === id) {
+        const rowNumber = i + 1;
+
+        // Preserve existing password if left blank
+        let finalPasswordHash = data[i][5];
+        if (password) {
+          if (password !== confirmPassword) {
+            return { success: false, error: "Passwords do not match." };
+          }
+          if (password.length < 6) {
+            return { success: false, error: "Password must be at least 6 characters long." };
+          }
+          finalPasswordHash = hashPassword(password);
+        }
+
+        // Update fields (Columns 4 & 5 for email and phone are explicitly untouched)
+        sheet.getRange(rowNumber, 2).setValue(name.trim());
+        sheet.getRange(rowNumber, 3).setValue(speciality.trim());
+        sheet.getRange(rowNumber, 6).setValue(finalPasswordHash);
+        sheet.getRange(rowNumber, 7).setValue(availabilityJsonStr);
+
+        return { success: true, message: "Doctor record updated successfully. (Email & Phone preserved)", docId: id };
+      }
+    }
+    return { success: false, error: "Doctor ID not found for update." };
+  } 
+
+  // 4. Handle New Doctor Creation
+  if (!email || !phone || !password) {
+    return { success: false, error: "Email, phone, and password are required for new doctors." };
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,88 +97,45 @@ function saveDoctor(payload) {
     return { success: false, error: "Phone number must contain at least 10 digits." };
   }
 
-  if (!availability.days || availability.days.length === 0) {
-    return { success: false, error: "Select at least one available weekday." };
+  if (password !== confirmPassword) {
+    return { success: false, error: "Passwords do not match." };
   }
 
-  if (!availability.slots || availability.slots.length === 0) {
-    return { success: false, error: "Add at least one dynamic time slot." };
-  }
-
-  const isEditing = Boolean(id);
-
-  // 2. Password Validation
-  if (!isEditing && !password) {
-    return { success: false, error: "Password is required when adding a new doctor." };
-  }
-
-  if (password) {
-    if (password !== confirmPassword) {
-      return { success: false, error: "Passwords do not match." };
-    }
-    if (password.length < 6) {
-      return { success: false, error: "Password must be at least 6 characters long." };
-    }
-  }
-
-  // 3. Ensure 'Doctors' sheet exists
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
-  if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Doctors");
-    sheet.appendRow(["id", "name", "speciality", "email", "phone", "password", "availabilityjson"]);
+  if (password.length < 6) {
+    return { success: false, error: "Password must be at least 6 characters long." };
   }
 
   const cleanEmail = email.toString().trim().toLowerCase();
-  const data = sheet.getDataRange().getValues();
-  const availabilityJsonStr = JSON.stringify(availability);
 
-  // 4. Duplicate Email Check (Excluding current doctor when editing)
+  // Unique Email & Phone Check
   for (let i = 1; i < data.length; i++) {
-    const rowId = data[i][0] ? data[i][0].toString().trim() : '';
     const rowEmail = data[i][3] ? data[i][3].toString().trim().toLowerCase() : '';
+    const rowPhone = data[i][4] ? data[i][4].toString().replace(/\D/g, '') : '';
 
-    if (rowEmail === cleanEmail && (!isEditing || rowId !== id)) {
+    if (rowEmail === cleanEmail) {
       return { success: false, error: "A doctor with this email address already exists." };
     }
-  }
-
-  // 5. Update Existing or Append New Doctor
-  if (isEditing) {
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0].toString().trim() === id) {
-        const rowNumber = i + 1;
-        // Retain current hashed password if no new password was provided
-        const finalPasswordHash = password ? hashPassword(password) : data[i][5];
-
-        sheet.getRange(rowNumber, 2).setValue(name.trim());
-        sheet.getRange(rowNumber, 3).setValue(speciality.trim());
-        sheet.getRange(rowNumber, 4).setValue(cleanEmail);
-        sheet.getRange(rowNumber, 5).setValue(cleanPhone);
-        sheet.getRange(rowNumber, 6).setValue(finalPasswordHash);
-        sheet.getRange(rowNumber, 7).setValue(availabilityJsonStr);
-
-        return { success: true, message: "Doctor record updated successfully.", docId: id };
-      }
+    if (rowPhone === cleanPhone) {
+      return { success: false, error: "A doctor with this phone number already exists." };
     }
-    return { success: false, error: "Doctor record not found for update." };
-  } else {
-    const newId = "DOC" + (1000 + data.length);
-    const hashedPassword = hashPassword(password);
-
-    sheet.appendRow([
-      newId,
-      name.trim(),
-      speciality.trim(),
-      cleanEmail,
-      cleanPhone,
-      hashedPassword,
-      availabilityJsonStr
-    ]);
-
-    return { success: true, message: "Doctor registered successfully.", docId: newId };
   }
-}
 
+  // 5. Append New Doctor
+  const newId = "DOC" + (1000 + data.length);
+  const hashedPassword = hashPassword(password);
+
+  sheet.appendRow([
+    newId,
+    name.trim(),
+    speciality.trim(),
+    cleanEmail,
+    cleanPhone,
+    hashedPassword,
+    availabilityJsonStr
+  ]);
+
+  return { success: true, message: "Doctor registered successfully.", docId: newId };
+}
 
 function getDoctorByEmail(email) {
   // Tab to edit
