@@ -381,7 +381,7 @@ export default function AdminView({ styles = {} }) {
                 {doctorsList.map((doc) => {
                   let availSummary = 'Not configured';
                   try {
-                    const parsed = JSON.parse(doc.availabilityjson);
+                    const parsed = doc.availability;
                     availSummary = `${parsed.days?.length || 0} days, ${parsed.slots?.length || 0} slots`;
                   } catch (e) {}
 
