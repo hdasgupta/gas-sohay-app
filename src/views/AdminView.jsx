@@ -59,7 +59,7 @@ export default function AdminView({ styles = {} }) {
 
   const fetchDoctors = () => {
     setLoadingList(true);
-    callBackend('getAdminDoctorsList', [], (list) => {
+    callBackend('getDoctorsList', [], (list) => {
       setDoctorsList(list || []);
       setLoadingList(false);
     });
