@@ -1,192 +1,313 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function BookingView({ user = {}, styles = {} }) {
-  const cardStyle = styles.card || { padding: '24px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px' };
-  const inputStyle = styles.input || { width: '100%', padding: '10px', marginBottom: '14px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' };
-  const btnStyle = styles.btnPrimary || { width: '100%', padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
+export default function BookingView({ currentUser, familyMembers = [], styles = {} }) {
+  const cardStyle = styles.card || {
+    padding: '24px',
+    background: '#ffffff',
+    borderRadius: '8px',
+    border: '1px solid #cbd5e1',
+    marginBottom: '24px'
+  };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const inputStyle = styles.input || {
+    width: '100%',
+    padding: '10px',
+    marginBottom: '12px',
+    borderRadius: '4px',
+    border: '1px solid #cbd5e1',
+    boxSizing: 'border-box'
+  };
 
-  const [availableSlots, setAvailableSlots] = useState([]);
+  const btnPrimary = styles.btnPrimary || {
+    width: '100%',
+    padding: '12px',
+    background: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontWeight: 'bold'
+  };
 
-  const [doctors, setDoctors] = useState([]);
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedPatientEmail, setSelectedPatientEmail] = useState(currentUser?.email || '');
+  const [selectedDate, setSelectedDate] = useState(getTodayString());
+  const [availableDoctors, setAvailableDoctors] = useState([]);
   const [selectedDoctorEmail, setSelectedDoctorEmail] = useState('');
-  const [familyMembers, setFamilyMembers] = useState([]);
-  const [selectedPatientEmail, setSelectedPatientEmail] = useState(user.email || '');
-  const [selectedPatientName, setSelectedPatientName] = useState(user.name || '');
-  const [appointmentDate, setAppointmentDate] = useState(todayStr);
-  const [appointmentTime, setAppointmentTime] = useState('');
-  const [bookedSlots, setBookedSlots] = useState([]);
+  
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState('');
+
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load doctors and family members on mount
+  const [error, setError] = useState('');
+  const [bookingSuccess, setBookingSuccess] = useState(null);
+
   useEffect(() => {
-    callBackend('getDoctorsList', [], (docList) => {
-      if (docList && docList.length > 0) {
-        
-        setDoctors(docList);
-        setSelectedDoctorEmail(docList[0].email);
-      }
+    if (currentUser?.email && !selectedPatientEmail) {
+      setSelectedPatientEmail(currentUser.email);
+    }
+  }, [currentUser]);
+
+  // 1. Fetch available doctors when date changes
+  useEffect(() => {
+    if (!selectedDate) {
+      setAvailableDoctors([]);
+      setSelectedDoctorEmail('');
+      setAvailableSlots([]);
+      setSelectedSlot('');
+      return;
+    }
+
+    setLoadingDoctors(true);
+    setSelectedDoctorEmail('');
+    setAvailableSlots([]);
+    setSelectedSlot('');
+    setError('');
+
+    callBackend('getDoctorsAvailableOnDate', [selectedDate], (doctors) => {
+      setLoadingDoctors(false);
+      setAvailableDoctors(doctors || []);
     });
+  }, [selectedDate]);
 
-    if (user.email) {
-      callBackend('getFamilyDetailsByUser', [user.email], (data) => {
-        
-        if (data && data.members && data.members.length > 0) {
-          setFamilyMembers(data.members);
-        }
-      });
-      
-      
-    }
-  }, [user.email]);
-
-  // Fetch booked slots whenever selected Doctor or Date changes
+  // 2. Fetch available 30-min time slots when doctor or date changes
   useEffect(() => {
-    if (selectedDoctorEmail && appointmentDate) {
-      setLoadingSlots(true);
-      callBackend('getBookedSlotsForDoctorAndDate', [selectedDoctorEmail, appointmentDate], (slots) => {
-        
-        setBookedSlots(slots || []);
-        setLoadingSlots(false);
-        setAppointmentTime('');
-      });
-      
-      callBackend('getDoctorByEmail', [selectedDoctorEmail], (data) => {
-  if (data && data.availability && data.availability.length > 0) {
-    setAvailableSlots(data.availability);
-  }
-});
+    if (!selectedDoctorEmail || !selectedDate) {
+      setAvailableSlots([]);
+      setSelectedSlot('');
+      return;
     }
-  }, [selectedDoctorEmail, appointmentDate]);
 
-  const handlePatientSelectChange = (e) => {
-    const chosenEmail = e.target.value;
-    setSelectedPatientEmail(chosenEmail);
-    const member = familyMembers.find((m) => m.email.toLowerCase() === chosenEmail.toLowerCase());
-    setSelectedPatientName(member ? member.name : user.name);
-  };
+    setLoadingSlots(true);
+    setSelectedSlot('');
+    setError('');
+
+    callBackend('getAvailableSlotsForDoctorAndDate', [selectedDoctorEmail, selectedDate], (slots) => {
+      setLoadingSlots(false);
+      setAvailableSlots(slots || []);
+    });
+  }, [selectedDoctorEmail, selectedDate]);
 
   const handleBookAppointment = (e) => {
     e.preventDefault();
-    if (!selectedDoctorEmail || !appointmentDate || !appointmentTime) {
-      return alert('Please select a doctor, date, and available time slot.');
-    }
+    setError('');
+    setBookingSuccess(null);
+
+    if (!selectedPatientEmail) return setError('Please select a patient.');
+    if (!selectedDate) return setError('Please choose an appointment date.');
+    if (!selectedDoctorEmail) return setError('Please select a doctor.');
+    if (!selectedSlot) return setError('Please choose a 30-minute time slot.');
+
+    const selectedDocObj = availableDoctors.find(d => d.email === selectedDoctorEmail);
 
     setSubmitting(true);
+
     const payload = {
       patientEmail: selectedPatientEmail,
-      patientName: selectedPatientName,
-      bookedByEmail: user.email,
       doctorEmail: selectedDoctorEmail,
-      date: JSON.stringify(appointmentDate),
-      time: JSON. stringify(appointmentTime) 
+      doctorName: selectedDocObj?.name || '',
+      date: selectedDate,
+      time: selectedSlot
     };
-    //alert(JSON.stringify(payload))
+
     callBackend('bookAppointment', [payload], (res) => {
       setSubmitting(false);
       if (res && res.success) {
-        alert(`Appointment booked successfully for ${selectedPatientName} on ${appointmentDate} at ${appointmentTime}!`);
-        
-        // Refresh booked slots
-        callBackend('getBookedSlotsForDoctorAndDate', [selectedDoctorEmail, appointmentDate], (slots) => {
-          setBookedSlots(slots || []);
-          setAppointmentTime('');
+        setBookingSuccess(res.appointment);
+        setSelectedSlot('');
+        // Refresh slot list to remove booked slot instantly
+        callBackend('getAvailableSlotsForDoctorAndDate', [selectedDoctorEmail, selectedDate], (slots) => {
+          setAvailableSlots(slots || []);
         });
       } else {
-        alert('Booking failed: ' + (res?.error || 'Unknown error'));
+        setError(res?.error || 'Failed to book appointment.');
       }
     });
   };
 
+  const selectedDoctorObj = availableDoctors.find((d) => d.email === selectedDoctorEmail);
+
   return (
-    <div style={cardStyle}>
-      <h2 style={{ marginTop: 0, marginBottom: '16px' }}>Book Doctor Appointment</h2>
+    <div style={{ maxWidth: '750px', margin: '0 auto', padding: '16px' }}>
+      <div style={cardStyle}>
+        <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#1e293b' }}>Book Doctor Appointment</h2>
 
-      <form onSubmit={handleBookAppointment}>
-        {/* Family Member Selection */}
-        <div style={{ marginBottom: '14px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
-            Book Appointment For
-          </label>
-          {familyMembers.length > 0 ? (
-            <select style={inputStyle} value={selectedPatientEmail} onChange={handlePatientSelectChange}>
-              {familyMembers.map((m) => (
-                <option key={m.email} value={m.email}>
-                  {m.name} {m.email.toLowerCase() === user.email.toLowerCase() ? '(You)' : `(${m.email})`}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input style={inputStyle} value={`${selectedPatientName} (${selectedPatientEmail})`} readOnly />
+        {error && (
+          <div style={{ color: '#dc2626', marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '14px' }}>
+            {error}
+          </div>
+        )}
+
+        {bookingSuccess && (
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
+            <h3 style={{ color: '#16a34a', marginTop: 0, marginBottom: '8px' }}>🎉 Appointment Booked Successfully!</h3>
+            <p style={{ fontSize: '13px', color: '#15803d', margin: '0 0 12px 0' }}>
+              A confirmation email with meeting instructions has been sent to <strong>{bookingSuccess.patientEmail}</strong>.
+            </p>
+            <div style={{ fontSize: '13px', color: '#334155', lineHeight: '1.6', background: '#ffffff', padding: '12px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+              <div><strong>Appointment ID:</strong> {bookingSuccess.id}</div>
+              <div><strong>Date & Time:</strong> {bookingSuccess.date} at {bookingSuccess.time}</div>
+              <div>
+                <strong>Google Meet Link:</strong>{' '}
+                <a href={bookingSuccess.meetLink} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 'bold' }}>
+                  {bookingSuccess.meetLink}
+                </a>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBookingSuccess(null)}
+              style={{ marginTop: '12px', padding: '6px 12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+            >
+              Book Another Appointment
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={handleBookAppointment}>
+          {/* Step 1: Patient Selection */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '6px', color: '#334155' }}>
+              1. Select Patient *
+            </label>
+            {familyMembers && familyMembers.length > 0 ? (
+              <select
+                style={inputStyle}
+                value={selectedPatientEmail}
+                onChange={(e) => setSelectedPatientEmail(e.target.value)}
+                required
+              >
+                <option value={currentUser?.email}>Self ({currentUser?.email})</option>
+                {familyMembers.map((member, index) => (
+                  <option key={index} value={member.email}>
+                    {member.name} ({member.relation || 'Family'}) - {member.email}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                style={inputStyle}
+                type="email"
+                placeholder="patient@example.com"
+                value={selectedPatientEmail}
+                onChange={(e) => setSelectedPatientEmail(e.target.value)}
+                required
+              />
+            )}
+          </div>
+
+          {/* Step 2: Date Selection */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '6px', color: '#334155' }}>
+              2. Select Date *
+            </label>
+            <input
+              type="date"
+              style={inputStyle}
+              min={getTodayString()}
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Step 3: Doctor Selection */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '6px', color: '#334155' }}>
+              3. Select Available Doctor *
+            </label>
+            {loadingDoctors ? (
+              <div style={{ padding: '10px', color: '#64748b', fontSize: '13px' }}>Checking available doctors for selected date...</div>
+            ) : availableDoctors.length === 0 ? (
+              <div style={{ padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', color: '#64748b', fontSize: '13px' }}>
+                No doctors are available on this date. Please pick another date.
+              </div>
+            ) : (
+              <select
+                style={inputStyle}
+                value={selectedDoctorEmail}
+                onChange={(e) => setSelectedDoctorEmail(e.target.value)}
+                required
+              >
+                <option value="">-- Choose a Doctor --</option>
+                {availableDoctors.map((doc) => (
+                  <option key={doc.id} value={doc.email}>
+                    Dr. {doc.name} ({doc.specialty})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Step 4: 30-Minute Time Slot Picker */}
+          {selectedDoctorEmail && (
+            <div style={{ marginBottom: '20px', padding: '16px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#334155' }}>
+                4. Select Available 30-Min Time Slot *
+              </label>
+
+              {loadingSlots ? (
+                <div style={{ color: '#64748b', fontSize: '13px' }}>Loading unbooked time slots...</div>
+              ) : availableSlots.length === 0 ? (
+                <div style={{ color: '#dc2626', fontSize: '13px' }}>
+                  All time slots for Dr. {selectedDoctorObj?.name} on {selectedDate} are fully booked.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px' }}>
+                  {availableSlots.map((slot) => {
+                    const isSelected = selectedSlot === slot;
+                    return (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot)}
+                        style={{
+                          padding: '10px 8px',
+                          borderRadius: '6px',
+                          border: isSelected ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                          background: isSelected ? '#eff6ff' : '#ffffff',
+                          color: isSelected ? '#1d4ed8' : '#334155',
+                          fontWeight: isSelected ? 'bold' : 'normal',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {slot}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
-        </div>
 
-        {/* Doctor Selection */}
-        <div style={{ marginBottom: '14px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
-            Select Doctor
-          </label>
-          <select
-            style={inputStyle}
-            value={selectedDoctorEmail}
-            onChange={(e) => setSelectedDoctorEmail(e.target.value)}
-            required
+          {/* Step 5: Submit Button */}
+          <button
+            type="submit"
+            disabled={submitting || !selectedDoctorEmail || !selectedSlot}
+            style={{
+              ...btnPrimary,
+              opacity: submitting || !selectedDoctorEmail || !selectedSlot ? 0.6 : 1,
+              cursor: submitting || !selectedDoctorEmail || !selectedSlot ? 'not-allowed' : 'pointer'
+            }}
           >
-            {doctors.length === 0 && <option value="">Loading doctors...</option>}
-            {doctors.map((doc) => (
-              <option key={doc.email} value={doc.email}>
-                {doc.name} — {doc.specialty}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Date Selection (Today Onwards) */}
-        <div style={{ marginBottom: '14px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
-            Appointment Date
-          </label>
-          <input
-            type="date"
-            min={todayStr}
-            style={inputStyle}
-            value={appointmentDate}
-            onChange={(e) => setAppointmentDate(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Time Slot Selection */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>
-            Select Time Slot {loadingSlots && <span style={{ color: '#2563eb', fontWeight: 'normal' }}>(Checking doctor's schedule...)</span>}
-          </label>
-          <select
-            style={inputStyle}
-            value={appointmentTime}
-            onChange={(e) => setAppointmentTime(e.target.value)}
-            disabled={loadingSlots || !appointmentDate || !selectedDoctorEmail}
-            required
-          >
-            <option value="">-- Choose Time Slot --</option>
-            {availableSlots.length && availableSlots.map((slot) => {
-              const isBooked = bookedSlots.includes(slot);
-              return (
-                <option key={slot} value={slot} disabled={isBooked}>
-                  {slot} {isBooked ? '(Doctor Occupied)' : ''}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-
-        <button type="submit" disabled={submitting || loadingSlots} style={btnStyle}>
-          {submitting ? 'Confirming Booking...' : 'Confirm Appointment'}
-        </button>
-      </form>
+            {submitting ? 'Creating Meet & Booking...' : 'Confirm Appointment'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
