@@ -1,23 +1,4 @@
-/**
- * Hashes a plain-text password using SHA-256.
- * @param {string} password Plain-text password string.
- * @return {string} Hex-encoded SHA-256 hash.
- */
-function hashPassword(password) {
-  if (!password) return '';
-  const rawHash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    password,
-    Utilities.Charset.UTF_8
-  );
-  
-  // Convert byte array to hexadecimal string
-  return rawHash.map(function(byte) {
-    const hex = (byte < 0 ? byte + 256 : byte).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }).join('');
-}
- 
+
  
 /**
  * Validates credentials across Users and Doctors sheets.

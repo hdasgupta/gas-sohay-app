@@ -46,42 +46,48 @@ function validatePasswordComplexity(password) {
 
 /**
  * Saves or updates a doctor record in the 'Doctors' sheet.
- * Sheet Schema: [id, name, speciality, email, phone, password, availabilityjson]
+ * Sheet Columns: ID | Name | Specialty | Email | Phone | Password | AvailabilityJSON
  */
 function saveDoctor(payload) {
-  const { id, name, speciality, email, phone, password, confirmPassword, availability } = payload;
+  const { id, name, specialty, email, phone, password, confirmPassword, availability } = payload;
   const isEditing = Boolean(id);
-  
-  // 1. Mandatory Common Validations
-  if (!name || !speciality || !availability) {
-    return { success: false, error: "Name, speciality, and availability are required." };
+
+  // 1. Common Validation
+  if (!name || !specialty) {
+    return { success: false, error: "Doctor Name and Specialty are required." };
   }
-  
-  if (!availability.days || availability.days.length === 0) {
-    return { success: false, error: "Select at least one available weekday." };
+
+  // Validate availability object contains at least one day with time slots
+  if (!availability || typeof availability !== 'object' || Object.keys(availability).length === 0) {
+    return { success: false, error: "Please configure availability for at least one weekday." };
   }
-  
-  if (!availability.slots || availability.slots.length === 0) {
-    return { success: false, error: "Add at least one dynamic time slot." };
+
+  let hasValidSlots = false;
+  for (const day in availability) {
+    if (Array.isArray(availability[day]) && availability[day].length > 0) {
+      hasValidSlots = true;
+      break;
+    }
   }
-  
-  // 2. Ensure 'Doctors' sheet exists
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
-  if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Doctors");
-    sheet.appendRow(["id", "name", "speciality", "email", "phone", "password", "availabilityjson"]);
+  if (!hasValidSlots) {
+    return { success: false, error: "Please add at least one time slot to your selected available days." };
   }
+
+
+  // 2. Ensure 'Doctors' sheet exists with exact column names
+  initDatabase();
+  let sheet = getOrCreateSheet("Doctors");
   
   const data = sheet.getDataRange().getValues();
   const availabilityJsonStr = JSON.stringify(availability);
-  
-  // 3. Handle Doctor Update (Immutable Email & Phone)
+
+  // 3. Update Existing Doctor
   if (isEditing) {
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0].toString().trim() === id) {
+      if (data[i][0].toString().trim() === id.toString().trim()) {
         const rowNumber = i + 1;
-        
-        // Preserve existing password if left blank, otherwise validate and hash new password
+
+        // Preserve existing password if left blank, otherwise validate and hash
         let finalPasswordHash = data[i][5];
         if (password) {
           if (password !== confirmPassword) {
@@ -93,51 +99,50 @@ function saveDoctor(payload) {
           }
           finalPasswordHash = hashPassword(password);
         }
-        
-        // Update fields (Email in Col 4 & Phone in Col 5 are explicitly left untouched)
+
+        // Update Name, Specialty, Password, AvailabilityJSON (Email Col 4 & Phone Col 5 remain untouched)
         sheet.getRange(rowNumber, 2).setValue(name.trim());
-        sheet.getRange(rowNumber, 3).setValue(speciality.trim());
+        sheet.getRange(rowNumber, 3).setValue(specialty.trim());
         sheet.getRange(rowNumber, 6).setValue(finalPasswordHash);
         sheet.getRange(rowNumber, 7).setValue(availabilityJsonStr);
-        
-        return { success: true, message: "Doctor record updated successfully. (Email & Phone preserved)", docId: id };
+
+        return { success: true, message: "Doctor record updated successfully.", docId: id };
       }
     }
     return { success: false, error: "Doctor ID not found for update." };
   }
-  
-  // 4. Handle New Doctor Creation
+
+  // 4. Create New Doctor
   if (!email || !phone || !password) {
-    return { success: false, error: "Email, phone, and password are required for new doctors." };
+    return { success: false, error: "Email, Phone, and Password are required for new doctors." };
   }
-  
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.trim())) {
     return { success: false, error: "Invalid email address format." };
   }
-  
+
   const cleanPhone = phone.toString().replace(/\D/g, '');
   if (cleanPhone.length < 10) {
     return { success: false, error: "Phone number must contain at least 10 digits." };
   }
-  
+
   if (password !== confirmPassword) {
     return { success: false, error: "Passwords do not match." };
   }
-  
-  // Enforce Password Complexity Rules
+
   const pwdError = validatePasswordComplexity(password);
   if (pwdError) {
     return { success: false, error: pwdError };
   }
-  
+
   const cleanEmail = email.toString().trim().toLowerCase();
-  
-  // Unique Email & Phone Check
+
+  // Unique Check for Email and Phone
   for (let i = 1; i < data.length; i++) {
     const rowEmail = data[i][3] ? data[i][3].toString().trim().toLowerCase() : '';
     const rowPhone = data[i][4] ? data[i][4].toString().replace(/\D/g, '') : '';
-    
+
     if (rowEmail === cleanEmail) {
       return { success: false, error: "A doctor with this email address already exists." };
     }
@@ -145,22 +150,22 @@ function saveDoctor(payload) {
       return { success: false, error: "A doctor with this phone number already exists." };
     }
   }
-  
-  // 5. Append New Doctor
+
+  // 5. Append Row
   const newId = "DOC" + (1000 + data.length);
   const hashedPassword = hashPassword(password);
-  
+
   sheet.appendRow([
     newId,
     name.trim(),
-    speciality.trim(),
+    specialty.trim(),
     cleanEmail,
     cleanPhone,
     hashedPassword,
     availabilityJsonStr
   ]);
-  
-  return { success: true, message: "Doctor registered successfully.", docId: newId };
+
+  return { success: true, message: "Doctor added successfully.", docId: newId };
 }
 
 function getDoctorByEmail(email) {

@@ -4,27 +4,48 @@ import { callBackend } from '../utils/backend';
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function AdminView({ styles = {} }) {
-  const cardStyle = styles.card || { padding: '24px', background: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '24px' };
-  const inputStyle = styles.input || { width: '100%', padding: '10px', marginBottom: '12px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' };
+  const cardStyle = styles.card || {
+    padding: '24px',
+    background: '#ffffff',
+    borderRadius: '8px',
+    border: '1px solid #cbd5e1',
+    marginBottom: '24px'
+  };
+  const inputStyle = styles.input || {
+    width: '100%',
+    padding: '10px',
+    marginBottom: '12px',
+    borderRadius: '4px',
+    border: '1px solid #cbd5e1',
+    boxSizing: 'border-box'
+  };
   const disabledInputStyle = { ...inputStyle, background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' };
-  const btnStyle = styles.btnPrimary || { width: '100%', padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
-  const tableHeaderStyle = { padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' };
-  const tableCellStyle = { padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' };
+  const btnStyle = styles.btnPrimary || {
+    width: '100%',
+    padding: '12px',
+    background: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontWeight: 'bold'
+  };
 
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    speciality: '',
+    specialty: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: ''
   });
 
-  const [selectedDays, setSelectedDays] = useState([]);
-  const [customSlots, setCustomSlots] = useState([]);
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
+  // Per-day Availability State: { "Monday": ["09:00 AM - 11:00 AM"], "Wednesday": ["02:00 PM - 05:00 PM"] }
+  const [availabilityMap, setAvailabilityMap] = useState({});
+  const [activeDayTab, setActiveDayTab] = useState('Monday');
+  const [slotStartTime, setSlotStartTime] = useState('09:00');
+  const [slotEndTime, setSlotEndTime] = useState('12:00');
 
   const [doctorsList, setDoctorsList] = useState([]);
   const [error, setError] = useState('');
@@ -38,7 +59,7 @@ export default function AdminView({ styles = {} }) {
 
   const fetchDoctors = () => {
     setLoadingList(true);
-    callBackend('getDoctorsList', [], (list) => {
+    callBackend('getAdminDoctorsList', [], (list) => {
       setDoctorsList(list || []);
       setLoadingList(false);
     });
@@ -47,12 +68,6 @@ export default function AdminView({ styles = {} }) {
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
-  };
-
-  const toggleDay = (day) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
   };
 
   const format12Hr = (time24) => {
@@ -65,37 +80,52 @@ export default function AdminView({ styles = {} }) {
     return `${formattedHours}:${m} ${suffix}`;
   };
 
-  const handleAddSlot = () => {
-    if (!startTime || !endTime) {
-      return setError('Select both start and end time for the slot.');
-    }
-    const formattedSlot = `${format12Hr(startTime)} - ${format12Hr(endTime)}`;
-    if (customSlots.includes(formattedSlot)) {
-      return setError('This time slot has already been added.');
+  const handleAddSlotToActiveDay = () => {
+    if (!slotStartTime || !slotEndTime) {
+      return setError(`Please specify start and end time for ${activeDayTab}.`);
     }
 
-    setCustomSlots([...customSlots, formattedSlot]);
+    const formattedSlot = `${format12Hr(slotStartTime)} - ${format12Hr(slotEndTime)}`;
+    const currentDaySlots = availabilityMap[activeDayTab] || [];
+
+    if (currentDaySlots.includes(formattedSlot)) {
+      return setError(`This time slot is already added for ${activeDayTab}.`);
+    }
+
+    setAvailabilityMap({
+      ...availabilityMap,
+      [activeDayTab]: [...currentDaySlots, formattedSlot]
+    });
     setError('');
   };
 
-  const handleRemoveSlot = (slotToRemove) => {
-    setCustomSlots(customSlots.filter((slot) => slot !== slotToRemove));
+  const handleRemoveSlot = (day, slotToRemove) => {
+    const updatedSlots = (availabilityMap[day] || []).filter((s) => s !== slotToRemove);
+    const updatedMap = { ...availabilityMap };
+
+    if (updatedSlots.length === 0) {
+      delete updatedMap[day];
+    } else {
+      updatedMap[day] = updatedSlots;
+    }
+
+    setAvailabilityMap(updatedMap);
   };
 
   const resetForm = () => {
     setEditingId(null);
     setFormData({
       name: '',
-      speciality: '',
+      specialty: '',
       email: '',
       phone: '',
       password: '',
       confirmPassword: ''
     });
-    setSelectedDays([]);
-    setCustomSlots([]);
-    setStartTime('09:00');
-    setEndTime('10:00');
+    setAvailabilityMap({});
+    setActiveDayTab('Monday');
+    setSlotStartTime('09:00');
+    setSlotEndTime('12:00');
     setError('');
   };
 
@@ -106,7 +136,7 @@ export default function AdminView({ styles = {} }) {
 
     setFormData({
       name: doc.name,
-      speciality: doc.speciality,
+      specialty: doc.specialty,
       email: doc.email,
       phone: doc.phone,
       password: '',
@@ -115,32 +145,20 @@ export default function AdminView({ styles = {} }) {
 
     try {
       const parsed = JSON.parse(doc.availabilityjson);
-      setSelectedDays(parsed.days || []);
-      setCustomSlots(parsed.slots || []);
+      setAvailabilityMap(parsed && typeof parsed === 'object' ? parsed : {});
     } catch (e) {
-      setSelectedDays([]);
-      setCustomSlots([]);
+      setAvailabilityMap({});
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const validatePasswordComplexity = (pwd) => {
-    if (pwd.length < 8) {
-      return 'Password must be at least 8 characters long.';
-    }
-    if (!/[A-Z]/.test(pwd)) {
-      return 'Password must contain at least one uppercase letter (A-Z).';
-    }
-    if (!/[a-z]/.test(pwd)) {
-      return 'Password must contain at least one lowercase letter (a-z).';
-    }
-    if (!/[0-9]/.test(pwd)) {
-      return 'Password must contain at least one number (0-9).';
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>\-_=+\\|/\[\];']/.test(pwd)) {
-      return 'Password must contain at least one special character.';
-    }
+    if (pwd.length < 8) return 'Password must be at least 8 characters long.';
+    if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter (A-Z).';
+    if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter (a-z).';
+    if (!/[0-9]/.test(pwd)) return 'Password must contain at least one number (0-9).';
+    if (!/[!@#$%^&*(),.?":{}|<>\-_=+\\|/\[\];']/.test(pwd)) return 'Password must contain at least one special character.';
     return null;
   };
 
@@ -149,31 +167,29 @@ export default function AdminView({ styles = {} }) {
     setError('');
     setSuccess('');
 
-    if (!formData.name || !formData.speciality) {
-      return setError('Name and Speciality are required.');
+    if (!formData.name || !formData.specialty) {
+      return setError('Doctor Name and Specialty are required.');
     }
 
     if (!editingId && (!formData.email || !formData.phone || !formData.password)) {
       return setError('Email, Phone, and Password are required for new doctors.');
     }
 
-    // Password validation logic
     if (formData.password) {
       if (formData.password !== formData.confirmPassword) {
         return setError('Passwords do not match.');
       }
       const pwdError = validatePasswordComplexity(formData.password);
-      if (pwdError) {
-        return setError(pwdError);
-      }
+      if (pwdError) return setError(pwdError);
     }
 
-    if (selectedDays.length === 0) {
-      return setError('Select at least one available weekday.');
-    }
+    // Check if at least one day has configured slots
+    const configuredDays = Object.keys(availabilityMap).filter(
+      (day) => Array.isArray(availabilityMap[day]) && availabilityMap[day].length > 0
+    );
 
-    if (customSlots.length === 0) {
-      return setError('Add at least one dynamic time slot.');
+    if (configuredDays.length === 0) {
+      return setError('Please add at least one dynamic time slot for any weekday.');
     }
 
     setSubmitting(true);
@@ -181,10 +197,7 @@ export default function AdminView({ styles = {} }) {
     const payload = {
       id: editingId,
       ...formData,
-      availability: {
-        days: selectedDays,
-        slots: customSlots
-      }
+      availability: availabilityMap
     };
 
     callBackend('saveDoctor', [payload], (res) => {
@@ -200,38 +213,44 @@ export default function AdminView({ styles = {} }) {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '950px', margin: '0 auto', padding: '16px' }}>
       {/* Form Section */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ margin: 0 }}>{editingId ? `Edit Doctor (${editingId})` : 'Add New Doctor'}</h2>
+          <h2 style={{ margin: 0, color: '#1e293b' }}>
+            {editingId ? `Edit Doctor Details (${editingId})` : 'Add New Doctor'}
+          </h2>
           {editingId && (
-            <button type="button" onClick={resetForm} style={{ padding: '6px 12px', background: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+            <button
+              type="button"
+              onClick={resetForm}
+              style={{ padding: '6px 12px', background: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+            >
               Cancel Edit
             </button>
           )}
         </div>
 
-        {error && <div style={{ color: '#dc2626', marginBottom: '12px', padding: '8px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px' }}>{error}</div>}
-        {success && <div style={{ color: '#16a34a', marginBottom: '12px', padding: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
+        {error && <div style={{ color: '#dc2626', marginBottom: '14px', padding: '10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px' }}>{error}</div>}
+        {success && <div style={{ color: '#16a34a', marginBottom: '14px', padding: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
 
         <form onSubmit={handleSubmit}>
+          {/* Basic Info */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Doctor Name *</label>
-              <input style={inputStyle} name="name" value={formData.name} onChange={handleInputChange} placeholder="Dr. Jane Doe" required />
+              <input style={inputStyle} name="name" value={formData.name} onChange={handleInputChange} placeholder="Dr. John Smith" required />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Speciality *</label>
-              <input style={inputStyle} name="speciality" value={formData.speciality} onChange={handleInputChange} placeholder="Cardiology, General, etc." required />
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Specialty *</label>
+              <input style={inputStyle} name="specialty" value={formData.specialty} onChange={handleInputChange} placeholder="Neurology, Pediatrics, etc." required />
             </div>
           </div>
 
+          {/* Contact Details */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                Email Address {editingId ? '(Immutable)' : '*'}
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email Address {editingId ? '(Immutable)' : '*'}</label>
               <input
                 style={editingId ? disabledInputStyle : inputStyle}
                 type="email"
@@ -244,170 +263,151 @@ export default function AdminView({ styles = {} }) {
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                Phone Number {editingId ? '(Immutable)' : '*'}
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Phone Number {editingId ? '(Immutable)' : '*'}</label>
               <input
                 style={editingId ? disabledInputStyle : inputStyle}
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="10-digit phone number"
+                placeholder="10-digit mobile number"
                 disabled={Boolean(editingId)}
                 required={!editingId}
               />
             </div>
           </div>
 
+          {/* Password Fields */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                Password {editingId ? '(Optional on edit)' : '*'}
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Password {editingId ? '(Leave blank to keep unchanged)' : '*'}</label>
               <input style={inputStyle} type="password" name="password" value={formData.password} onChange={handleInputChange} required={!editingId} />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                Confirm Password {editingId ? '(Optional on edit)' : '*'}
-              </label>
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Confirm Password {editingId ? '(Leave blank to keep unchanged)' : '*'}</label>
               <input style={inputStyle} type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} required={!editingId} />
             </div>
           </div>
-
-          <p style={{ fontSize: '11px', color: '#64748b', marginTop: '-6px', marginBottom: '12px' }}>
-            * Password rules: Minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+          <p style={{ fontSize: '11px', color: '#64748b', marginTop: '-6px', marginBottom: '16px' }}>
+            * Password Rules: Min 8 chars, 1 uppercase, 1 lowercase, 1 number, and 1 special character.
           </p>
 
-          {/* Weekday Selector */}
-          <div style={{ marginTop: '8px', marginBottom: '16px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Available Weekdays *</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {/* Per-Day Dynamic Availability Builder */}
+          <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <label style={{ fontSize: '14px', fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#334155' }}>
+              Configure Weekday Availability & Time Slots
+            </label>
+
+            {/* Weekday Tabs */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderBottom: '1px solid #cbd5e1', pb: '8px', marginBottom: '14px' }}>
               {WEEKDAYS.map((day) => {
-                const selected = selectedDays.includes(day);
+                const isActive = activeDayTab === day;
+                const slotCount = (availabilityMap[day] || []).length;
                 return (
                   <button
                     key={day}
                     type="button"
-                    onClick={() => toggleDay(day)}
+                    onClick={() => setActiveDayTab(day)}
                     style={{
-                      padding: '6px 12px',
-                      borderRadius: '16px',
-                      border: '1px solid #2563eb',
-                      background: selected ? '#2563eb' : '#ffffff',
-                      color: selected ? '#ffffff' : '#2563eb',
+                      padding: '8px 12px',
+                      borderRadius: '4px 4px 0 0',
+                      border: '1px solid #cbd5e1',
+                      borderBottom: isActive ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                      background: isActive ? '#ffffff' : '#f1f5f9',
+                      color: isActive ? '#2563eb' : '#475569',
+                      fontWeight: isActive ? 'bold' : 'normal',
                       cursor: 'pointer',
                       fontSize: '12px'
                     }}
                   >
-                    {day}
+                    {day} {slotCount > 0 && <span style={{ background: '#2563eb', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontSize: '10px', marginLeft: '4px' }}>{slotCount}</span>}
                   </button>
                 );
               })}
             </div>
-          </div>
 
-          {/* Dynamic Time Slot Builder */}
-          <div style={{ marginBottom: '20px', padding: '14px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-            <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-              Configure Time Slots *
-            </label>
+            {/* Time Slot Builder for Active Day */}
+            <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#1e293b' }}>
+                Add Slots for <span style={{ color: '#2563eb' }}>{activeDayTab}</span>:
+              </span>
 
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-              <div>
-                <span style={{ fontSize: '11px', display: 'block', color: '#64748b' }}>Start Time</span>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                />
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+                <div>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Start Time</span>
+                  <input type="time" value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', display: 'block' }} />
+                </div>
+                <div>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>End Time</span>
+                  <input type="time" value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', display: 'block' }} />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddSlotToActiveDay}
+                  style={{
+                    marginTop: '16px',
+                    padding: '8px 14px',
+                    background: '#0284c7',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '12px'
+                  }}
+                >
+                  + Add Slot to {activeDayTab}
+                </button>
               </div>
 
-              <div>
-                <span style={{ fontSize: '11px', display: 'block', color: '#64748b' }}>End Time</span>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleAddSlot}
-                style={{
-                  marginTop: '16px',
-                  padding: '7px 14px',
-                  background: '#0284c7',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '12px'
-                }}
-              >
-                + Add Time Slot
-              </button>
-            </div>
-
-            {/* Configured Slot Chips */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {customSlots.length === 0 ? (
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>No time slots configured. Select times above to add.</span>
-              ) : (
-                customSlots.map((slot) => (
-                  <span
-                    key={slot}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 10px',
-                      background: '#e0f2fe',
-                      color: '#0369a1',
-                      borderRadius: '16px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      border: '1px solid #bae6fd'
-                    }}
-                  >
-                    {slot}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSlot(slot)}
+              {/* Active Day Configured Slots */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {(!availabilityMap[activeDayTab] || availabilityMap[activeDayTab].length === 0) ? (
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>No slots configured for {activeDayTab}.</span>
+                ) : (
+                  availabilityMap[activeDayTab].map((slot) => (
+                    <span
+                      key={slot}
                       style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#0369a1',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        padding: 0,
-                        marginLeft: '2px'
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        background: '#eff6ff',
+                        color: '#1d4ed8',
+                        borderRadius: '16px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        border: '1px solid #bfdbfe'
                       }}
                     >
-                      ×
-                    </button>
-                  </span>
-                ))
-              )}
+                      {slot}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSlot(activeDayTab, slot)}
+                        style={{ background: 'transparent', border: 'none', color: '#1d4ed8', cursor: 'pointer', fontWeight: 'bold', padding: 0 }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
           <button type="submit" disabled={submitting} style={btnStyle}>
-            {submitting ? 'Saving...' : editingId ? 'Update Doctor Details' : 'Add Doctor'}
+            {submitting ? 'Saving...' : editingId ? 'Update Doctor' : 'Add Doctor'}
           </button>
         </form>
       </div>
 
-      {/* Doctor List Table */}
+      {/* Enlisted Doctors List */}
       <div style={cardStyle}>
-        <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Registered Doctors List</h3>
+        <h3 style={{ marginTop: 0, marginBottom: '16px', color: '#1e293b' }}>Enlisted Doctors</h3>
 
         {loadingList ? (
-          <p style={{ color: '#64748b' }}>Loading doctor list...</p>
+          <p style={{ color: '#64748b' }}>Loading doctor records...</p>
         ) : doctorsList.length === 0 ? (
           <p style={{ color: '#64748b' }}>No doctors found.</p>
         ) : (
@@ -415,33 +415,38 @@ export default function AdminView({ styles = {} }) {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={tableHeaderStyle}>ID</th>
-                  <th style={tableHeaderStyle}>Name</th>
-                  <th style={tableHeaderStyle}>Speciality</th>
-                  <th style={tableHeaderStyle}>Contact</th>
-                  <th style={tableHeaderStyle}>Availability</th>
-                  <th style={tableHeaderStyle}>Action</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>ID</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Name</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Specialty</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Contact</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Availability Summary</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {doctorsList.map((doc) => {
                   let availSummary = 'Not configured';
                   try {
-                    const parsed = doc.availability;
-                    availSummary = `${parsed.days?.length || 0} days, ${parsed.slots?.length || 0} slots`;
+                    const parsed = JSON.parse(doc.availabilityjson);
+                    if (parsed && typeof parsed === 'object') {
+                      const days = Object.keys(parsed);
+                      availSummary = days.map((d) => `${d} (${parsed[d].length})`).join(', ');
+                    }
                   } catch (e) {}
 
                   return (
                     <tr key={doc.id}>
-                      <td style={tableCellStyle}><strong>{doc.id}</strong></td>
-                      <td style={tableCellStyle}>{doc.name}</td>
-                      <td style={tableCellStyle}>{doc.speciality}</td>
-                      <td style={tableCellStyle}>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}><strong>{doc.id}</strong></td>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>{doc.name}</td>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>{doc.specialty}</td>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
                         <div>{doc.email}</div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{doc.phone}</div>
                       </td>
-                      <td style={tableCellStyle}>{availSummary}</td>
-                      <td style={tableCellStyle}>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '12px', maxWidth: '200px' }}>
+                        {availSummary || 'No slots configured'}
+                      </td>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
                         <button
                           type="button"
                           onClick={() => handleEditClick(doc)}
