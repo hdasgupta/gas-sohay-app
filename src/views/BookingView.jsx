@@ -38,6 +38,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
     return `${year}-${month}-${day}`;
   };
 
+  // Selection states
   const [selectedPatientEmail, setSelectedPatientEmail] = useState(currentUser?.email || '');
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [availableDoctors, setAvailableDoctors] = useState([]);
@@ -46,6 +47,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState('');
 
+  // Status states
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -59,7 +61,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
     }
   }, [currentUser]);
 
-  // 1. Fetch available doctors when date changes
+  // 1. Fetch available doctors on date selection change
   useEffect(() => {
     if (!selectedDate) {
       setAvailableDoctors([]);
@@ -81,7 +83,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
     });
   }, [selectedDate]);
 
-  // 2. Fetch available 30-min time slots when doctor or date changes
+  // 2. Fetch available 30-min slots on doctor/date change
   useEffect(() => {
     if (!selectedDoctorEmail || !selectedDate) {
       setAvailableSlots([]);
@@ -107,7 +109,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
     if (!selectedPatientEmail) return setError('Please select a patient.');
     if (!selectedDate) return setError('Please choose an appointment date.');
     if (!selectedDoctorEmail) return setError('Please select a doctor.');
-    if (!selectedSlot) return setError('Please choose a 30-minute time slot.');
+    if (!selectedSlot) return setError('Please choose an available 30-minute time slot.');
 
     const selectedDocObj = availableDoctors.find(d => d.email === selectedDoctorEmail);
 
@@ -126,7 +128,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
       if (res && res.success) {
         setBookingSuccess(res.appointment);
         setSelectedSlot('');
-        // Refresh slot list to remove booked slot instantly
+        // Refresh slot list to immediately hide booked slot
         callBackend('getAvailableSlotsForDoctorAndDate', [selectedDoctorEmail, selectedDate], (slots) => {
           setAvailableSlots(slots || []);
         });
@@ -151,9 +153,9 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
 
         {bookingSuccess && (
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
-            <h3 style={{ color: '#16a34a', marginTop: 0, marginBottom: '8px' }}>🎉 Appointment Booked Successfully!</h3>
+            <h3 style={{ color: '#16a34a', marginTop: 0, marginBottom: '8px' }}>🎉 Appointment Confirmed!</h3>
             <p style={{ fontSize: '13px', color: '#15803d', margin: '0 0 12px 0' }}>
-              A confirmation email with meeting instructions has been sent to <strong>{bookingSuccess.patientEmail}</strong>.
+              A confirmation email with Google Meet details has been sent to <strong>{bookingSuccess.patientEmail}</strong>.
             </p>
             <div style={{ fontSize: '13px', color: '#334155', lineHeight: '1.6', background: '#ffffff', padding: '12px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
               <div><strong>Appointment ID:</strong> {bookingSuccess.id}</div>
@@ -197,11 +199,10 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
               </select>
             ) : (
               <input
-                style={inputStyle}
+                style={{ ...inputStyle, background: '#f8fafc', color: '#475569' }}
                 type="email"
-                placeholder="patient@example.com"
                 value={selectedPatientEmail}
-                onChange={(e) => setSelectedPatientEmail(e.target.value)}
+                readOnly
                 required
               />
             )}
@@ -228,7 +229,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
               3. Select Available Doctor *
             </label>
             {loadingDoctors ? (
-              <div style={{ padding: '10px', color: '#64748b', fontSize: '13px' }}>Checking available doctors for selected date...</div>
+              <div style={{ padding: '10px', color: '#64748b', fontSize: '13px' }}>Loading doctors available on this date...</div>
             ) : availableDoctors.length === 0 ? (
               <div style={{ padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', color: '#64748b', fontSize: '13px' }}>
                 No doctors are available on this date. Please pick another date.
@@ -254,11 +255,11 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
           {selectedDoctorEmail && (
             <div style={{ marginBottom: '20px', padding: '16px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
               <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#334155' }}>
-                4. Select Available 30-Min Time Slot *
+                4. Select 30-Min Time Slot *
               </label>
 
               {loadingSlots ? (
-                <div style={{ color: '#64748b', fontSize: '13px' }}>Loading unbooked time slots...</div>
+                <div style={{ color: '#64748b', fontSize: '13px' }}>Fetching available slots...</div>
               ) : availableSlots.length === 0 ? (
                 <div style={{ color: '#dc2626', fontSize: '13px' }}>
                   All time slots for Dr. {selectedDoctorObj?.name} on {selectedDate} are fully booked.
@@ -304,7 +305,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
               cursor: submitting || !selectedDoctorEmail || !selectedSlot ? 'not-allowed' : 'pointer'
             }}
           >
-            {submitting ? 'Creating Meet & Booking...' : 'Confirm Appointment'}
+            {submitting ? 'Generating Meet & Booking...' : 'Confirm Appointment'}
           </button>
         </form>
       </div>
