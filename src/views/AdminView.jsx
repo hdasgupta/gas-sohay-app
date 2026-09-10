@@ -137,7 +137,7 @@ export default function AdminView({ styles = {} }) {
 
     setFormData({
       name: doc.name,
-      specialty: doc.specialty,
+      specialty: doc.speciality,
       email: doc.email,
       phone: doc.phone,
       password: '',
