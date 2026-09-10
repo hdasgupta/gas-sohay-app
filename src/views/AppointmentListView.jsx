@@ -128,7 +128,8 @@ export default function AppointmentListView({ currentUser, styles = {} }) {
               const todayMatch = isToday(appt.date);
               const cancellable = canCancel(appt.date, appt.status);
               const isCancelled = appt.status.toLowerCase() === 'cancelled';
-
+              const hasPrescription = appt.prescriptionLink
+              
               return (
                 <div
                   key={appt.id}
@@ -202,6 +203,28 @@ export default function AppointmentListView({ currentUser, styles = {} }) {
 
                   {/* Row 3: Actions Bar */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                    {/* Prescription Download Button */}
+                    {hasPrescription && (
+                      <a
+                        href={appt.prescriptionLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          padding: '8px 16px',
+                          background: '#0284c7',
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        📄 Download Prescription
+                      </a>
+                    )}
                     {/* Join Google Meet Button */}
                     {todayMatch && !isCancelled && appt.meetLink && (
                       <a
