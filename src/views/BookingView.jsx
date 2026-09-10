@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function BookingView({ currentUser, familyMembers = [], styles = {} }) {
+export default function BookingView({ user, styles = {} }) {
   const cardStyle = styles.card || {
     padding: '24px',
     background: '#ffffff',
@@ -39,7 +39,8 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
   };
 
   // Selection states
-  const [selectedPatientEmail, setSelectedPatientEmail] = useState(currentUser?.email || '');
+  const [selectedPatientEmail, setSelectedPatientEmail] = useState(user?.email || '');
+  const [familyMembers, setFamilyMembers] = useState([])
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [availableDoctors, setAvailableDoctors] = useState([]);
   const [selectedDoctorEmail, setSelectedDoctorEmail] = useState('');
@@ -56,10 +57,20 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
   useEffect(() => {
-    if (currentUser?.email && !selectedPatientEmail) {
-      setSelectedPatientEmail(currentUser.email);
+    if (user?.email && !selectedPatientEmail) {
+      setSelectedPatientEmail(user.email);
     }
-  }, [currentUser]);
+  }, [user]);
+  
+  useEffect(() => {
+    if(user?.email) {
+      callBackend('getFamilyDetailsByUser', [user.email], (family) => {
+          //setLoadingDoctors(false);
+          setFamilyMembers(family.members|| []);
+        });
+      
+    }
+  }, [user.email])
 
   // 1. Fetch available doctors on date selection change
   useEffect(() => {
@@ -190,7 +201,7 @@ export default function BookingView({ currentUser, familyMembers = [], styles = 
                 onChange={(e) => setSelectedPatientEmail(e.target.value)}
                 required
               >
-                <option value={currentUser?.email}>Self ({currentUser?.email})</option>
+                <option value={user?.email}>Self ({user?.email})</option>
                 {familyMembers.map((member, index) => (
                   <option key={index} value={member.email}>
                     {member.name} ({member.relation || 'Family'}) - {member.email}
