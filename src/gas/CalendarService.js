@@ -307,8 +307,8 @@ function bookAppointment(payload) {
     appointmentId,
     patientEmail.trim().toLowerCase(),
     doctorEmail.trim().toLowerCase(),
-    date,
-    time,
+    JSON.stringify(date),
+    JSON.stringify(time),
     meetLink,
     status,
     prescriptionLink
@@ -394,8 +394,8 @@ function getAppointmentsForUserAndFamily(userEmail) {
         id: apptData[i][0],
         patient: getPatientByEmail(rowPatientEmail),
         doctor: getDoctorByEmail(rowDoctorEmail),
-        date: apptData[i][3],
-        time: apptData[i][4],
+        date: JSON.parse(apptData[i][3]),
+        time: JSON.parse(apptData[i][4]),
         meetLink: apptData[i][5],
         status: apptData[i][6] || 'Scheduled',
         prescriptionUrl: apptData[i][7] || ''
@@ -437,12 +437,12 @@ function getTodayPatientsForDoctor(doctorEmail) {
     const row = data[i];
 
     const patientEmail = row[1] ? row[1].toString().trim().toLowerCase() : '';
-    const rawDate = row[3];
-    const timeSlot = row[4] ? row[5].toString().trim() : '';
+    const rawDate = JSON.parse(row[3]);
+    const timeSlot = JSON.parse(row[4]);
     const meetLink = row[5];
     const status = row[6] ? row[6].toString().trim() : 'Scheduled';
     const prescriptionUrl = row[7] || '';
-    const rowDoctorEmail = row[2] ? row[7].toString().trim().toLowerCase() : '';
+    const rowDoctorEmail = row[2] ? row[2].toString().trim().toLowerCase() : '';
 
     // Convert Date object or string to standard 'YYYY-MM-DD'
     const apptDateStr = rawDate instanceof Date
