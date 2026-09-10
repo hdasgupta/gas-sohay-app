@@ -43,8 +43,8 @@ export default function App() {
     callBackend('getDoctorsList', [], (data) => setDoctors(data || []));
   };
   
-  const addUpdateDoctor = (form) => {
-    callBackend('upsertDoctor', [form], (data) => setStatus(data.message));
+  const addUpdateDoctor = (form, callBack) => {
+    callBackend('upsertDoctor', [form], (data) => {setStatus(data.message); callBack();});
   }
   
   const handleSignUp = (formData) => {
@@ -132,9 +132,9 @@ export default function App() {
       {view === 'prescription' &&  <PrescriptionView user={user} styles={styles} />}
       {view === 'family' && <FamilyManagementView user={user} />}
       {view === 'admin' && <AdminView doctors={doctors} onSaveDoctor={(form, reset) => {
-        addUpdateDoctor(form);
-        reset();
-        loadDoctors();
+        addUpdateDoctor(form, ()=> {reset(); loadDoctors();});
+        
+        
       }} styles={styles} />}
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
