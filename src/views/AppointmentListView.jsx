@@ -1,217 +1,210 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function AppointmentListView({ user = {}, styles = {} }) {
-  const cardStyle = styles.card || { padding: '24px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px' };
-  const inputStyle = styles.input || { padding: '8px 12px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '14px' };
-  const btnSecondary = styles.btnSecondary || { padding: '6px 12px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', textDecoration: 'none', fontSize: '12px', fontWeight: 'bold', display: 'inline-block' };
-
-  const [familyInfo, setFamilyInfo] = useState(null);
+export default function AppointmentListView({ currentUser, styles = {} }) {
   const [appointments, setAppointments] = useState([]);
-  const [selectedFilterEmail, setSelectedFilterEmail] = useState('ALL');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionMessage, setActionMessage] = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+
+  const cardStyle = styles.card || {
+    padding: '24px',
+    background: '#ffffff',
+    borderRadius: '8px',
+    border: '1px solid #cbd5e1',
+    marginBottom: '24px'
+  };
+
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const loadAppointments = () => {
+    setLoading(true);
+    setError('');
+    callBackend('getAppointmentsForUser', [currentUser?.email || ''], (data) => {
+      setLoading(false);
+      setAppointments(data || []);
+    });
+  };
 
   useEffect(() => {
-    if (user.email) {
-      setLoading(true);
-      callBackend('getAppointmentsForUserAndFamily', [user.email], (res) => {
-        if (res) {
-          setFamilyInfo(res.familyInfo || null);
-          setAppointments(res.appointments || []);
-        }
-        setLoading(false);
-      });
-    }
-  }, [user.email]);
+    loadAppointments();
+  }, [currentUser]);
 
-  const isUpcoming = (dateStr, status) => {
-    if (status && status.toLowerCase() === 'cancelled') return false;
+  // Check if date is today
+  const isToday = (dateStr) => {
+    return dateStr === getTodayString();
+  };
+
+  // Check if appointment date is at least 1 day in the future
+  const canCancel = (dateStr, status) => {
+    if (status.toLowerCase() === 'cancelled') return false;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const apptDate = new Date(dateStr);
-    return apptDate >= today;
+
+    const apptDate = new Date(dateStr + "T00:00:00");
+    apptDate.setHours(0, 0, 0, 0);
+
+    const diffInDays = Math.floor((apptDate - today) / (1000 * 60 * 60 * 24));
+    return diffInDays >= 1;
   };
 
-  const filteredAppointments = appointments.filter((app) => {
-    if (selectedFilterEmail === 'ALL') return true;
-    return app.patient.email.toLowerCase() === selectedFilterEmail.toLowerCase();
-  });
+  const handleCancelAppointment = (id) => {
+    if (!window.confirm(`Are you sure you want to cancel appointment ${id}?`)) return;
 
-  if (loading) return <div style={cardStyle}>Loading appointment schedule...</div>;
+    setCancellingId(id);
+    setActionMessage(null);
+    setError('');
 
-  // Shared cell style for preventing text wrapping
-  const cellStyle = {
-    padding: '12px 14px',
-    whiteSpace: 'nowrap',
-    borderBottom: '1px solid #f1f5f9'
-  };
-
-  const headerCellStyle = {
-    padding: '12px 14px',
-    whiteSpace: 'nowrap',
-    borderBottom: '2px solid #e2e8f0',
-    color: '#475569',
-    background: '#ffffff',
-    textAlign: 'left'
-  };
-
-  // Sticky 1st Column Styles
-  const stickyHeaderStyle = {
-    ...headerCellStyle,
-    position: 'sticky',
-    left: 0,
-    zIndex: 2,
-    boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)',
-    borderRight: '1px solid #e2e8f0'
-  };
-
-  const stickyCellStyle = {
-    ...cellStyle,
-    position: 'sticky',
-    left: 0,
-    zIndex: 1,
-    background: '#ffffff',
-    boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)',
-    borderRight: '1px solid #e2e8f0'
+    callBackend('cancelAppointment', [id], (res) => {
+      setCancellingId(null);
+      if (res && res.success) {
+        setActionMessage({ type: 'success', text: res.message });
+        loadAppointments();
+      } else {
+        setActionMessage({ type: 'error', text: res?.error || 'Failed to cancel appointment.' });
+      }
+    });
   };
 
   return (
-    <div style={cardStyle}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-        <div>
-          <h2 style={{ margin: 0 }}>Appointment Records</h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-            {familyInfo
-              ? `Showing records for ${familyInfo.familyName} (${familyInfo.members.length} members)`
-              : 'Individual Patient Account'}
-          </p>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '16px' }}>
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0, color: '#1e293b' }}>My Appointments</h2>
+          <button
+            onClick={loadAppointments}
+            style={{ padding: '8px 14px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+          >
+            Refresh List
+          </button>
         </div>
 
-        {/* Member Filter Dropdown for Family Accounts */}
-        {familyInfo && familyInfo.members && familyInfo.members.length > 0 && (
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 'bold', marginRight: '8px', color: '#475569' }}>Filter Member:</label>
-            <select
-              style={inputStyle}
-              value={selectedFilterEmail}
-              onChange={(e) => setSelectedFilterEmail(e.target.value)}
-            >
-              <option value="ALL">All Family Members</option>
-              {familyInfo.members.map((m) => (
-                <option key={m.email} value={m.email}>
-                  {m.name} {m.email === user.email ? '(You)' : ''}
-                </option>
-              ))}
-            </select>
+        {actionMessage && (
+          <div style={{
+            padding: '12px',
+            marginBottom: '16px',
+            borderRadius: '6px',
+            fontSize: '14px',
+            background: actionMessage.type === 'success' ? '#f0fdf4' : '#fef2f2',
+            border: actionMessage.type === 'success' ? '1px solid #bbf7d0' : '1px solid #fecaca',
+            color: actionMessage.type === 'success' ? '#15803d' : '#dc2626'
+          }}>
+            {actionMessage.text}
+          </div>
+        )}
+
+        {loading ? (
+          <div style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>Loading appointments...</div>
+        ) : appointments.length === 0 ? (
+          <div style={{ padding: '24px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '6px' }}>
+            No appointments found.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                  <th style={{ padding: '12px' }}>ID</th>
+                  <th style={{ padding: '12px' }}>Patient</th>
+                  <th style={{ padding: '12px' }}>Doctor</th>
+                  <th style={{ padding: '12px' }}>Date & Time</th>
+                  <th style={{ padding: '12px' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.map((appt) => {
+                  const todayMatch = isToday(appt.date);
+                  const cancellable = canCancel(appt.date, appt.status);
+                  const isCancelled = appt.status.toLowerCase() === 'cancelled';
+
+                  return (
+                    <tr key={appt.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#334155' }}>{appt.id}</td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{appt.patientEmail}</td>
+                      <td style={{ padding: '12px', color: '#475569' }}>{appt.doctorEmail}</td>
+                      <td style={{ padding: '12px', color: '#334155' }}>
+                        <div>{appt.date}</div>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>{appt.time}</div>
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          background: isCancelled ? '#fef2f2' : '#f0fdf4',
+                          color: isCancelled ? '#dc2626' : '#16a34a',
+                          border: isCancelled ? '1px solid #fecaca' : '1px solid #bbf7d0'
+                        }}>
+                          {appt.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          {/* Join Meet Link for Today's Active Appointments */}
+                          {todayMatch && !isCancelled && appt.meetLink && (
+                            <a
+                              href={appt.meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                padding: '6px 12px',
+                                background: '#16a34a',
+                                color: '#ffffff',
+                                textDecoration: 'none',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                display: 'inline-block'
+                              }}
+                            >
+                              Join Meet
+                            </a>
+                          )}
+
+                          {/* Cancel Button (Enabled if >= 1 day prior) */}
+                          {cancellable && (
+                            <button
+                              onClick={() => handleCancelAppointment(appt.id)}
+                              disabled={cancellingId === appt.id}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#dc2626',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: cancellingId === appt.id ? 'not-allowed' : 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                opacity: cancellingId === appt.id ? 0.6 : 1
+                              }}
+                            >
+                              {cancellingId === appt.id ? 'Cancelling...' : 'Cancel'}
+                            </button>
+                          )}
+
+                          {!todayMatch && !cancellable && !isCancelled && (
+                            <span style={{ fontSize: '12px', color: '#94a3b8' }}>No actions</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
-
-      {/* Family Overview Header */}
-      {familyInfo && (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px 16px', marginBottom: '20px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Family Members in {familyInfo.familyName} (ID: {familyInfo.familyId})
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {familyInfo.members.map((m) => (
-              <div
-                key={m.email}
-                onClick={() => setSelectedFilterEmail(m.email)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '16px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  border: '1px solid',
-                  borderColor: selectedFilterEmail === m.email ? '#2563eb' : '#cbd5e1',
-                  background: selectedFilterEmail === m.email ? '#eff6ff' : '#ffffff',
-                  color: selectedFilterEmail === m.email ? '#1e40af' : '#334155',
-                  fontWeight: selectedFilterEmail === m.email ? 'bold' : 'normal',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                👤 {m.name} {m.age ? `(${m.age} yrs)` : ''} {m.email === user.email ? '★' : ''}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Appointments Data Table Container with Horizontal Scroll */}
-      {filteredAppointments.length === 0 ? (
-        <p style={{ color: '#64748b', textAlign: 'center', margin: '30px 0' }}>No appointments found for the selected view.</p>
-      ) : (
-        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-          <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', fontSize: '14px' }}>
-            <thead>
-              <tr>
-                <th style={stickyHeaderStyle}>Patient Name</th>
-                <th style={headerCellStyle}>Email</th>
-                <th style={headerCellStyle}>Date</th>
-                <th style={headerCellStyle}>Time Slot</th>
-                <th style={headerCellStyle}>Status</th>
-                <th style={headerCellStyle}>Meeting / Prescription Link</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAppointments.map((app, index) => {
-                const upcoming = isUpcoming(app.date, app.status);
-                return (
-                <tr key={app.id || index}>
-                  {/* Frozen 1st Column */}
-                  <td style={stickyCellStyle}>
-                    <strong style={{ color: '#0f172a' }}>{app.patient.name}</strong>
-                    {app.patientAge && <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '4px' }}>({app.patientAge}y)</span>}
-                    {app.patient.email === user.email && (
-                      <span style={{ fontSize: '11px', color: '#2563eb', marginLeft: '6px', fontWeight: 'bold' }}>(You)</span>
-                    )}
-                  </td>
-                  <td style={{ ...cellStyle, color: '#475569', fontSize: '13px' }}>{app.patient.email}</td>
-                  <td style={cellStyle}>{app.date}</td>
-                  <td style={cellStyle}>{app.time}</td>
-                  <td style={cellStyle}>
-                    <span
-                      style={{
-                        padding: '3px 10px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        background: app.status === 'Completed' ? '#dcfce7' : '#fef3c7',
-                        color: app.status === 'Completed' ? '#166534' : '#92400e'
-                      }}
-                    >
-                      {app.status || 'Scheduled'}
-                    </span>
-                  </td>
-                  <td style={cellStyle}>
-                    {app.prescriptionUrl && (
-                      <a
-                        href={app.prescriptionUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={btnSecondary}
-                      >
-                        📄 Download Prescription
-                      </a>
-                    )}
-                    {upcoming && app.meetingLink && (
-                      <a
-                          href={app.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={btnJoin}
-                        >
-                          🎥 Join Meeting
-                      </a>
-                    )}
-                  </td>
-                </tr>
-              )})}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 }
