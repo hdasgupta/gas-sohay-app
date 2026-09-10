@@ -15,8 +15,8 @@ function getAppointmentsForUser(patientEmail) {
     if (!patientEmail || rowPatientEmail === patientEmail.trim().toLowerCase()) {
       appointments.push({
         id: row[0] ? row[0].toString() : '',
-        patientEmail: row[1] ? row[1].toString() : '',
-        doctorEmail: row[2] ? row[2].toString() : '',
+        patient: getPatientByEmail(row[1]),
+        doctor: getDoctorByEmail(row[2]),
         date: row[3] ? JSON.parse(row[3].toString()) : '',
         time: row[4] ? JSON.parse(row[4].toString()) : '',
         meetLink: row[5] ? row[5].toString() : '',

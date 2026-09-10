@@ -172,20 +172,20 @@ export default function AppointmentListView({ currentUser, styles = {} }) {
                     {/* Patient Details */}
                     <div>
                       <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        Patient Email
+                        Patient
                       </div>
                       <div style={{ fontSize: '14px', color: '#334155', fontWeight: '500', marginTop: '2px' }}>
-                        {appt.patientEmail}
+                        {appt.patient.name}
                       </div>
                     </div>
 
                     {/* Doctor Details */}
                     <div>
                       <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        Doctor Email
+                        Doctor
                       </div>
                       <div style={{ fontSize: '14px', color: '#334155', fontWeight: '500', marginTop: '2px' }}>
-                        {appt.doctorEmail}
+                        {appt.doctor.name}
                       </div>
                     </div>
 
