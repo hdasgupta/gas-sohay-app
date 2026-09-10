@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function LoginView({ onSubmit, onNavigateSignup, styles }) {
+export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetPassword, styles }) {
   const [authForm, setAuthForm] = useState({ email: '', password: '' });
   
 
@@ -16,6 +16,7 @@ export default function LoginView({ onSubmit, onNavigateSignup, styles }) {
       <input required type="password" placeholder="Password" style={styles.input} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} />
       <button type="submit" style={styles.btnPrimary}>Login</button>
       <p>New user? <span style={styles.link} onClick={onNavigateSignup}>Register Here</span></p>
+      <p>Forgot password? <span style={styles.link} onClick={onNavigateResetPassword}>Reset Password</span></p>
     </form>
   );
 }

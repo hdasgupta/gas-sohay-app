@@ -9,6 +9,7 @@ import AdminView from './views/AdminView';
 import AppointmentListView from './views/AppointmentListView';
 import PrescriptionView from './views/PrescriptionView';
 import FamilyManagementView from './views/FamilyManagementView';
+import ResetPasswordView from './views/ResetPasswordView';
 
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
@@ -125,8 +126,9 @@ export default function App() {
 
       <Alert message={status} styles={styles} />
 
-      {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} styles={styles} />}
+      {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} onNavigateResetPassword={() => setView('resetPassword')} styles={styles} />}
       {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
+      {view === 'resetPassword' && <ResetPasswordView styles={styles} />}
       {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
       {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
       {view === 'prescription' &&  <PrescriptionView user={user} styles={styles} />}
