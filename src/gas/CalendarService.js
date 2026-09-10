@@ -19,7 +19,7 @@ function parseTimeToMinutes(timeStr) {
 }
 
 /**
- * Utility: Converts total minutes from midnight back to 12-hour time string.
+ * Utility: Converts total minutes from midnight back to 12-hour time format.
  */
 function formatMinutesTo12Hr(totalMinutes) {
   let hours = Math.floor(totalMinutes / 60);
@@ -36,7 +36,7 @@ function formatMinutesTo12Hr(totalMinutes) {
 }
 
 /**
- * Utility: Breaks availability ranges (e.g. "09:00 AM - 11:00 AM") into 30-minute slots.
+ * Utility: Breaks availability ranges (e.g. "09:00 AM - 11:00 AM") into 30-minute interval slots.
  */
 function generate30MinSlotsFromRange(rangeStr) {
   const parts = rangeStr.split("-");
@@ -56,7 +56,7 @@ function generate30MinSlotsFromRange(rangeStr) {
 }
 
 /**
- * Helper to construct JS Date objects from Date ("YYYY-MM-DD") and Slot Time ("09:00 AM - 09:30 AM")
+ * Parses date string ("YYYY-MM-DD") and slot string ("09:00 AM - 09:30 AM") into JS Date objects.
  */
 function parseSlotToDateObjects(dateStr, timeSlotStr) {
   const [startStr, endStr] = timeSlotStr.split("-").map(s => s.trim());
@@ -73,7 +73,7 @@ function parseSlotToDateObjects(dateStr, timeSlotStr) {
 }
 
 /**
- * Creates a Google Calendar Event and generates a Google Meet video link.
+ * Creates a Google Calendar Event and generates a valid Google Meet link.
  */
 function createGoogleMeetEvent(patientEmail, doctorEmail, dateStr, timeSlotStr, appointmentId) {
   try {
@@ -81,29 +81,7 @@ function createGoogleMeetEvent(patientEmail, doctorEmail, dateStr, timeSlotStr, 
     const summary = `Doctor Consultation [ID: ${appointmentId}]`;
     const description = `Medical Appointment\nPatient: ${patientEmail}\nDoctor: ${doctorEmail}\nAppointment ID: ${appointmentId}`;
 
-    // Try creating via Advanced Calendar API for native Google Meet link creation
-    if (typeof Calendar !== 'undefined' && Calendar.Events) {
-      const resource = {
-        summary: summary,
-        description: description,
-        start: { dateTime: startDate.toISOString() },
-        end: { dateTime: endDate.toISOString() },
-        attendees: [{ email: patientEmail }, { email: doctorEmail }],
-        conferenceData: {
-          createRequest: {
-            requestId: "meet_" + appointmentId + "_" + Date.now(),
-            conferenceSolutionKey: { type: "hangoutsMeet" }
-          }
-        }
-      };
-
-      const createdEvent = Calendar.Events.insert(resource, "primary", { conferenceDataVersion: 1 });
-      if (createdEvent.hangoutLink) {
-        return createdEvent.hangoutLink;
-      }
-    }
-
-    // Fallback: Use standard CalendarApp with guests
+    // Use CalendarApp with guest invites
     const calendar = CalendarApp.getDefaultCalendar();
     const event = calendar.createEvent(summary, startDate, endDate, {
       description: description,
@@ -111,25 +89,49 @@ function createGoogleMeetEvent(patientEmail, doctorEmail, dateStr, timeSlotStr, 
       sendInvites: true
     });
 
-    // Return hangout link if generated, or a structured Meet room URL
+    // Advanced Calendar API attempt for direct Meet link or fallback room URL
+    if (typeof Calendar !== 'undefined' && Calendar.Events) {
+      try {
+        const resource = {
+          summary: summary,
+          description: description,
+          start: { dateTime: startDate.toISOString() },
+          end: { dateTime: endDate.toISOString() },
+          attendees: [{ email: patientEmail }, { email: doctorEmail }],
+          conferenceData: {
+            createRequest: {
+              requestId: "meet_" + appointmentId + "_" + Date.now(),
+              conferenceSolutionKey: { type: "hangoutsMeet" }
+            }
+          }
+        };
+        const createdEvent = Calendar.Events.insert(resource, "primary", { conferenceDataVersion: 1 });
+        if (createdEvent.hangoutLink) {
+          return createdEvent.hangoutLink;
+        }
+      } catch (e) {
+        Logger.log("Advanced Calendar API fallback triggered: " + e.toString());
+      }
+    }
+
     return event.getHangoutLink() || `https://meet.google.com/doc-${appointmentId.toLowerCase()}`;
   } catch (err) {
-    Logger.log("Calendar Event Creation Error: " + err.toString());
+    Logger.log("Calendar Event Error: " + err.toString());
     return `https://meet.google.com/doc-${appointmentId.toLowerCase()}`;
   }
 }
 
 /**
- * Sends confirmation email to patient with booking details and Google Meet link.
+ * Sends confirmation email notification to the patient with Google Meet link.
  */
 function sendAppointmentConfirmationEmail(patientEmail, doctorName, dateStr, timeSlotStr, meetLink, appointmentId) {
   try {
-    const subject = `Confirmed: Doctor Appointment [${appointmentId}]`;
+    const subject = `Appointment Confirmation - ID: ${appointmentId}`;
     const bodyHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <h2 style="color: #2563eb; margin-top: 0;">Appointment Confirmation</h2>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #2563eb; margin-top: 0;">Appointment Confirmed</h2>
         <p>Dear Patient,</p>
-        <p>Your medical appointment has been successfully scheduled. Here are your booking details:</p>
+        <p>Your appointment has been successfully scheduled. Details are below:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr><td style="padding: 8px 0; font-weight: bold;">Appointment ID:</td><td>${appointmentId}</td></tr>
           <tr><td style="padding: 8px 0; font-weight: bold;">Doctor:</td><td>Dr. ${doctorName}</td></tr>
@@ -138,10 +140,10 @@ function sendAppointmentConfirmationEmail(patientEmail, doctorName, dateStr, tim
           <tr><td style="padding: 8px 0; font-weight: bold;">Status:</td><td><span style="color: #16a34a; font-weight: bold;">Scheduled</span></td></tr>
         </table>
         <div style="margin: 24px 0; padding: 16px; background-color: #eff6ff; border-radius: 6px; text-align: center;">
-          <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e40af;">Join Video Consultation</p>
-          <a href="${meetLink}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">Click Here to Join Google Meet</a>
+          <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e40af;">Video Consultation Link</p>
+          <a href="${meetLink}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">Join Google Meet Call</a>
         </div>
-        <p style="font-size: 12px; color: #64748b;">If you need to reschedule or cancel, please contact administration prior to your appointment time.</p>
+        <p style="font-size: 12px; color: #64748b;">If you need to reschedule, please contact administration.</p>
       </div>
     `;
 
@@ -151,12 +153,12 @@ function sendAppointmentConfirmationEmail(patientEmail, doctorName, dateStr, tim
       htmlBody: bodyHtml
     });
   } catch (err) {
-    Logger.log("Email Sending Error: " + err.toString());
+    Logger.log("Email Notification Error: " + err.toString());
   }
 }
 
 /**
- * Gets all doctors available on a specific date (based on weekday).
+ * Gets all doctors available on a specific date (mapped to day of week).
  */
 function getDoctorsAvailableOnDate(dateStr) {
   if (!dateStr) return [];
@@ -192,8 +194,8 @@ function getDoctorsAvailableOnDate(dateStr) {
 }
 
 /**
- * Returns available 30-minute time slots for a given doctor on a given date,
- * filtering out already booked appointments.
+ * Returns available 30-minute time slots for a doctor on a specific date,
+ * filtering out any slots already present in 'Appointments' sheet.
  */
 function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
   if (!doctorEmail || !dateStr) return [];
@@ -202,7 +204,7 @@ function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
   const dateObj = new Date(dateStr + "T00:00:00");
   const dayName = weekdays[dateObj.getDay()];
 
-  // 1. Fetch Doctor's availability configuration
+  // 1. Fetch Doctor Configured Ranges for that day
   const docSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
   if (!docSheet) return [];
 
@@ -221,7 +223,7 @@ function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
 
   if (dayRanges.length === 0) return [];
 
-  // 2. Generate 30-minute intervals
+  // 2. Generate 30-minute slots
   let allPossibleSlots = [];
   dayRanges.forEach(range => {
     allPossibleSlots = allPossibleSlots.concat(generate30MinSlotsFromRange(range));
@@ -241,8 +243,8 @@ function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
 
   for (let i = 1; i < apptData.length; i++) {
     const rowDoctor = apptData[i][2] ? apptData[i][2].toString().trim().toLowerCase() : '';
-    const rowDate = apptData[i][3] ? apptData[i][3].toString().trim() : '';
-    const rowTime = apptData[i][4] ? apptData[i][4].toString().trim() : '';
+    const rowDate = apptData[i][3] ? JSON.parse(apptData[i][3].toString().trim()) : '';
+    const rowTime = apptData[i][4] ? JSON.parse(apptData[i][4].toString().trim()) : '';
     const rowStatus = apptData[i][6] ? apptData[i][6].toString().trim() : '';
 
     if (
@@ -254,20 +256,20 @@ function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
     }
   }
 
-  // 4. Return unbooked slots
+  // 4. Return unbooked slots only
   return allPossibleSlots.filter(slot => !bookedSlots.has(slot));
 }
 
 /**
- * Books appointment, creates Google Meet link, sends email to patient,
- * and appends record to 'Appointments' sheet.
- * Sheet Columns: Appointment ID | Patient Email | Doctor Email | Date | Time | Meet Link | Status | Prescription Link
+ * Books an appointment, creates Google Meet link, sends email to patient,
+ * and records entry into 'Appointments' sheet.
+ * Sheet Structure: Appointment ID | Patient Email | Doctor Email | Date | Time | Meet Link | Status | Prescription Link
  */
 function bookAppointment(payload) {
   const { patientEmail, doctorEmail, doctorName, date, time } = payload;
 
   if (!patientEmail || !doctorEmail || !date || !time) {
-    return { success: false, error: "Missing required appointment information." };
+    return { success: false, error: "Missing required booking information." };
   }
 
   let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
@@ -278,11 +280,11 @@ function bookAppointment(payload) {
 
   const data = sheet.getDataRange().getValues();
 
-  // Race Condition Double-Booking Check
+  // Guard against race-condition double bookings
   for (let i = 1; i < data.length; i++) {
     const rowDoctor = data[i][2] ? data[i][2].toString().trim().toLowerCase() : '';
-    const rowDate = data[i][3] ? data[i][3].toString().trim() : '';
-    const rowTime = data[i][4] ? data[i][4].toString().trim() : '';
+    const rowDate = data[i][3] ? JSON.parse(data[i][3].toString().trim()) : '';
+    const rowTime = data[i][4] ? JSON.parse(data[i][4].toString().trim()) : '';
     const rowStatus = data[i][6] ? data[i][6].toString().trim() : '';
 
     if (
@@ -291,7 +293,7 @@ function bookAppointment(payload) {
       rowTime === time &&
       rowStatus.toLowerCase() !== 'cancelled'
     ) {
-      return { success: false, error: "This slot was just booked by another patient. Please select a different time." };
+      return { success: false, error: "This time slot was just booked. Please pick another slot." };
     }
   }
 
@@ -299,10 +301,10 @@ function bookAppointment(payload) {
   const status = "Scheduled";
   const prescriptionLink = "";
 
-  // Generate Google Meet Link
+  // Generate Google Meet link
   const meetLink = createGoogleMeetEvent(patientEmail.trim(), doctorEmail.trim(), date, time, appointmentId);
 
-  // Append record to sheet
+  // Append row into Appointments sheet
   sheet.appendRow([
     appointmentId,
     patientEmail.trim().toLowerCase(),
@@ -314,7 +316,7 @@ function bookAppointment(payload) {
     prescriptionLink
   ]);
 
-  // Trigger Email Notification to Patient
+  // Trigger confirmation email
   sendAppointmentConfirmationEmail(
     patientEmail.trim().toLowerCase(),
     doctorName || doctorEmail,
@@ -326,7 +328,7 @@ function bookAppointment(payload) {
 
   return {
     success: true,
-    message: "Appointment successfully booked!",
+    message: "Appointment booked successfully!",
     appointment: {
       id: appointmentId,
       patientEmail,
@@ -339,75 +341,6 @@ function bookAppointment(payload) {
   };
 }
 
-/**
- * Retrieves appointments and member information.
- * If the user belongs to a family, fetches appointments for all enrolled family members.
- * If the user is an individual patient, retrieves only their personal appointments.
- */
-function getAppointmentsForUserAndFamily(userEmail) {
-  if (!userEmail) return { familyInfo: null, appointments: [] };
-
-  const familyData = getFamilyDetailsByUser(userEmail);
-  const memberMap = {};
-  const emailsToFetch = [];
-
-  if (familyData && familyData.members && familyData.members.length > 0) {
-    familyData.members.forEach((m) => {
-      const lowerEmail = m.email.toLowerCase();
-      emailsToFetch.push(lowerEmail);
-      memberMap[lowerEmail] = m;
-    });
-  } else {
-    // Individual patient (not in a family)
-    const patientSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Users");
-    let patientName = userEmail;
-
-    if (patientSheet) {
-      const pData = patientSheet.getDataRange().getValues();
-      for (let i = 1; i < pData.length; i++) {
-        if (pData[i][3] && pData[i][3].toString().toLowerCase() === userEmail.toLowerCase()) {
-          patientName = pData[i][1];
-          
-          break;
-        }
-      }
-    }
-
-    const lowerEmail = userEmail.toLowerCase();
-    emailsToFetch.push(lowerEmail);
-    memberMap[lowerEmail] = { name: patientName, email: userEmail };
-  }
-
-  const apptSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
-  if (!apptSheet) return { familyInfo: familyData || null, appointments: [] };
-
-  const apptData = apptSheet.getDataRange().getValues();
-  const appointments = [];
-
-  // Sheet structure: [0: ApptID, 1: PatientName, 2: PatientEmail, 3: Date, 4: Time, 5: Status, 6: PrescriptionUrl]
-  for (let i = 1; i < apptData.length; i++) {
-    const rowPatientEmail = apptData[i][1] ? apptData[i][1].toString().toLowerCase() : '';
-    const rowDoctorEmail = apptData[i][2] ? apptData[i][2].toString().toLowerCase() : '';
-    if (emailsToFetch.includes(rowPatientEmail)) {
-      const memberInfo = memberMap[rowPatientEmail];
-      appointments.push({
-        id: apptData[i][0],
-        patient: getPatientByEmail(rowPatientEmail),
-        doctor: getDoctorByEmail(rowDoctorEmail),
-        date: JSON.parse(apptData[i][3]),
-        time: JSON.parse(apptData[i][4]),
-        meetLink: apptData[i][5],
-        status: apptData[i][6] || 'Scheduled',
-        prescriptionUrl: apptData[i][7] || ''
-      });
-    }
-  }
-
-  return {
-    familyInfo: familyData || null,
-    appointments: appointments
-  };
-}
 
 /**
  * Returns a unique list of patients who have an appointment today with a specific doctor.
