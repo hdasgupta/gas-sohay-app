@@ -17,8 +17,8 @@ function getAppointmentsForUser(patientEmail) {
         id: row[0] ? row[0].toString() : '',
         patientEmail: row[1] ? row[1].toString() : '',
         doctorEmail: row[2] ? row[2].toString() : '',
-        date: row[3] ? row[3].toString() : '',
-        time: row[4] ? row[4].toString() : '',
+        date: row[3] ? JSON.parse(row[3].toString()) : '',
+        time: row[4] ? JSON.parse(row[4].toString()) : '',
         meetLink: row[5] ? row[5].toString() : '',
         status: row[6] ? row[6].toString() : '',
         prescriptionLink: row[7] ? row[7].toString() : ''
