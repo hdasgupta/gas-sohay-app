@@ -11,7 +11,7 @@ function getDoctorsList() {
     doctors.push({
       id: data[i][0],
       name: data[i][1],
-      specialty: data[i][2],
+      speciality: data[i][2],
       email: data[i][3],
       phone: data[i][4],
       password: data[i][5],
