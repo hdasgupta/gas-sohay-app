@@ -168,6 +168,31 @@ function saveDoctor(payload) {
   return { success: true, message: "Doctor added successfully.", docId: newId };
 }
 
+/**
+ * Removes a doctor record from the 'Doctors' sheet by ID.
+ */
+function deleteDoctor(docId) {
+  if (!docId) {
+    return { success: false, error: "Doctor ID is required." };
+  }
+  
+  const sheet = getOrCreateSheet("Doctors");
+  if (!sheet) {
+    return { success: false, error: "Doctors sheet not found." };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0].toString().trim() === docId.toString().trim()) {
+      sheet.deleteRow(i + 1); // +1 because row index in Apps Script is 1-based
+      return { success: true, message: "Doctor deleted successfully." };
+    }
+  }
+  
+  return { success: false, error: "Doctor ID not found." };
+}
+
 function getDoctorByEmail(email) {
   // Tab to edit
   const doctor =  getDoctorsList().filter((doctor) => doctor.email === email)[0];

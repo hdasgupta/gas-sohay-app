@@ -20,7 +20,7 @@ export default function AdminView({ styles = {} }) {
     boxSizing: 'border-box'
   };
   const disabledInputStyle = { ...inputStyle, background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' };
-  const btnStyle = styles.btnPrimary || {
+  const btnPrimary = styles.btnPrimary || {
     width: '100%',
     padding: '12px',
     background: '#2563eb',
@@ -52,6 +52,7 @@ export default function AdminView({ styles = {} }) {
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchDoctors();
@@ -153,6 +154,29 @@ export default function AdminView({ styles = {} }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleDeleteClick = (doc) => {
+    if (!window.confirm(`Are you sure you want to remove Dr. ${doc.name} (${doc.id})?`)) {
+      return;
+    }
+
+    setDeletingId(doc.id);
+    setError('');
+    setSuccess('');
+
+    callBackend('deleteDoctor', [doc.id], (res) => {
+      setDeletingId(null);
+      if (res && res.success) {
+        setSuccess(res.message);
+        if (editingId === doc.id) {
+          resetForm();
+        }
+        fetchDoctors();
+      } else {
+        setError(res?.error || 'Failed to delete doctor.');
+      }
+    });
+  };
+
   const validatePasswordComplexity = (pwd) => {
     if (pwd.length < 8) return 'Password must be at least 8 characters long.';
     if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter (A-Z).';
@@ -183,13 +207,12 @@ export default function AdminView({ styles = {} }) {
       if (pwdError) return setError(pwdError);
     }
 
-    // Check if at least one day has configured slots
     const configuredDays = Object.keys(availabilityMap).filter(
       (day) => Array.isArray(availabilityMap[day]) && availabilityMap[day].length > 0
     );
 
     if (configuredDays.length === 0) {
-      return setError('Please add at least one dynamic time slot for any weekday.');
+      return setError('Please add at least one time slot for any weekday.');
     }
 
     setSubmitting(true);
@@ -213,12 +236,12 @@ export default function AdminView({ styles = {} }) {
   };
 
   return (
-    <div style={{ maxWidth: '950px', margin: '0 auto', padding: '16px' }}>
-      {/* Form Section */}
+    <div style={{ maxWidth: '980px', margin: '0 auto', padding: '16px' }}>
+      {/* Form Card */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ margin: 0, color: '#1e293b' }}>
-            {editingId ? `Edit Doctor Details (${editingId})` : 'Add New Doctor'}
+            {editingId ? `Edit Doctor (${editingId})` : 'Add New Doctor'}
           </h2>
           {editingId && (
             <button
@@ -239,11 +262,11 @@ export default function AdminView({ styles = {} }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Doctor Name *</label>
-              <input style={inputStyle} name="name" value={formData.name} onChange={handleInputChange} placeholder="Dr. John Smith" required />
+              <input style={inputStyle} name="name" value={formData.name} onChange={handleInputChange} placeholder="Dr. Jane Doe" required />
             </div>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Specialty *</label>
-              <input style={inputStyle} name="specialty" value={formData.specialty} onChange={handleInputChange} placeholder="Neurology, Pediatrics, etc." required />
+              <input style={inputStyle} name="specialty" value={formData.specialty} onChange={handleInputChange} placeholder="Cardiology, Dermatology, etc." required />
             </div>
           </div>
 
@@ -270,7 +293,7 @@ export default function AdminView({ styles = {} }) {
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="10-digit mobile number"
+                placeholder="10-digit phone number"
                 disabled={Boolean(editingId)}
                 required={!editingId}
               />
@@ -280,26 +303,26 @@ export default function AdminView({ styles = {} }) {
           {/* Password Fields */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Password {editingId ? '(Leave blank to keep unchanged)' : '*'}</label>
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Password {editingId ? '(Optional)' : '*'}</label>
               <input style={inputStyle} type="password" name="password" value={formData.password} onChange={handleInputChange} required={!editingId} />
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Confirm Password {editingId ? '(Leave blank to keep unchanged)' : '*'}</label>
+              <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Confirm Password {editingId ? '(Optional)' : '*'}</label>
               <input style={inputStyle} type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} required={!editingId} />
             </div>
           </div>
           <p style={{ fontSize: '11px', color: '#64748b', marginTop: '-6px', marginBottom: '16px' }}>
-            * Password Rules: Min 8 chars, 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+            * Password rules: Minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
           </p>
 
-          {/* Per-Day Dynamic Availability Builder */}
+          {/* Weekday & Time Slot Availability Builder */}
           <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
             <label style={{ fontSize: '14px', fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#334155' }}>
               Configure Weekday Availability & Time Slots
             </label>
 
             {/* Weekday Tabs */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderBottom: '1px solid #cbd5e1', pb: '8px', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderBottom: '1px solid #cbd5e1', paddingBottom: '8px', marginBottom: '14px' }}>
               {WEEKDAYS.map((day) => {
                 const isActive = activeDayTab === day;
                 const slotCount = (availabilityMap[day] || []).length;
@@ -326,7 +349,7 @@ export default function AdminView({ styles = {} }) {
               })}
             </div>
 
-            {/* Time Slot Builder for Active Day */}
+            {/* Time Slot Controls for Selected Day */}
             <div style={{ background: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#1e293b' }}>
                 Add Slots for <span style={{ color: '#2563eb' }}>{activeDayTab}</span>:
@@ -356,11 +379,11 @@ export default function AdminView({ styles = {} }) {
                     fontSize: '12px'
                   }}
                 >
-                  + Add Slot to {activeDayTab}
+                  + Add Slot
                 </button>
               </div>
 
-              {/* Active Day Configured Slots */}
+              {/* Added Slots List for Selected Day */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {(!availabilityMap[activeDayTab] || availabilityMap[activeDayTab].length === 0) ? (
                   <span style={{ fontSize: '12px', color: '#94a3b8' }}>No slots configured for {activeDayTab}.</span>
@@ -396,18 +419,18 @@ export default function AdminView({ styles = {} }) {
             </div>
           </div>
 
-          <button type="submit" disabled={submitting} style={btnStyle}>
+          <button type="submit" disabled={submitting} style={btnPrimary}>
             {submitting ? 'Saving...' : editingId ? 'Update Doctor' : 'Add Doctor'}
           </button>
         </form>
       </div>
 
-      {/* Enlisted Doctors List */}
+      {/* Enlisted Doctors Table */}
       <div style={cardStyle}>
         <h3 style={{ marginTop: 0, marginBottom: '16px', color: '#1e293b' }}>Enlisted Doctors</h3>
 
         {loadingList ? (
-          <p style={{ color: '#64748b' }}>Loading doctor records...</p>
+          <p style={{ color: '#64748b' }}>Loading doctor list...</p>
         ) : doctorsList.length === 0 ? (
           <p style={{ color: '#64748b' }}>No doctors found.</p>
         ) : (
@@ -420,7 +443,7 @@ export default function AdminView({ styles = {} }) {
                   <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Specialty</th>
                   <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Contact</th>
                   <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Availability Summary</th>
-                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Action</th>
+                  <th style={{ padding: '10px', textAlign: 'left', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', fontSize: '13px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -447,21 +470,40 @@ export default function AdminView({ styles = {} }) {
                         {availSummary || 'No slots configured'}
                       </td>
                       <td style={{ padding: '10px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleEditClick(doc)}
-                          style={{
-                            padding: '4px 10px',
-                            background: '#0284c7',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
-                        >
-                          Edit
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleEditClick(doc)}
+                            style={{
+                              padding: '4px 10px',
+                              background: '#0284c7',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Update
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(doc)}
+                            disabled={deletingId === doc.id}
+                            style={{
+                              padding: '4px 10px',
+                              background: '#dc2626',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              opacity: deletingId === doc.id ? 0.6 : 1
+                            }}
+                          >
+                            {deletingId === doc.id ? 'Removing...' : 'Remove'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
