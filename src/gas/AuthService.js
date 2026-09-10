@@ -75,8 +75,8 @@ for (let i = 1; i < data.length; i++) {
           speciality: data[i][2],
           email: data[i][3],
           phone: data[i][4],
-          availability: JSON.stringify(data[i][6]) 
-          
+          availability: JSON.stringify(data[i][6]), 
+          role: 'doctor'
         }
       };
     } else {
