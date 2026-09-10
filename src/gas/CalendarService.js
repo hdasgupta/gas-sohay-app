@@ -376,7 +376,7 @@ function getTodayPatientsForDoctor(doctorEmail) {
     const status = row[6] ? row[6].toString().trim() : 'Scheduled';
     const prescriptionUrl = row[7] || '';
     const rowDoctorEmail = row[2] ? row[2].toString().trim().toLowerCase() : '';
-
+    const patient = getPatientByEmail(patientEmail);
     // Convert Date object or string to standard 'YYYY-MM-DD'
     const apptDateStr = rawDate instanceof Date
       ? Utilities.formatDate(rawDate, Session.getScriptTimeZone(), "yyyy-MM-dd")
@@ -391,7 +391,7 @@ function getTodayPatientsForDoctor(doctorEmail) {
       // Store or update in hash map to guarantee uniqueness per patient email
       if (!uniquePatientsMap[patientEmail]) {
         uniquePatientsMap[patientEmail] = {
-          name: patientName,
+          name: patient.name,
           email: row[2], // Preserve original string case
           time: timeSlot,
           meetLink, 
