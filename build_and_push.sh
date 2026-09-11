@@ -8,5 +8,7 @@ sh search_direct_sheet_reference.sh ./src/gas
 sh find_missing_imports.sh ./src/views/
 sh find_alert_confirm.sh ./src/components/
 sh find_alert_confirm.sh ./src/views/
+sh check_backend_calls.sh ./src/components/ ./src/gas/
+sh check_backend_calls.sh ./src/views/ ./src/gas/
 sh copy_js_to_gs.sh ./src/gas/ ./dist/
 clasp push
