@@ -325,6 +325,7 @@ function findLatestAppointment(doctorEmail, patientEmail) {
 function updateAppointmentPrescriptionUrl(rowIndex, docUrl) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
   if (sheet && rowIndex > 1) {
+    sheet.getRange(rowIndex, 7).setValue("COMPLETED"); // UPDATE STATUS
     sheet.getRange(rowIndex, 8).setValue(docUrl); // Column F
   }
 }
