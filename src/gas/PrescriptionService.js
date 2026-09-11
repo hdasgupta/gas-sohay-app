@@ -71,6 +71,8 @@ function createPrescriptionDoc(payload) {
     if (patientEmail && doctorEmail) {
       appointmentInfo = findLatestAppointment(doctorEmail, patientEmail);
     }
+    
+    console.log(JSON.stringify(appointmentInfo));
 
     // 2. Check if an existing prescription link exists and requires override confirmation
     if (appointmentInfo && appointmentInfo.prescriptionUrl && !payload.overrideConfirmed) {
