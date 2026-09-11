@@ -128,7 +128,7 @@ export default function AppointmentListView({ currentUser, styles = {} }) {
               const todayMatch = isToday(appt.date);
               const cancellable = canCancel(appt.date, appt.status);
               const isCancelled = appt.status.toLowerCase() === 'cancelled';
-              const hasPrescription = appt.prescriptionLink
+              const hasPrescription = appt.prescriptionLink;
               
               return (
                 <div
