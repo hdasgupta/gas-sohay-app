@@ -293,7 +293,7 @@ function findLatestAppointment(doctorEmail, patientEmail) {
     var row = data[i];
     var pEmail = String(row[1] || "").toLowerCase().trim();
     var dEmail = String(row[2] || "").toLowerCase().trim();
-    var apptDate = row[3];
+    var apptDate = JSON.parse(row[3]);
     const today = new Date().toISOString().split('T')[0];
 
     if (pEmail === patientEmail && dEmail === doctorEmail && apptDate === today) {
