@@ -28,6 +28,7 @@ export default function AppointmentListView({ user, styles = {} }) {
     setLoading(true);
     callBackend('getAppointmentsForUser', [user?.email || ''], (data) => {
       setLoading(false);
+      alert(JSON.stringify(data))
       setAppointments(data || []);
     });
   };
