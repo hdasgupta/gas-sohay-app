@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function AppointmentListView({ currentUser, styles = {} }) {
+export default function AppointmentListView({ user, styles = {} }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState(null);
@@ -26,7 +26,7 @@ export default function AppointmentListView({ currentUser, styles = {} }) {
 
   const loadAppointments = () => {
     setLoading(true);
-    callBackend('getAppointmentsForUser', [currentUser?.email || ''], (data) => {
+    callBackend('getAppointmentsForUser', [user?.email || ''], (data) => {
       setLoading(false);
       setAppointments(data || []);
     });
@@ -34,7 +34,7 @@ export default function AppointmentListView({ currentUser, styles = {} }) {
 
   useEffect(() => {
     loadAppointments();
-  }, [currentUser]);
+  }, [user]);
 
   const isToday = (dateStr) => dateStr === getTodayString();
 
