@@ -15,7 +15,7 @@ if for while do switch case default break continue return throw try catch finall
 EOF
 
 echo "Scanning JS files in: $TARGET_DIR"
-echo "--------------------------------------------------------------------------------"
+echo "-------------------------------------------------"
 
 # Function to strip // and /* */ comments line-by-line via pure AWK
 strip_comments() {
