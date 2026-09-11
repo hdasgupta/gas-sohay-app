@@ -280,7 +280,7 @@ return {
  * Col F (6): Prescription Link
  */
 function findLatestAppointment(doctorEmail, patientEmail) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  var sheet = getOrCreateSheet("Appointments");
   if (!sheet) return null;
 
   var data = sheet.getDataRange().getValues();
@@ -323,7 +323,7 @@ function findLatestAppointment(doctorEmail, patientEmail) {
  * Updates Column F (Prescription Link) in the 'Appointments' sheet for the given row.
  */
 function updateAppointmentPrescriptionUrl(rowIndex, docUrl) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  var sheet = getOrCreateSheet("Appointments");
   if (sheet && rowIndex > 1) {
     sheet.getRange(rowIndex, 7).setValue("COMPLETED"); // UPDATE STATUS
     sheet.getRange(rowIndex, 8).setValue(docUrl); // Column F

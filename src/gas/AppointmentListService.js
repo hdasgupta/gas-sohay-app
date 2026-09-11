@@ -2,7 +2,7 @@
  * Fetches all appointments for a specific patient email (or all if omitted).
  */
 function getAppointmentsForUser(email) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  const sheet = getOrCreateSheet("Appointments");
   if (!sheet) return [];
 
   const data = sheet.getDataRange().getValues();
@@ -40,7 +40,7 @@ function cancelAppointment(appointmentId) {
     return { success: false, error: "Appointment ID is required." };
   }
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  const sheet = getOrCreateSheet("Appointments");
   if (!sheet) {
     return { success: false, error: "Appointments sheet not found." };
   }

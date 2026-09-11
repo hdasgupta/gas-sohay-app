@@ -14,7 +14,7 @@
  * @return {Object} Status and count of cancelled appointments.
  */
 function cancelPastAppointmentsWithoutPrescription() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  const sheet = getOrCreateSheet("Appointments");
   if (!sheet) return { success: false, error: "Appointments sheet not found." };
 
   const data = sheet.getDataRange().getValues();

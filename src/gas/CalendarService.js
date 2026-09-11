@@ -167,7 +167,7 @@ function getDoctorsAvailableOnDate(dateStr) {
   const dateObj = new Date(dateStr + "T00:00:00");
   const dayName = weekdays[dateObj.getDay()];
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
+  const sheet = getOrCreateSheet("Doctors");
   if (!sheet) return [];
 
   const data = sheet.getDataRange().getValues();
@@ -205,7 +205,7 @@ function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
   const dayName = weekdays[dateObj.getDay()];
 
   // 1. Fetch Doctor Configured Ranges for that day
-  const docSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
+  const docSheet = getOrCreateSheet("Doctors");
   if (!docSheet) return [];
 
   const docData = docSheet.getDataRange().getValues();
@@ -231,7 +231,7 @@ function getAvailableSlotsForDoctorAndDate(doctorEmail, dateStr) {
   allPossibleSlots = [...new Set(allPossibleSlots)];
 
   // 3. Fetch already booked slots from 'Appointments' sheet
-  let apptSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  let apptSheet = getOrCreateSheet("Appointments");
   if (!apptSheet) {
     apptSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Appointments");
     apptSheet.appendRow(["Appointment ID", "Patient Email", "Doctor Email", "Date", "Time", "Meet Link", "Status", "Prescription Link"]);
@@ -272,11 +272,7 @@ function bookAppointment(payload) {
     return { success: false, error: "Missing required booking information." };
   }
 
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
-  if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Appointments");
-    sheet.appendRow(["Appointment ID", "Patient Email", "Doctor Email", "Date", "Time", "Meet Link", "Status", "Prescription Link"]);
-  }
+  let sheet = getOrCreateSheet("Appointments");
 
   const data = sheet.getDataRange().getValues();
 
@@ -354,7 +350,7 @@ function bookAppointment(payload) {
 function getTodayPatientsForDoctor(doctorEmail) {
   if (!doctorEmail) return [];
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  const sheet = getOrCreateSheet("Appointments");
   if (!sheet) return [];
 
   const data = sheet.getDataRange().getValues();
