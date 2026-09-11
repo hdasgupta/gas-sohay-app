@@ -7,14 +7,14 @@ function getAppointmentsForUser(email) {
 
   const data = sheet.getDataRange().getValues();
   const appointments = [];
-  const members = getFamilyDetailsByUser(email)?. members || [];
+  const members = (getFamilyDetailsByUser(email)?. members || []).map((member) => member.email);
 
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     const rowPatientEmail = row[1] ? row[1].toString().trim().toLowerCase() : '';
     const rowDoctorEmail = row[2] ? row[2].toString().trim().toLowerCase() : '';
     
-    if (!email || rowPatientEmail === email.trim().toLowerCase() || rowPatientEmail === email.trim().toLowerCase() || members.includes(rowPatientEmail)) {
+    if (!email || rowPatientEmail === email.trim().toLowerCase() || rowDoctorEmail === email.trim().toLowerCase() || members.includes(rowPatientEmail)) {
       appointments.push({
         id: row[0] ? row[0].toString() : '',
         patient: getPatientByEmail(row[1]),
