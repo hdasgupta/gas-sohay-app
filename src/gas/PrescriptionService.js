@@ -298,7 +298,7 @@ function findLatestAppointment(doctorEmail, patientEmail) {
 
     if (pEmail === patientEmail && dEmail === doctorEmail && apptDate === today) {
       
-      var apptTime = row[4];
+      var apptTime = JSON.parse(row[4]);
       
       // Calculate timestamp for comparison
       var parsedDate = new Date(apptDate + " " + apptTime);
