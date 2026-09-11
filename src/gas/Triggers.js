@@ -46,6 +46,8 @@ function cancelPastAppointmentsWithoutPrescription() {
         apptDate = new Date(rawDate);
       }
     }
+    
+    console.log(apptDate, today);
 
     if (!apptDate || isNaN(apptDate.getTime())) continue;
 
