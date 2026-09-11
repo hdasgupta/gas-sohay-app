@@ -1,18 +1,20 @@
 /**
  * Fetches all appointments for a specific patient email (or all if omitted).
  */
-function getAppointmentsForUser(patientEmail) {
+function getAppointmentsForUser(email) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
   if (!sheet) return [];
 
   const data = sheet.getDataRange().getValues();
   const appointments = [];
+  const members = getFamilyDetailsByUser(email)?. members || [];
 
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     const rowPatientEmail = row[1] ? row[1].toString().trim().toLowerCase() : '';
+    const rowDoctorEmail = row[2] ? row[2].toString().trim().toLowerCase() : '';
     
-    if (!patientEmail || rowPatientEmail === patientEmail.trim().toLowerCase()) {
+    if (!email || rowPatientEmail === email.trim().toLowerCase() || rowPatientEmail === email.trim().toLowerCase() || members.includes(rowPatientEmail) {
       appointments.push({
         id: row[0] ? row[0].toString() : '',
         patient: getPatientByEmail(row[1]),
@@ -59,7 +61,7 @@ function cancelAppointment(appointmentId) {
     return { success: false, error: "Appointment record not found." };
   }
 
-  const patientEmail = targetRow[1];
+  const email = targetRow[1];
   const doctorEmail = targetRow[2];
   const dateStr = targetRow[3];
   const timeStr = targetRow[4];
@@ -89,7 +91,7 @@ function cancelAppointment(appointmentId) {
   sheet.getRange(rowIndex, 7).setValue("Cancelled");
 
   // Send cancellation email to patient
-  sendCancellationEmail(patientEmail, doctorEmail, dateStr, timeStr, appointmentId);
+  sendCancellationEmail(email, doctorEmail, dateStr, timeStr, appointmentId);
 
   return {
     success: true,
@@ -100,7 +102,7 @@ function cancelAppointment(appointmentId) {
 /**
  * Sends cancellation notification email to patient.
  */
-function sendCancellationEmail(patientEmail, doctorEmail, dateStr, timeSlotStr, appointmentId) {
+function sendCancellationEmail(email, doctorEmail, dateStr, timeSlotStr, appointmentId) {
   try {
     const subject = `Appointment Cancelled - ID: ${appointmentId}`;
     const bodyHtml = `
@@ -120,7 +122,7 @@ function sendCancellationEmail(patientEmail, doctorEmail, dateStr, timeSlotStr, 
     `;
 
     MailApp.sendEmail({
-      to: patientEmail,
+      to: email,
       subject: subject,
       htmlBody: bodyHtml
     });
