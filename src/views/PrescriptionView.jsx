@@ -107,7 +107,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
     const pEmail = typeof patient === 'object' && patient?.email ? patient.email : '';
     const pAge = typeof patient === 'object' && patient?.age ? patient.age : '';
-
+    alert(pEmail)
     setPatientInput(pName);
     setPatientEmail(pEmail); // Store patient email internally
     if (pAge) setPatientAge(pAge);
