@@ -392,7 +392,7 @@ function getTodayPatientsForDoctor(doctorEmail) {
       if (!uniquePatientsMap[patientEmail]) {
         uniquePatientsMap[patientEmail] = {
           name: patient.name,
-          email: row[2], // Preserve original string case
+          email: row[1], // Preserve original string case
           time: timeSlot,
           meetLink, 
           status: status,
