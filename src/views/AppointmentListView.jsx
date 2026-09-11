@@ -301,9 +301,14 @@ export default function AppointmentListView({ user, styles = {} }) {
                       </button>
                     )}
 
-                    {!todayMatch && !cancellable && !isCancelled && (
+                    {!todayMatch && !cancellable && !isCancelled && !isCompleted && (
                       <span style={{ fontSize: '12px', color: '#94a3b8', italic: 'true' }}>
-                        Cancellation allowed at least 1 day prior
+                        { /* Custom Confirmation Dialog */ }
+<ConfirmBox
+          isOpen={confirmConfig.isOpen}
+          message={confirmConfig.message}
+          onConfirm={handleConfirmResult}
+        />ion allowed at least 1 day prior
                       </span>
                     )}
                   </div>
