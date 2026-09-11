@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
+import MessageBox from '../components/MessageBox';
 
 export default function FamilyManagementView({ user = {}, styles = {} }) {
   const cardStyle = styles.card || { padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #cbd5e1' };
   const inputStyle = styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' };
   const btnStyle = styles.btnPrimary || { padding: '10px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
 
+  const [alert, setAlert] = useState(null);
   const [familyData, setFamilyData] = useState(null);
   const [newFamilyName, setNewFamilyName] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  
+  const showAlert = (message, type = 'info', duration = 5000) => {
+    setAlert({ message, type, duration });
+  };
 
   const fetchFamily = () => {
     setLoading(true);
@@ -25,7 +31,7 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
   }, [user.email]);
 
   const handleCreateFamily = () => {
-    if (!newFamilyName.trim()) return alert('Please enter a family name.');
+    if (!newFamilyName.trim()) return showAlert('Please enter a family name.', 'warning');
     setErrorMsg('');
     callBackend('createFamily', [{ familyName: newFamilyName, userEmail: user.email }], (res) => {
       if (res && res.success) {
@@ -37,7 +43,7 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
   };
 
   const handleAddMember = () => {
-    if (!newMemberEmail.trim()) return alert('Please enter member email.');
+    if (!newMemberEmail.trim()) return showAlert('Please enter member email.', 'warning');
     setErrorMsg('');
     callBackend('addFamilyMember', [{ familyId: familyData.familyId, memberEmail: newMemberEmail.trim() }], (res) => {
       if (res && res.success) {
@@ -60,7 +66,16 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
           {errorMsg}
         </div>
       )}
-
+      
+      {alert && (
+        <MessageBox
+          message={alert.message}
+          type={alert.type}
+          duration={alert.duration}
+          onClose={() => setAlert(null)}
+        />
+      )}
+      
       {!familyData ? (
         <div>
           <p>You are not enrolled in any family group yet. Create one to manage members and book appointments for them.</p>

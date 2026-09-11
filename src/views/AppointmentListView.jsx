@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
+import ConfirmBox from '../components/ConfirmBox';
 
 export default function AppointmentListView({ user, styles = {} }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
-
+  
   const cardStyle = styles.card || {
     padding: '24px',
     background: '#ffffff',
@@ -49,23 +50,46 @@ export default function AppointmentListView({ user, styles = {} }) {
     const diffInDays = Math.floor((apptDate - today) / (1000 * 60 * 60 * 24));
     return diffInDays >= 1;
   };
+  
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    message: '',
+    targetId: null
+  });
 
-  const handleCancelAppointment = (id) => {
-    if (!window.confirm(`Are you sure you want to cancel appointment ${id}?`)) return;
-
-    setCancellingId(id);
-    setActionMessage(null);
-
-    callBackend('cancelAppointment', [id], (res) => {
-      setCancellingId(null);
-      if (res && res.success) {
-        setActionMessage({ type: 'success', text: res.message });
-        loadAppointments();
-      } else {
-        setActionMessage({ type: 'error', text: res?.error || 'Failed to cancel appointment.' });
-      }
+// 1. Trigger confirmation modal
+  const handleCancelRequest = (appointmentId) => {
+    setConfirmConfig({
+      isOpen: true,
+      message: `Are you sure you want to cancel appointment ${appointmentId}?`,
+      targetId: appointmentId
     });
   };
+
+  // 2. Process callback result (true = confirmed, false = cancelled)
+  const handleConfirmResult = (confirmed) => {
+    const appointmentId = confirmConfig.targetId;
+  
+    // Close modal
+    setConfirmConfig({ isOpen: false, message: '', targetId: null });
+  
+    if(confirmed) {
+      setCancellingId(appointmentId);
+      setActionMessage(null);
+
+      callBackend('cancelAppointment', [appointmentId], (res) => {
+        setCancellingId(null);
+        if (res && res.success) {
+          setActionMessage({ type: 'success', text: res.message });
+          loadAppointments();
+        } else {
+          setActionMessage({ type: 'error', text: res?.error || 'Failed to cancel appointment.' });
+        }
+      });
+    }
+  };
+
+  
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
@@ -95,6 +119,13 @@ export default function AppointmentListView({ user, styles = {} }) {
           </button>
         </div>
 
+        { /* Custom Confirmation Dialog */ }
+        <ConfirmBox
+          isOpen={confirmConfig.isOpen}
+          message={confirmConfig.message}
+          onConfirm={handleConfirmResult}
+        />
+      
         {/* Action Alert Banner */}
         {actionMessage && (
           <div
@@ -252,7 +283,7 @@ export default function AppointmentListView({ user, styles = {} }) {
                     {/* Cancel Appointment Button */}
                     {cancellable && (
                       <button
-                        onClick={() => handleCancelAppointment(appt.id)}
+                        onClick={() => handleCancelRequest(appt.id)}
                         disabled={cancellingId === appt.id}
                         style={{
                           padding: '8px 16px',

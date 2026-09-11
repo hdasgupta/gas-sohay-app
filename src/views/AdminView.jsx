@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
+import ConfirmBox from '../components/ConfirmBox';
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -53,7 +54,12 @@ export default function AdminView({ styles = {} }) {
   const [submitting, setSubmitting] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    message: '',
+    targetDoc: null
+  });
+  
   useEffect(() => {
     fetchDoctors();
   }, []);
@@ -155,26 +161,38 @@ export default function AdminView({ styles = {} }) {
   };
 
   const handleDeleteClick = (doc) => {
-    if (!window.confirm(`Are you sure you want to remove Dr. ${doc.name} (${doc.id})?`)) {
-      return;
-    }
-
-    setDeletingId(doc.id);
-    setError('');
-    setSuccess('');
-
-    callBackend('deleteDoctor', [doc.id], (res) => {
-      setDeletingId(null);
-      if (res && res.success) {
-        setSuccess(res.message);
-        if (editingId === doc.id) {
-          resetForm();
-        }
-        fetchDoctors();
-      } else {
-        setError(res?.error || 'Failed to delete doctor.');
-      }
+    setConfirmConfig({
+      isOpen: true,
+      message: `Are you sure you want to remove Dr. ${doc.name} (${doc.id})?`,
+      targetDoc: doc
     });
+    
+  };
+  
+  const handleConfirmResult = (confirmed) => {
+    const doc = confirmConfig.targetDoc;
+    
+    // Close modal
+    setConfirmConfig({ isOpen: false, message: '', targetId: null });
+    
+    if (confirmed) {
+      setDeletingId(doc.id);
+      setError('');
+      setSuccess('');
+
+      callBackend('deleteDoctor', [doc.id], (res) => {
+        setDeletingId(null);
+        if (res && res.success) {
+          setSuccess(res.message);
+          if (editingId === doc.id) {
+            resetForm();
+          }
+          fetchDoctors();
+        } else {
+          setError(res?.error || 'Failed to delete doctor.');
+        }
+      });
+    }
   };
 
   const validatePasswordComplexity = (pwd) => {
@@ -253,7 +271,14 @@ export default function AdminView({ styles = {} }) {
             </button>
           )}
         </div>
-
+       
+       { /* Custom Confirmation Dialog */ }
+       <ConfirmBox
+          isOpen={confirmConfig.isOpen}
+          message={confirmConfig.message}
+          onConfirm={handleConfirmResult}
+        />
+        
         {error && <div style={{ color: '#dc2626', marginBottom: '14px', padding: '10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px' }}>{error}</div>}
         {success && <div style={{ color: '#16a34a', marginBottom: '14px', padding: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
+import MessageBox from '../components/MessageBox';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
   const defaultStyles = {
@@ -21,6 +22,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   const todayDate = new Date().toISOString().split('T')[0];
 
+  const [alert, setAlert] = useState(null);
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [masterPatients, setMasterPatients] = useState([]);
   const [isMedicinesLoading, setIsMedicinesLoading] = useState(true);
@@ -41,6 +43,10 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     isSos: false,
     takingTime: { breakfast: false, lunch: false, hightea: false, dinner: false },
     foodInstruction: 'After Food'
+  };
+  
+  const showAlert = (message, type = 'info', duration = 5000) => {
+    setAlert({ message, type, duration });
   };
 
   const [currentMed, setCurrentMed] = useState(initialMedState);
@@ -141,7 +147,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   const handleAddMedicine = () => {
     if (!currentMed.name.trim()) {
-      alert('Please enter a medicine name.');
+      showAlert('Please enter a medicine name.', 'warning');
       return;
     }
 
@@ -150,7 +156,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       .map((k) => k.charAt(0).toUpperCase() + k.slice(1));
 
     if (!currentMed.isSos && selectedTimes.length === 0) {
-      alert('Select at least one taking time or check SOS.');
+      showAlert('Select at least one taking time or check SOS.', 'warning');
       return;
     }
 
@@ -175,11 +181,11 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   const handleGenerateDoc = (overrideConfirmed = false) => {
     if (!patientInput.trim() || !patientAge) {
-      alert('Please fill in Patient Name and Age.');
+      showAlert('Please fill in Patient Name and Age.', 'warning');
       return;
     }
     if (prescriptionList.length === 0) {
-      alert('Please add at least one medicine.');
+      showAlert('Please add at least one medicine.', 'warning');
       return;
     }
 
@@ -214,7 +220,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         setDocLink(res.docUrl);
         resetForm();
       } else {
-        alert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'));
+        showAlert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'), 'error');
       }
     });
   };
@@ -223,6 +229,14 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     <div style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
+      {alert && (
+        <MessageBox
+          message={alert.message}
+          type={alert.type}
+          duration={alert.duration}
+          onClose={() => setAlert(null)}
+        />
+      )}
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
           <label style={defaultStyles.label}>Organization Name (Locked)</label>
