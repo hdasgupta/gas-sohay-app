@@ -128,6 +128,7 @@ export default function AppointmentListView({ user, styles = {} }) {
               const todayMatch = isToday(appt.date);
               const cancellable = canCancel(appt.date, appt.status);
               const isCancelled = appt.status.toLowerCase() === 'cancelled';
+              const isCompleted = appt.status.toLowerCase() === 'completed';
               const hasPrescription = appt.prescriptionLink;
               
               return (
@@ -226,7 +227,7 @@ export default function AppointmentListView({ user, styles = {} }) {
                       </a>
                     )}
                     {/* Join Google Meet Button */}
-                    {todayMatch && !isCancelled && appt.meetLink && (
+                    {todayMatch && !isCancelled && ! isCompleted && appt.meetLink && (
                       <a
                         href={appt.meetLink}
                         target="_blank"
