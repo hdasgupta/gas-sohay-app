@@ -28,7 +28,7 @@ function cancelPastAppointmentsWithoutPrescription() {
 
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    const rawDate = row[3];
+    const rawDate = JSON.parse(row[3]);
     const status = row[6] ? row[6].toString().trim() : '';
     const prescriptionUrl = row[7] ? row[7].toString().trim() : '';
 
