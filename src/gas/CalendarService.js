@@ -126,7 +126,7 @@ function createGoogleMeetEvent(patientEmail, doctorEmail, dateStr, timeSlotStr, 
  */
 function sendAppointmentConfirmationEmail(patientEmail, doctorName, dateStr, timeSlotStr, meetLink, appointmentId) {
   try {
-    const subject = `Appointment Confirmation - ID: ${appointmentId}`;
+    const subject = `Appointment Confirmation - ID: ${appointmentId} - Sohay App`;
     const bodyHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
         <h2 style="color: #2563eb; margin-top: 0;">Appointment Confirmed</h2>

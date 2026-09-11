@@ -57,7 +57,7 @@ function sendPasswordResetOtp(email) {
   try {
     MailApp.sendEmail({
       to: cleanEmail,
-      subject: "Password Reset Verification Code",
+      subject: "Password Reset Verification Code - Sohay App",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 8px;">
           <h2 style="color: #0f172a; margin-top: 0;">Password Reset Request</h2>

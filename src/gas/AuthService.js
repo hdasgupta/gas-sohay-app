@@ -84,7 +84,16 @@ function sendOtp(email) {
   MailApp.sendEmail({
     to: email,
     subject: 'Verification Code - Sohay App',
-    htmlBody: `<h3>Email Verification</h3><p>Your OTP code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`
+    htmlBody: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 8px;">
+          <h2 style="color: #0f172a; margin-top: 0;">Email Verification</h2>
+          <p style="color: #334155; font-size: 14px;">Your OTP code is: </p>
+          <div style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #2563eb; background: #eff6ff; padding: 12px; text-align: center; border-radius: 6px; margin: 20px 0;">
+            ${otp}
+          </div>
+          <p style="font-size: 12px; color: #64748b;">This code is valid for 10 minutes. If you did not initiate this request, please ignore this email.</p>
+        </div>
+      `
   });
 
   return { success: true, message: 'OTP sent to your email.' };
