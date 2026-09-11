@@ -256,12 +256,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         />
       )}
       
-      { /* Custom Confirmation Dialog */ }
-      <ConfirmBox
-        isOpen={confirmConfig.isOpen}
-        message={confirmConfig.message}
-        onConfirm={handleConfirmResult}
-      />
+      
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
           <label style={defaultStyles.label}>Organization Name (Locked)</label>
@@ -436,6 +431,12 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
       ))}
 
+      { /* Custom Confirmation Dialog */ }
+      <ConfirmBox
+        isOpen={confirmConfig.isOpen}
+        message={confirmConfig.message}
+        onConfirm={handleConfirmResult}
+      />
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={() => handleGenerateDoc(false)}
