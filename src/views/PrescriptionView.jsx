@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 import MessageBox from '../components/MessageBox';
+import ConfirmBox from '../components/ConfirmBox';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
   const defaultStyles = {
@@ -19,6 +20,13 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     doctorEmail: user?.email || 'dr.sharma@example.com',
     doctorSpeciality: user?.speciality || user?.designation || 'MBBS, MD (Psychiatry)'
   };
+  
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    message: '',
+    prescriptionRes: null
+  });
+
 
   const todayDate = new Date().toISOString().split('T')[0];
 
@@ -45,7 +53,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     foodInstruction: 'After Food'
   };
   
-  const showAlert = (message, type = 'info', duration = 5000) => {
+  const showAlert = (message, type = 'info', duration = 10000) => {
     setAlert({ message, type, duration });
   };
 
@@ -206,13 +214,12 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       setLoading(false);
 
       if (res && res.requiresConfirmation) {
-        const confirmOverride = window.confirm(
-          `A prescription is already attached to the appointment on ${res.appointmentDate} at ${res.appointmentTime}.\n\nDo you want to override it with this new prescription?`
-        );
-
-        if (confirmOverride) {
-          handleGenerateDoc(true);
-        }
+        setConfirmConfig({
+          isOpen: true,
+          message: `A prescription is already attached to the appointment on ${res.appointmentDate} at ${res.appointmentTime}.\n\nDo you want to override it with this new prescription?`,
+          prescriptionRes: res
+        });
+        
         return;
       }
 
@@ -223,6 +230,17 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         showAlert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'), 'error');
       }
     });
+  };
+  
+  const handleConfirmResult = (confirmed) => {
+    const res = confirmConfig.prescriptionRes;
+    
+    // Close modal
+    setConfirmConfig({ isOpen: false, message: '', prescriptionRes: null });
+    
+    if (confirmed) {
+      handleGenerateDoc(true);
+    }
   };
 
   return (

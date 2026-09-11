@@ -57,7 +57,7 @@ export default function AppointmentListView({ user, styles = {} }) {
     targetId: null
   });
 
-// 1. Trigger confirmation modal
+  // 1. Trigger confirmation modal
   const handleCancelRequest = (appointmentId) => {
     setConfirmConfig({
       isOpen: true,
