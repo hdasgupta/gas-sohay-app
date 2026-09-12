@@ -566,7 +566,7 @@ export default function AdminView({ styles = {} }) {
                   </div>
                 </div>
               </div>
-            )}
+            ))}
           </div>
         )} 
       </div>
