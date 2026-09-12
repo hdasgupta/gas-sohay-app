@@ -275,13 +275,38 @@ function bookAppointment(payload) {
   let sheet = getOrCreateSheet("Appointments");
 
   const data = sheet.getDataRange().getValues();
+  
+  const patient = getPatientByEmail(patientEmail);
+  const doctor = getDoctorByEmail(doctorEmail)
 
   // Guard against race-condition double bookings
   for (let i = 1; i < data.length; i++) {
+    const rowPatient = data[i][1] ? data[i][1].toString().trim().toLowerCase() : '';
     const rowDoctor = data[i][2] ? data[i][2].toString().trim().toLowerCase() : '';
     const rowDate = data[i][3] ? JSON.parse(data[i][3].toString().trim()) : '';
     const rowTime = data[i][4] ? JSON.parse(data[i][4].toString().trim()) : '';
     const rowStatus = data[i][6] ? data[i][6].toString().trim() : '';
+    
+    
+    // Check rules only against active 'SCHEDULED' appointments
+    if (rowStatus.toLowerCase()=== 'scheduled' && rowPatient === patientEmail) {
+  
+      // Rule 1: Duplicate active booking with the same doctor
+      if (rowDoctor === doctorEmail) {
+        return {
+          success: false,
+          error: `Booking rejected: Patient ${patient.name} already have a scheduled appointment with Dr. ${doctor.name}.`
+        };
+      }
+  
+      // Rule 2: Time slot collision across any doctor on the same date and time
+      if (rowDate === date && rowTime === time) {
+        return {
+          success: false,
+          error: `Booking rejected: Patient ${patient.name} already have an appointment scheduled for ${date} at ${time}.`
+        };
+      }
+    }
 
     if (
       rowDoctor === doctorEmail.trim().toLowerCase() &&
@@ -289,7 +314,7 @@ function bookAppointment(payload) {
       rowTime === time &&
       rowStatus.toLowerCase() !== 'cancelled'
     ) {
-      return { success: false, error: "This time slot was just booked. Please pick another slot." };
+      return { success: false, error: "This time slot is already booked. Please pick another slot." };
     }
   }
 
@@ -315,7 +340,7 @@ function bookAppointment(payload) {
   // Trigger confirmation email
   sendAppointmentConfirmationEmail(
     patientEmail.trim().toLowerCase(),
-    doctorName || doctorEmail,
+    doctorEmail,
     date,
     time,
     meetLink,
@@ -329,6 +354,8 @@ function bookAppointment(payload) {
       id: appointmentId,
       patientEmail,
       doctorEmail,
+      patient, 
+      doctor, 
       date,
       time,
       meetLink,
