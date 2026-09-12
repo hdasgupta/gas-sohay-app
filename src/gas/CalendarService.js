@@ -295,7 +295,7 @@ function bookAppointment(payload) {
       if (rowDoctor === doctorEmail) {
         return {
           success: false,
-          error: `Booking rejected: Patient ${patient.name} already have a scheduled appointment with Dr. ${doctor.name}.`
+          error: `Booking rejected: Patient ${patient.name} already have a scheduled appointment with Dr. ${doctor.name}. on ${date} at ${time}`
         };
       }
   
@@ -339,8 +339,7 @@ function bookAppointment(payload) {
 
   // Trigger confirmation email
   sendAppointmentConfirmationEmail(
-    patientEmail.trim().toLowerCase(),
-    doctorEmail,
+    patientEmail.trim().toLowerCase(), 
     date,
     time,
     meetLink,
