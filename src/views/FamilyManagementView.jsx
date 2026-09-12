@@ -57,6 +57,20 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
 
   if (loading) return <div style={cardStyle}>Loading family details...</div>;
 
+  const familyMemberProcessor = (member) => {
+    return (
+      <div key={idx} style={{ padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+                  <strong>{member.name}</strong> 
+                  <div style={{ fontSize: '12px', color: '#475569' }}>{member.email}</div>
+                </div>
+                {member.email === user.email && (
+                  <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}>You</span>
+                )}
+              </div>
+    )
+  }
+  
   return (
     <div style={cardStyle}>
       <h2>Family Account Settings</h2>
@@ -97,17 +111,12 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
 
           <h4>Family Members ({familyData.members?.length || 0})</h4>
           <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
-            {familyData.members?.map((member, idx) => (
-              <div key={idx} style={{ padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <strong>{member.name}</strong> 
-                  <div style={{ fontSize: '12px', color: '#475569' }}>{member.email}</div>
-                </div>
-                {member.email === user.email && (
-                  <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}>You</span>
-                )}
-              </div>
-            ))}
+            <PaginatedList
+              items={familyData.members}
+              itemProcessor={familyMemberProcessor}
+              defaultItemsPerPage={5}
+            />
+            
           </div>
 
           <hr style={{ margin: '16px 0', border: '0', borderTop: '1px solid #e2e8f0' }} />
