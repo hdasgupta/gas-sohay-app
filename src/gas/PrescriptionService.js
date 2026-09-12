@@ -34,7 +34,7 @@ function getMedicineMasterList() {
   const content = response.getContentText();
   
   // 3. Parse JSON string into a JavaScript object
-  const data = Utilities.parseCsv(content); // Returns [[col1, col2], [col1, col2]]
+  const data = Utilities.parseCsv(content).slice(1); // Returns [[col1, col2], [col1, col2]]
   
   // Access data fields directly
   Logger.log(data);
