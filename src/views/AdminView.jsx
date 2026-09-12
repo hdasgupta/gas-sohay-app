@@ -256,7 +256,7 @@ export default function AdminView({ styles = {} }) {
   };
 
   const doctorProcessor = (doctor) => {
-    alert(JSON.stringify(doctor));
+    
       return (
         <div
           key={doctor.id}
