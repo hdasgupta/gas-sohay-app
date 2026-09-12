@@ -2,9 +2,10 @@
  * Safely fetches the medicine catalog, initializing headers if the sheet is empty.
  */
 function getMedicineMasterList() {
-  initDatabase();
+  /* initDatabase();
   var sheet = getOrCreateSheet('Medicines');
   
+  // https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/indian_medicine_data.json
   // Initialize headers if sheet is totally blank
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(['Name', 'Power']);
@@ -22,8 +23,24 @@ function getMedicineMasterList() {
         
       });
     }
-  }
-  return medicines;
+  }*/
+
+  const url = 'https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/indian_medicine_data.json';
+  
+  // 1. Fetch the HTTP response
+  const response = UrlFetchApp.fetch(url);
+  
+  // 2. Get the response body as text
+  const jsonText = response.getContentText();
+  
+  // 3. Parse JSON string into a JavaScript object
+  const data = JSON.parse(jsonText);
+  
+  // Access data fields directly
+  Logger.log(data);
+
+
+  return data.map((medicine) => medicine.name);
 }
 
 /**
