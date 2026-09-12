@@ -25,22 +25,22 @@ function getMedicineMasterList() {
     }
   }*/
 
-  const url = 'https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/indian_medicine_data.json';
+  const url = 'https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/updated_indian_medicine_data.csv';
   
   // 1. Fetch the HTTP response
   const response = UrlFetchApp.fetch(url);
   
   // 2. Get the response body as text
-  const jsonText = response.getContentText();
+  const content = response.getContentText();
   
   // 3. Parse JSON string into a JavaScript object
-  const data = JSON.parse(jsonText);
+  const data = Utilities.parseCsv(content); // Returns [[col1, col2], [col1, col2]]
   
   // Access data fields directly
   Logger.log(data);
 
 
-  return data.map((medicine) => medicine.name);
+  return data.map((medicine) => medicine[1]);
 }
 
 /**
