@@ -92,20 +92,9 @@ export default function AppointmentListView({ user, styles = {} }) {
     }
   };
 
-  // Pagination Computations
-  const totalItems = appointments.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentAppointments = appointments.slice(indexOfFirstItem, indexOfLastItem);
-
-  const goToPage = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
+ 
   
-  const appointmentProcessor = (appt, index) => {
+  const appointmentProcessor = (appt) => {
     const todayMatch = isToday(appt.date);
     const cancellable = canCancel(appt.date, appt.status);
     const isCancelled = appt.status.toLowerCase() === 'cancelled';

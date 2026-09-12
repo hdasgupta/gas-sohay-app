@@ -38,7 +38,7 @@ export default function PaginatedList({
     <div style={{ width: '100%' }}>
       {/* Item Processing & Rendering Area */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {currentItems.map((item, index) => itemProcessor(item, indexOfFirstItem + index))}
+        {currentItems.map((item, index) => itemProcessor(item))}
       </div>
 
       {/* Pagination Controls */}
