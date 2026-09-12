@@ -7,6 +7,10 @@ export default function AppointmentListView({ user, styles = {} }) {
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
   
   const cardStyle = styles.card || {
     padding: '24px',
@@ -30,6 +34,7 @@ export default function AppointmentListView({ user, styles = {} }) {
     callBackend('getAppointmentsForUser', [user?.email || ''], (data) => {
       setLoading(false);
       setAppointments(data || []);
+      setCurrentPage(1); // Reset to first page on reload
     });
   };
 
@@ -89,7 +94,18 @@ export default function AppointmentListView({ user, styles = {} }) {
     }
   };
 
-  
+  // Pagination Computations
+  const totalItems = appointments.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentAppointments = appointments.slice(indexOfFirstItem, indexOfLastItem);
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
@@ -153,9 +169,10 @@ export default function AppointmentListView({ user, styles = {} }) {
             No appointments scheduled yet.
           </div>
         ) : (
+           <>
           /* Multiline Appointment Cards Container */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {appointments.map((appt) => {
+            {currentAppointments.map((appt) => {
               const todayMatch = isToday(appt.date);
               const cancellable = canCancel(appt.date, appt.status);
               const isCancelled = appt.status.toLowerCase() === 'cancelled';
@@ -304,19 +321,115 @@ export default function AppointmentListView({ user, styles = {} }) {
                     {!todayMatch && !cancellable && !isCancelled && !isCompleted && (
                       
 
-         <ConfirmBox
-          isOpen={confirmConfig.isOpen}
-          message={confirmConfig.message}
-          onConfirm={handleConfirmResult}
-        />)}
-        {!isCancelled && !cancellable && <span style={{ fontSize: '12px', color: '#94a3b8', italic: 'true' }}>Cancellation allowed at least 1 day prior
-                      </span>
-        }
+                  <ConfirmBox
+                    isOpen={confirmConfig.isOpen}
+                    message={confirmConfig.message}
+                    onConfirm={handleConfirmResult}
+                />)}
+       
                   </div>
                 </div>
               );
             })}
           </div>
+          { /* Pagination Controls */ }
+<div
+              style={{
+                display: 'flex',
+                justify: 'space-between',
+                alignItems: 'center',
+                marginTop: '24px',
+                paddingTop: '16px',
+                borderTop: '1px solid #e2e8f0',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}
+            >
+              {/* Status Info & Page Size Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span style={{ fontSize: '13px', color: '#64748b' }}>
+                  Showing <b>{totalItems > 0 ? indexOfFirstItem + 1 : 0}</b> to{' '}
+                  <b>{Math.min(indexOfLastItem, totalItems)}</b> of <b>{totalItems}</b> appointments
+                </span>
+
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#334155',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value={5}>5 per page</option>
+                  <option value={10}>10 per page</option>
+                  <option value={20}>20 per page</option>
+                </select>
+              </div>
+
+              {/* Page Number Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: currentPage === 1 ? '#f1f5f9' : '#ffffff',
+                    color: currentPage === 1 ? '#94a3b8' : '#334155',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500'
+                  }}
+                >
+                  Previous
+                </button>
+
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: page === currentPage ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                      background: page === currentPage ? '#2563eb' : '#ffffff',
+                      color: page === currentPage ? '#ffffff' : '#334155',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: page === currentPage ? 'bold' : 'normal'
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: currentPage === totalPages ? '#f1f5f9' : '#ffffff',
+                    color: currentPage === totalPages ? '#94a3b8' : '#334155',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500'
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
