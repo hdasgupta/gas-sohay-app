@@ -8,9 +8,6 @@ export default function AppointmentListView({ user, styles = {} }) {
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   
   const cardStyle = styles.card || {
@@ -253,15 +250,6 @@ export default function AppointmentListView({ user, styles = {} }) {
               {cancellingId === appt.id ? 'Cancelling...' : 'Cancel Appointment'}
             </button>
           )}
-    
-          {!todayMatch && !cancellable && !isCancelled && !isCompleted && (
-                          
-    
-            <ConfirmBox
-              isOpen={confirmConfig.isOpen}
-              message={confirmConfig.message}
-              onConfirm={handleConfirmResult}
-            />)}
            
           </div>
         </div>
