@@ -151,7 +151,7 @@ export default function AdminView({ styles = {} }) {
     });
 
     try {
-      const parsed = JSON.parse(doc.availabilityjson);
+      const parsed = doc.availability;
       setAvailabilityMap(parsed && typeof parsed === 'object' ? parsed : {});
     } catch (e) {
       setAvailabilityMap({});
