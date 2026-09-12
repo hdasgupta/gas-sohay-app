@@ -501,7 +501,7 @@ export default function AdminView({ styles = {} }) {
                   {/* Line 1 Right: Modify and Remove Action Buttons */}
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      onClick={() => handleModify(doctor)}
+                      onClick={() => handleEditClick(doctor)}
                       style={{
                         padding: '6px 14px',
                         background: '#eff6ff',
@@ -516,7 +516,7 @@ export default function AdminView({ styles = {} }) {
                       ✏️ Modify
                     </button>
                     <button
-                      onClick={() => handleRemove(doctor.id, doctor.name)}
+                      onClick={() => handleDeleteClick(doctor)}
                       style={{
                         padding: '6px 14px',
                         background: '#fef2f2',
@@ -540,8 +540,8 @@ export default function AdminView({ styles = {} }) {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
-                    {weekdays.map((day) => {
-                      const timeSlot = doctor.schedule && doctor.schedule[day];
+                    {WEEKDAYS.map((day) => {
+                      const timeSlot = doctor.availabilityjson && JSON.parse(doctor.availabilityjson)[day];
                       const isAvailable = timeSlot && timeSlot.trim() !== '';
 
                       return (
