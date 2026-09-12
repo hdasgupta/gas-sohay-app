@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 import ConfirmBox from '../components/ConfirmBox';
-import PaginatedList from '../../components/PaginatedList';
+import PaginatedList from '../components/PaginatedList';
 
 export default function AppointmentListView({ user, styles = {} }) {
   const [appointments, setAppointments] = useState([]);
