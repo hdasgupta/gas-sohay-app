@@ -254,6 +254,7 @@ export default function AdminView({ styles = {} }) {
   };
 
   const doctorProcessor = (doctor) => {
+    return (
     <div
       key={doctor.id}
       style={{
@@ -357,6 +358,7 @@ export default function AdminView({ styles = {} }) {
                   </div>
                 </div>
               </div>
+              );
   }
   return (
     <div style={{ maxWidth: '980px', margin: '0 auto', padding: '16px' }}>
