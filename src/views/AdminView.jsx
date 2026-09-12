@@ -253,6 +253,111 @@ export default function AdminView({ styles = {} }) {
     });
   };
 
+  const doctorProcessor = (doctor) => {
+    <div
+      key={doctor.id}
+      style={{
+        border: '1px solid #e2e8f0',
+        borderRadius: '10px',
+        padding: '20px',
+        background: '#ffffff',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+      }}
+    >
+      {/* Line 1: Header Info (Name, Speciality Badge, Email) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <h3 style={{ margin: 0, color: '#0f172a', fontSize: '18px' }}>
+            👨‍⚕️ {doctor.name}
+          </h3>
+          <span
+            style={{
+              background: '#e0f2fe',
+              color: '#0369a1',
+              padding: '4px 10px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              border: '1px solid #bae6fd'
+            }}
+          >
+            {doctor.speciality}
+          </span>
+          <span style={{ fontSize: '13px', color: '#64748b' }}>
+            ✉️ {doctor.email}
+          </span>
+        </div>
+
+        {/* Line 1 Right: Modify and Remove Action Buttons */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => handleEditClick(doctor)}
+            style={{
+              padding: '6px 14px',
+              background: '#eff6ff',
+              color: '#2563eb',
+              border: '1px solid #bfdbfe',
+              borderRadius: '6px',
+              fontWeight: 'bold',
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+          >
+            ✏️ Modify
+          </button>
+          <button
+            onClick={() => handleDeleteClick(doctor)}
+            style={{
+              padding: '6px 14px',
+              background: '#fef2f2',
+              color: '#dc2626',
+              border: '1px solid #fecaca',
+              borderRadius: '6px',
+              fontWeight: 'bold',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🗑️ Remove
+                    </button>
+                  </div>
+                </div>
+
+                {/* Line 2: Weekday Available Time Slots */}
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                    🗓️ Weekday Available Slots
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+                    {WEEKDAYS.map((day) => {
+                      const timeSlot = doctor.availability[day];
+                      
+                      const isAvailable = timeSlot && timeSlot.length > 0;
+
+                      return (
+                        <div
+                          key={day}
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: '6px',
+                            background: isAvailable ? '#f0fdf4' : '#f8fafc',
+                            border: isAvailable ? '1px solid #bbf7d0' : '1px solid #e2e8f0'
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', fontWeight: 'bold', color: isAvailable ? '#166534' : '#94a3b8' }}>
+                            {day}
+                          </div>
+                          <div style={{ fontSize: '12px', marginTop: '2px', color: isAvailable ? '#15803d' : '#cbd5e1', fontWeight: isAvailable ? 'bold' : 'normal' }}>
+                            {isAvailable ? timeSlot.join(", "): 'Unavailable'}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+  }
   return (
     <div style={{ maxWidth: '980px', margin: '0 auto', padding: '16px' }}>
       {/* Form Card */}
@@ -463,111 +568,11 @@ export default function AdminView({ styles = {} }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {doctorsList.map((doctor) => (
-              <div
-                key={doctor.id}
-                style={{
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '20px',
-                  background: '#ffffff',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                }}
-              >
-                {/* Line 1: Header Info (Name, Speciality Badge, Email) */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <h3 style={{ margin: 0, color: '#0f172a', fontSize: '18px' }}>
-                      👨‍⚕️ {doctor.name}
-                    </h3>
-                    <span
-                      style={{
-                        background: '#e0f2fe',
-                        color: '#0369a1',
-                        padding: '4px 10px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        border: '1px solid #bae6fd'
-                      }}
-                    >
-                      {doctor.speciality}
-                    </span>
-                    <span style={{ fontSize: '13px', color: '#64748b' }}>
-                      ✉️ {doctor.email}
-                    </span>
-                  </div>
-
-                  {/* Line 1 Right: Modify and Remove Action Buttons */}
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => handleEditClick(doctor)}
-                      style={{
-                        padding: '6px 14px',
-                        background: '#eff6ff',
-                        color: '#2563eb',
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '6px',
-                        fontWeight: 'bold',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      ✏️ Modify
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(doctor)}
-                      style={{
-                        padding: '6px 14px',
-                        background: '#fef2f2',
-                        color: '#dc2626',
-                        border: '1px solid #fecaca',
-                        borderRadius: '6px',
-                        fontWeight: 'bold',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      🗑️ Remove
-                    </button>
-                  </div>
-                </div>
-
-                {/* Line 2: Weekday Available Time Slots */}
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
-                    🗓️ Weekday Available Slots
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
-                    {WEEKDAYS.map((day) => {
-                      const timeSlot = doctor.availability[day];
-                      
-                      const isAvailable = timeSlot && timeSlot.length > 0;
-
-                      return (
-                        <div
-                          key={day}
-                          style={{
-                            padding: '8px 10px',
-                            borderRadius: '6px',
-                            background: isAvailable ? '#f0fdf4' : '#f8fafc',
-                            border: isAvailable ? '1px solid #bbf7d0' : '1px solid #e2e8f0'
-                          }}
-                        >
-                          <div style={{ fontSize: '11px', fontWeight: 'bold', color: isAvailable ? '#166534' : '#94a3b8' }}>
-                            {day}
-                          </div>
-                          <div style={{ fontSize: '12px', marginTop: '2px', color: isAvailable ? '#15803d' : '#cbd5e1', fontWeight: isAvailable ? 'bold' : 'normal' }}>
-                            {isAvailable ? timeSlot.join(", "): 'Unavailable'}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ))}
+            <PaginatedList
+            items={doctorsList}
+            itemProcessor={doctorProcessor}
+            defaultItemsPerPage={5}
+          />
           </div>
         )} 
       </div>
