@@ -91,8 +91,6 @@ export default function AppointmentListView({ user, styles = {} }) {
       });
     }
   };
-
- 
   
   const appointmentProcessor = (appt) => {
     const todayMatch = isToday(appt.date);

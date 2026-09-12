@@ -254,6 +254,7 @@ export default function AdminView({ styles = {} }) {
   };
 
   const doctorProcessor = (doctor) => {
+    alert(JSON.stringify(doctor));
       return (
         <div
           key={doctor.id}
@@ -360,6 +361,7 @@ export default function AdminView({ styles = {} }) {
               </div>
     );
   };
+  
   return (
     <div style={{ maxWidth: '980px', margin: '0 auto', padding: '16px' }}>
       {/* Form Card */}
@@ -571,10 +573,10 @@ export default function AdminView({ styles = {} }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <PaginatedList
-            items={doctorsList}
-            itemProcessor={doctorProcessor}
-            defaultItemsPerPage={5}
-          />
+              items={doctorsList}
+              itemProcessor={doctorProcessor}
+              defaultItemsPerPage={5}
+            />
           </div>
         )} 
       </div>
