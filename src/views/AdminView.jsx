@@ -541,7 +541,8 @@ export default function AdminView({ styles = {} }) {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
                     {WEEKDAYS.map((day) => {
-                      const timeSlot = doctor.availability && doctor.availability[day];
+                      const timeSlot = doctor.availability[day];
+                      alert(timeSlot);
                       const isAvailable = timeSlot && timeSlot.trim() !== '';
 
                       return (
