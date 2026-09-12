@@ -559,7 +559,7 @@ export default function AdminView({ styles = {} }) {
                             {day}
                           </div>
                           <div style={{ fontSize: '12px', marginTop: '2px', color: isAvailable ? '#15803d' : '#cbd5e1', fontWeight: isAvailable ? 'bold' : 'normal' }}>
-                            {isAvailable ? timeSlot join(", "): 'Unavailable'}
+                            {isAvailable ? timeSlot.join(", "): 'Unavailable'}
                           </div>
                         </div>
                       );
