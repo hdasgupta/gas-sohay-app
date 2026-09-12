@@ -543,7 +543,7 @@ export default function AdminView({ styles = {} }) {
                     {WEEKDAYS.map((day) => {
                       const timeSlot = doctor.availability[day];
                       alert(timeSlot);
-                      const isAvailable = timeSlot && timeSlot.trim() !== '';
+                      const isAvailable = timeSlot && timeSlot.length > 0;
 
                       return (
                         <div
@@ -559,7 +559,7 @@ export default function AdminView({ styles = {} }) {
                             {day}
                           </div>
                           <div style={{ fontSize: '12px', marginTop: '2px', color: isAvailable ? '#15803d' : '#cbd5e1', fontWeight: isAvailable ? 'bold' : 'normal' }}>
-                            {isAvailable ? timeSlot : 'Unavailable'}
+                            {isAvailable ? timeSlot join(", "): 'Unavailable'}
                           </div>
                         </div>
                       );
