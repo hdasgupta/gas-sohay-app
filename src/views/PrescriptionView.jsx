@@ -330,7 +330,9 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             minCharsToSuggest={3}
             value={searchTerm}
             onSelect={(medicineName, _) => {
-               handleSelectSearchedMedicine(medicineName)
+            handleSelectSearchedMedicine(medicineName);
+              setSearchTerm('')
+               
             }}
             style={defaultStyles.input}
           />
