@@ -82,8 +82,13 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     }
 
     try {
-      callBackend('getTodayPatientsForDoctor', [user.email], (data) => {
-        setMasterPatients(Array.isArray(data) ? data : []);
+      callBackend('getTodayPatientsForDoctor', [user.email], (patients) => {
+        setMasterPatients(Array.isArray(patients) ? patients.map((patient) => {
+            return {
+              label: patient.name,
+              value: patient.email
+            }
+          }) : []);
         patientDone = true;
         checkLoadingFinished();
       });
@@ -324,25 +329,16 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         </div>
       ) : (
         <div style={{ marginBottom: '12px', position: 'relative' }}>
-          <input
-            style={defaultStyles.input}
+          <SuggestionBox
+            suggestions={ masterPatients}
             placeholder="Search medicine catalog (type at least 4 letters)..."
+            minCharsToSuggest= 4
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(medicineName, _) => {
+               handleSelectSearchedMedicine(medicineName)
+            }}
+            style={defaultStyles.input}
           />
-
-          {showMedicineSuggestions && filteredMedicines.length > 0 && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #cbd5e1', borderRadius: '4px', zIndex: 10, maxHeight: '150px', overflowY: 'auto' }}>
-              {filteredMedicines.map((med, idx) => {
-                const medName = typeof med === 'string' ? med : med?.name || '';
-                return (
-                  <div key={idx} style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }} onClick={() => handleSelectSearchedMedicine(med)}>
-                    <strong>{medName}</strong>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
 

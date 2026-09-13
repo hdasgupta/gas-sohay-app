@@ -3,22 +3,28 @@ import './SuggestionBox.css';
 
 /**
  * Universal SuggestionBox Component
- * @param {Array<string | {label: string, value: any}>} suggestions - List of suggestion items
- * @param {string} value - Current input display text
- * @param {function} onChange - Callback triggered on text typing or selection: onChange(value, selectedItem)
- * @param {string} placeholder - Input placeholder text
+ * 
+ * @param {Array<string | {label: string, value: any}>} suggestions - List of items to filter
+ * @param {string} value - Current input text
+ * @param {function} onChange - Callback triggered on typing or selection: onChange(text, selectedItem)
+ * @param {number} minCharsToSuggest - Minimum characters required before dropdown appears (default: 1)
+ * @param {object} inputStyle - Custom inline styles for the input box
+ * @param {string} inputClassName - Custom CSS class for the input box
+ * @param {string} placeholder - Input placeholder string
  */
 export default function SuggestionBox({
   suggestions = [],
   value = '',
   onChange,
-  placeholder = 'Type to search...', 
-  style={}, 
+  minCharsToSuggest = 0,
+  style = {},
+  className = '',
+  placeholder = 'Type to search...'
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // 1. Normalize suggestions to uniform object format { label, value, raw }
+  // 1. Normalize input array (handles both string[] and object[])
   const normalizedSuggestions = useMemo(() => {
     return suggestions.map((item) => {
       if (typeof item === 'object' && item !== null) {
@@ -36,13 +42,17 @@ export default function SuggestionBox({
     });
   }, [suggestions]);
 
-  // 2. Filter suggestions matching input text
+  // 2. Filter suggestions based on value and minimum character threshold
   const filteredSuggestions = useMemo(() => {
-    const search = (value || '').toLowerCase();
+    const trimmedVal = (value || '').trim();
+    if (trimmedVal.length < minCharsToSuggest) {
+      return [];
+    }
+    const search = trimmedVal.toLowerCase();
     return normalizedSuggestions.filter((item) =>
       item.label.toLowerCase().includes(search)
     );
-  }, [normalizedSuggestions, value]);
+  }, [normalizedSuggestions, value, minCharsToSuggest]);
 
   // 3. Close dropdown when clicking outside
   useEffect(() => {
@@ -55,23 +65,24 @@ export default function SuggestionBox({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle typing inside input
   const handleInputChange = (e) => {
     const text = e.target.value;
     if (onChange) onChange(text, null);
     setIsOpen(true);
   };
 
-  // Handle item click selection
   const handleSelect = (item) => {
     if (onChange) onChange(item.label, item.raw);
     setIsOpen(false);
   };
 
+  const shouldShowDropdown = isOpen && filteredSuggestions.length > 0;
+
   return (
     <div className="suggestion-box-container" ref={containerRef}>
       <input
         type="text"
+        className={`suggestion-input ${className}`}
         style={style}
         value={value}
         onChange={handleInputChange}
@@ -79,7 +90,7 @@ export default function SuggestionBox({
         placeholder={placeholder}
       />
 
-      {isOpen && filteredSuggestions.length > 0 && (
+      {shouldShowDropdown && (
         <ul className="suggestion-dropdown">
           {filteredSuggestions.map((item, index) => (
             <li
