@@ -13,7 +13,7 @@ export default function SuggestionBox({
   value = '',
   onChange,
   placeholder = 'Type to search...', 
-  style={{}}, 
+  style={}, 
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
