@@ -58,7 +58,7 @@ export default function MessageBox({
 
   return (
     <div
-      className={`message-box ${type}`}, 
+      className={`message-box ${type}`}
       style={style}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
