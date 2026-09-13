@@ -93,11 +93,11 @@ export default function SuggestionBox({
     
     const nextText = clearOnSelect ? '' : item.label;
 
-    alert(nextText);
+    a
     if (!isControlled) {
       setInternalValue(nextText);
     }
-    alert(onChange)
+    
     setIsOpen(false);
 
     if (onChange) {
