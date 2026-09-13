@@ -69,11 +69,12 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     };
 
     try {
-      callBackend('getMedicineMasterList', [], (data) => {
+      loadCSVInParallel(url)
+      /*callBackend('getMedicineMasterList', [], (data) => {
         setMasterMedicines(Array.isArray(data) ? data : []);
         medDone = true;
         checkLoadingFinished();
-      });
+      });*/
     } catch (err) {
       medDone = true;
       checkLoadingFinished();

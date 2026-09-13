@@ -1,49 +1,4 @@
 /**
- * Safely fetches the medicine catalog, initializing headers if the sheet is empty.
- */
-function getMedicineMasterList() {
-  /* initDatabase();
-  var sheet = getOrCreateSheet('Medicines');
-  
-  // https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/indian_medicine_data.json
-  // Initialize headers if sheet is totally blank
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Name', 'Power']);
-    return [];
-  }
-
-  var data = sheet.getDataRange().getValues();
-  var medicines = [];
-
-  // Skip header row
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][0].toString().trim() !== '') {
-      medicines.push({
-        name: data[i][0].toString().trim(),
-        
-      });
-    }
-  }*/
-
-  const url = 'https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/updated_indian_medicine_data.csv';
-  
-  // 1. Fetch the HTTP response
-  const response = UrlFetchApp.fetch(url);
-  
-  // 2. Get the response body as text
-  const content = response.getContentText();
-  
-  // 3. Parse JSON string into a JavaScript object
-  const data = Utilities.parseCsv(content).slice(1); // Returns [[col1, col2], [col1, col2]]
-  
-  // Access data fields directly
-  Logger.log(data);
-
-
-  return data.map((medicine) => medicine[1]);
-}
-
-/**
  * Saves a new medicine to the master 'Medicines' sheet if it doesn't already exist.
  */
 function saveMedicineToMaster(name, power) {
@@ -256,7 +211,7 @@ var pdfFile = folder.createFile(pdfBlob);
 Logger.log('PDF created successfully: ' + pdfFile.getName());
 pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-const pdfDownloadUrl = "https://drive.google.com/uc?export=download&id=" + pdfFile.getId();
+const pdfDownloadUrl = "https://lh3.googleusercontent.com/d/" + pdfFile.getId();
 
 if (appointmentInfo && appointmentInfo.rowIndex) {
   updateAppointmentPrescriptionUrl(appointmentInfo.rowIndex, pdfDownloadUrl);
