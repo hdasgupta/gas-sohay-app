@@ -152,7 +152,7 @@ export default function BookingView({ user, styles = {} }) {
   const selectedDoctorObj = availableDoctors.find((d) => d.email === selectedDoctorEmail);
 
   return (
-    <div style={{ maxWidth: '750px', margin: '0 auto', padding: '16px' }}>
+    <div style={{ maxWidth: '100%', margin: '0 auto', padding: '16px' }}>
       <div style={cardStyle}>
         <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#1e293b' }}>Book Doctor Appointment</h2>
 
