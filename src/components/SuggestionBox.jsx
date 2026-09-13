@@ -4,30 +4,36 @@ import './SuggestionBox.css';
 /**
  * Universal SuggestionBox Component
  * 
- * @param {Array<string | {label: string, value: any}>} suggestions - List of options
- * @param {function} [onSelect] - Optional callback triggered on item click: onSelect(selectedRawItem)
- * @param {function} [onChange] - Optional callback triggered on input text change: onChange(text)
- * @param {number} [minCharsToSuggest=1] - Minimum characters required to start suggesting
- * @param {boolean} [clearOnSelect=false] - If true, clears the input field after selection
- * @param {object} [style={}] - Custom inline CSS styles for the input box
- * @param {string} [className=''] - Custom CSS class name for the input box
- * @param {string} [placeholder='Type to search...'] - Input placeholder string
+ * @param {Array<string | {label: string, value: any}>} suggestions - List of suggestions
+ * @param {function} [onSelect] - Callback when an item is chosen: onSelect(selectedRawItem)
+ * @param {function} [onChange] - Optional callback triggered on text edit: onChange(text)
+ * @param {string} [value] - Optional controlled value (allows clearing from parent button)
+ * @param {number} [minCharsToSuggest=1] - Minimum character threshold before showing suggestions
+ * @param {boolean} [clearOnSelect=false] - If true, resets text field immediately after selection
+ * @param {object} [style={}] - Custom inline CSS styles for input element
+ * @param {string} [className=''] - Custom CSS class for input element
+ * @param {string} [placeholder='Type to search...'] - Placeholder text
  */
 export default function SuggestionBox({
   suggestions = [],
   onSelect,
   onChange,
-  minCharsToSuggest = 1,
+  value: controlledValue,
+  minCharsToSuggest = 0,
   clearOnSelect = false,
   style = {},
   className = '',
   placeholder = 'Type to search...'
 }) {
-  const [inputValue, setInputValue] = useState('');
+  const isControlled = controlledValue !== undefined;
+  const [internalValue, setInternalValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // 1. Normalize items into a standard { label, value, raw } structure
+  // Active value switches between controlled prop and internal state
+  const inputValue = isControlled ? controlledValue : internalValue;
+
+  // Normalize suggestions into standard { label, value, raw } structure
   const normalizedSuggestions = useMemo(() => {
     if (!Array.isArray(suggestions)) return [];
 
@@ -48,9 +54,9 @@ export default function SuggestionBox({
     });
   }, [suggestions]);
 
-  // 2. Filter items based on minCharsToSuggest threshold
+  // Filter items based on minCharsToSuggest threshold
   const filteredSuggestions = useMemo(() => {
-    const trimmed = inputValue.trim();
+    const trimmed = (inputValue || '').trim();
     if (trimmed.length < minCharsToSuggest) {
       return [];
     }
@@ -60,7 +66,7 @@ export default function SuggestionBox({
     );
   }, [normalizedSuggestions, inputValue, minCharsToSuggest]);
 
-  // 3. Auto-close dropdown on outside click
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -73,20 +79,26 @@ export default function SuggestionBox({
 
   const handleInputChange = (e) => {
     const text = e.target.value;
-    setInputValue(text);
+    if (!isControlled) {
+      setInternalValue(text);
+    }
     setIsOpen(true);
+
     if (onChange) {
       onChange(text);
     }
   };
 
   const handleSelect = (item) => {
-    const newText = clearOnSelect ? '' : item.label;
-    setInputValue(newText);
+    const nextText = clearOnSelect ? '' : item.label;
+
+    if (!isControlled) {
+      setInternalValue(nextText);
+    }
     setIsOpen(false);
 
     if (onChange) {
-      onChange(newText);
+      onChange(nextText);
     }
     if (onSelect) {
       onSelect(item.raw);
@@ -114,7 +126,7 @@ export default function SuggestionBox({
               key={index}
               className="suggestion-item"
               onMouseDown={(e) => {
-                e.preventDefault(); // Prevents input blur before selection triggers
+                e.preventDefault(); // Prevents input blur before click event fires
                 handleSelect(item);
               }}
             >

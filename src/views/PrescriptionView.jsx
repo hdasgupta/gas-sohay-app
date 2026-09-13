@@ -40,7 +40,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const [patientInput, setPatientInput] = useState('');
   const [patientEmail, setPatientEmail] = useState(''); // Stored silently in background
   const [patientAge, setPatientAge] = useState('');
-  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+  
 
   const [searchTerm, setSearchTerm] = useState('');
   const [docLink, setDocLink] = useState('');
@@ -102,7 +102,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setPatientInput('');
     setPatientEmail('');
     setPatientAge('');
-    setShowPatientDropdown(false);
     setSearchTerm('');
     setPrescriptionList([]);
     setCurrentMed(initialMedState);
@@ -232,7 +231,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       if (res && res.success) {
         setDocLink(res.docUrl);
-        resetForm();
+        resetForm();@
       } else {
         showAlert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'), 'error');
       }
