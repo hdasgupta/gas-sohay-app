@@ -332,7 +332,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           <SuggestionBox
             suggestions={ masterPatients}
             placeholder="Search medicine catalog (type at least 4 letters)..."
-            minCharsToSuggest= 4
+            minCharsToSuggest={4}
             value={searchTerm}
             onChange={(medicineName, _) => {
                handleSelectSearchedMedicine(medicineName)
