@@ -101,7 +101,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const resetForm = () => {
     setPatientInput('');
     setPatientEmail('');
-    setPatientAge('');@
+    setPatientAge('');
     setSearchTerm('');
     setPrescriptionList([]);
     setCurrentMed(initialMedState);
