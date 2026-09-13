@@ -276,10 +276,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               suggestions={ masterPatients}
               placeholder="Type or select patient name..."
               
-              onChange={(text) =>{
-                alert(text);
-                setPatientInput(text);
-              } }
+              
               onSelect={(patient) => {
                 alert(JSON.stringify(patient));
                 handleSelectPatient(patient)
