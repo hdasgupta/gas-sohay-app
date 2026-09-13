@@ -1,4 +1,4 @@
-/* Container positioning */
+/* Container */
 .suggestion-box-container {
   position: relative;
   width: 100%;
@@ -21,7 +21,7 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Pop-down dropdown container */
+/* Dropdown Container */
 .suggestion-dropdown {
   position: absolute;
   top: calc(100% + 6px);
@@ -38,7 +38,7 @@
   margin: 0;
   padding: 6px 0;
   
-  /* Smooth Pop-Down Animation */
+  /* Pop-Down Scale & Fade Animation */
   transform-origin: top center;
   animation: popDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -55,7 +55,7 @@
   }
 }
 
-/* Item Styling */
+/* List Item Styling */
 .suggestion-item {
   padding: 10px 16px;
   font-size: 14px;

@@ -293,7 +293,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               })}
               placeholder="Type or select patient name..."
               value={patientInput}
-              onChange={(patientName, patient) => {
+              onSelect={(patientName, patient) => {
                 setPatientInput(patientName);
                 setPatientEmail(patient?.email || ''); 
               }}
@@ -334,7 +334,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             placeholder="Search medicine catalog (type at least 4 letters)..."
             minCharsToSuggest={4}
             value={searchTerm}
-            onChange={(medicineName, _) => {
+            onSelect={(medicineName, _) => {
                handleSelectSearchedMedicine(medicineName)
             }}
             style={defaultStyles.input}

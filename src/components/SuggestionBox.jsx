@@ -4,27 +4,26 @@ import './SuggestionBox.css';
 /**
  * Universal SuggestionBox Component
  * 
- * @param {Array<string | {label: string, value: any}>} suggestions - List of items to filter
- * @param {string} value - Current input text
- * @param {function} onChange - Callback triggered on typing or selection: onChange(text, selectedItem)
- * @param {number} minCharsToSuggest - Minimum characters required before dropdown appears (default: 1)
- * @param {object} inputStyle - Custom inline styles for the input box
- * @param {string} inputClassName - Custom CSS class for the input box
- * @param {string} placeholder - Input placeholder string
+ * @param {Array<string | {label: string, value: any}>} suggestions - Suggestion array
+ * @param {function} onSelect - Callback triggered when an option is clicked: onSelect(selectedItem)
+ * @param {number} minCharsToSuggest - Minimum characters required before showing suggestions (default: 1)
+ * @param {object} inputStyle - Custom inline CSS styles for the input box
+ * @param {string} inputClassName - Additional CSS class name for the input box
+ * @param {string} placeholder - Input placeholder text
  */
 export default function SuggestionBox({
   suggestions = [],
-  value = '',
-  onChange,
+  onSelect,
   minCharsToSuggest = 0,
-  style = {},
-  className = '',
+  inputStyle = {},
+  inputClassName = '',
   placeholder = 'Type to search...'
 }) {
+  const [inputValue, setInputValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // 1. Normalize input array (handles both string[] and object[])
+  // 1. Normalize items into a uniform structure: { label, value, raw }
   const normalizedSuggestions = useMemo(() => {
     return suggestions.map((item) => {
       if (typeof item === 'object' && item !== null) {
@@ -42,19 +41,19 @@ export default function SuggestionBox({
     });
   }, [suggestions]);
 
-  // 2. Filter suggestions based on value and minimum character threshold
+  // 2. Filter suggestions using minCharsToSuggest threshold
   const filteredSuggestions = useMemo(() => {
-    const trimmedVal = (value || '').trim();
-    if (trimmedVal.length < minCharsToSuggest) {
+    const trimmed = inputValue.trim();
+    if (trimmed.length < minCharsToSuggest) {
       return [];
     }
-    const search = trimmedVal.toLowerCase();
+    const search = trimmed.toLowerCase();
     return normalizedSuggestions.filter((item) =>
       item.label.toLowerCase().includes(search)
     );
-  }, [normalizedSuggestions, value, minCharsToSuggest]);
+  }, [normalizedSuggestions, inputValue, minCharsToSuggest]);
 
-  // 3. Close dropdown when clicking outside
+  // 3. Auto-close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -66,31 +65,33 @@ export default function SuggestionBox({
   }, []);
 
   const handleInputChange = (e) => {
-    const text = e.target.value;
-    if (onChange) onChange(text, null);
+    setInputValue(e.target.value);
     setIsOpen(true);
   };
 
   const handleSelect = (item) => {
-    if (onChange) onChange(item.label, item.raw);
+    setInputValue(item.label);
     setIsOpen(false);
+    if (onSelect) {
+      onSelect(item.raw); // Passes selected object or string to parent
+    }
   };
 
-  const shouldShowDropdown = isOpen && filteredSuggestions.length > 0;
+  const showDropdown = isOpen && filteredSuggestions.length > 0;
 
   return (
     <div className="suggestion-box-container" ref={containerRef}>
       <input
         type="text"
-        className={`suggestion-input ${className}`}
-        style={style}
-        value={value}
+        className={`suggestion-input ${inputClassName}`}
+        style={inputStyle}
+        value={inputValue}
         onChange={handleInputChange}
         onFocus={() => setIsOpen(true)}
         placeholder={placeholder}
       />
 
-      {shouldShowDropdown && (
+      {showDropdown && (
         <ul className="suggestion-dropdown">
           {filteredSuggestions.map((item, index) => (
             <li
