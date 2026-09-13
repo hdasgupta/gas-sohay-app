@@ -280,8 +280,10 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             <label style={defaultStyles.label}>Patient Name</label>
             <SuggestionBox
               suggestions={ masterPatients.map((patient)=>{
-                  label: patient.name, 
-                  value: patient.email
+                  return {
+                    label: patient.name, 
+                    value: patient.email
+                  }
               })}
               placeholder="Type or select patient name..."
               value={patientInput}
