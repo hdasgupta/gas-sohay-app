@@ -13,7 +13,8 @@ export default function MessageBox({
   message,
   type = 'info',
   duration = 3000,
-  onClose
+  onClose, 
+  style
 }) {
   const [remainingTime, setRemainingTime] = useState(duration);
   const [isPaused, setIsPaused] = useState(false);
@@ -57,7 +58,8 @@ export default function MessageBox({
 
   return (
     <div
-      className={`message-box ${type}`}
+      className={`message-box ${type}`}, 
+      style={style}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

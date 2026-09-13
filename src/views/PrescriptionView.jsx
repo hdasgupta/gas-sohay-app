@@ -258,7 +258,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           message={alert.message}
           type={alert.type}
           duration={alert.duration}
-          onClose={() => setAlert(null)}
+          onClose={() => setAlert(null)}, 
+          style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}
         />
       )}
       
