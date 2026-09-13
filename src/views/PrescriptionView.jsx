@@ -231,7 +231,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       if (res && res.success) {
         setDocLink(res.docUrl);
-        resetForm();@
+        resetForm();
       } else {
         showAlert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'), 'error');
       }
