@@ -275,7 +275,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             <SuggestionBox
               suggestions={ masterPatients}
               placeholder="Type or select patient name..."
-              value={patientInput}
+              
               onChange={(text) =>{
                 alert(text);
                 setPatientInput(text);
@@ -324,8 +324,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             placeholder="Search medicine catalog (type at least 3 letters)..."
             minCharsToSuggest={3}
             clearOnSelect = {true}
-            value={searchTerm}
-            
             onSelect={(medicine) => {
             handleSelectSearchedMedicine(medicine.label);
                
