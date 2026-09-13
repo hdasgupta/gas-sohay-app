@@ -54,6 +54,10 @@ function loadCSVInParallel(url, chunkSizeMB = 5) {
 /**
  * Reconstructs split lines and converts raw text chunks into a 2D array.
  */
+/**
+ * Reconstructs split lines and converts raw text chunks into a 2D array
+ * without overflowing the call stack on large arrays.
+ */
 function assembleAndParseGAS(chunkTexts) {
   let leftover = '';
   const fullRows = [];
@@ -66,9 +70,12 @@ function assembleAndParseGAS(chunkTexts) {
       const completeText = currentSegment.slice(0, lastNewlineIndex);
       leftover = currentSegment.slice(lastNewlineIndex + 1);
 
-      // Parse line-by-line (or use Utilities.parseCsv on the complete block)
       const parsedBlock = Utilities.parseCsv(completeText);
-      fullRows.push(...parsedBlock);
+      
+      // Use a standard loop instead of fullRows.push(...parsedBlock)
+      for (let j = 0; j < parsedBlock.length; j++) {
+        fullRows.push(parsedBlock[j]);
+      }
     } else {
       leftover = currentSegment;
     }
@@ -77,11 +84,14 @@ function assembleAndParseGAS(chunkTexts) {
   // Parse remaining tail fragment if exists
   if (leftover.trim().length > 0) {
     const finalParsed = Utilities.parseCsv(leftover);
-    fullRows.push(...finalParsed);
+    for (let j = 0; j < finalParsed.length; j++) {
+      fullRows.push(finalParsed[j]);
+    }
   }
 
   return fullRows;
 }
+
 
 
 /**
