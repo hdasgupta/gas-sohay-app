@@ -328,10 +328,10 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             suggestions={ masterMedicines}
             placeholder="Search medicine catalog (type at least 3 letters)..."
             minCharsToSuggest={3}
+            clearOnSelect = true
             value={searchTerm}
             onSelect={(medicineName, _) => {
             handleSelectSearchedMedicine(medicineName);
-              setSearchTerm('')
                
             }}
             style={defaultStyles.input}

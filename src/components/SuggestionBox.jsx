@@ -4,17 +4,19 @@ import './SuggestionBox.css';
 /**
  * Universal SuggestionBox Component
  * 
- * @param {Array<string | {label: string, value: any}>} suggestions - Suggestion array
- * @param {function} onSelect - Callback triggered when an option is clicked: onSelect(selectedItem)
- * @param {number} minCharsToSuggest - Minimum characters required before showing suggestions (default: 1)
- * @param {object} inputStyle - Custom inline CSS styles for the input box
- * @param {string} inputClassName - Additional CSS class name for the input box
+ * @param {Array<string | {label: string, value: any}>} suggestions - Suggestion list
+ * @param {function} onSelect - Callback when an item is chosen: onSelect(selectedItem)
+ * @param {number} minCharsToSuggest - Minimum character count before dropdown opens (default: 1)
+ * @param {boolean} clearOnSelect - If true, clears the input box text after selecting an item (default: false)
+ * @param {object} style - Inline CSS styles for custom input formatting
+ * @param {string} className - Additional CSS class name for the input box
  * @param {string} placeholder - Input placeholder text
  */
 export default function SuggestionBox({
   suggestions = [],
   onSelect,
-  minCharsToSuggest = 0,
+  minCharsToSuggest = 1,
+  clearOnSelect = false,
   style = {},
   className = '',
   placeholder = 'Type to search...'
@@ -23,13 +25,16 @@ export default function SuggestionBox({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // 1. Normalize items into a uniform structure: { label, value, raw }
+  // 1. Normalize suggestions array (handles both string[] and object[])
   const normalizedSuggestions = useMemo(() => {
+    if (!Array.isArray(suggestions)) return [];
+
     return suggestions.map((item) => {
       if (typeof item === 'object' && item !== null) {
+        const labelText = String(item.label ?? item.name ?? item.title ?? item.value ?? '');
         return {
-          label: String(item.label ?? item.value ?? ''),
-          value: item.value ?? item.label,
+          label: labelText,
+          value: item.value ?? item.id ?? labelText,
           raw: item
         };
       }
@@ -41,7 +46,7 @@ export default function SuggestionBox({
     });
   }, [suggestions]);
 
-  // 2. Filter suggestions using minCharsToSuggest threshold
+  // 2. Filter items based on minCharsToSuggest threshold
   const filteredSuggestions = useMemo(() => {
     const trimmed = inputValue.trim();
     if (trimmed.length < minCharsToSuggest) {
@@ -49,11 +54,11 @@ export default function SuggestionBox({
     }
     const search = trimmed.toLowerCase();
     return normalizedSuggestions.filter((item) =>
-      item.label.toLowerCase().startsWith(search)
+      item.label.toLowerCase().includes(search)
     );
   }, [normalizedSuggestions, inputValue, minCharsToSuggest]);
 
-  // 3. Auto-close dropdown when clicking outside
+  // 3. Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -70,10 +75,17 @@ export default function SuggestionBox({
   };
 
   const handleSelect = (item) => {
-    setInputValue(item.label);
+    // Optional clearing behavior on selection
+    if (clearOnSelect) {
+      setInputValue('');
+    } else {
+      setInputValue(item.label);
+    }
+    
     setIsOpen(false);
+
     if (onSelect) {
-      onSelect(item.raw); // Passes selected object or string to parent
+      onSelect(item.raw); // Pass original object or string back to parent
     }
   };
 
@@ -97,7 +109,10 @@ export default function SuggestionBox({
             <li
               key={index}
               className="suggestion-item"
-              onClick={() => handleSelect(item)}
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevents blur event before click registers
+                handleSelect(item);
+              }}
             >
               {item.label}
             </li>
