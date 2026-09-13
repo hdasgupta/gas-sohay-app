@@ -17,7 +17,7 @@ import './SuggestionBox.css';
 export default function SuggestionBox({
   suggestions = [],
   onSelect,
-  onChange= ()=>{},
+  onChange,
   value: controlledValue,
   minCharsToSuggest = 0,
   clearOnSelect = false,
