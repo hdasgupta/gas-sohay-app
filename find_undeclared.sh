@@ -14,7 +14,7 @@ cat << 'EOF' > "$EXCLUDE_FILE"
 if for while do switch case default break continue return throw try catch finally yield await async import export typeof instanceof void delete new this super class extends function var let const debugger with String Number Boolean Array Object Function Symbol BigInt Math JSON Date RegExp Error Promise Map Set WeakMap WeakSet Proxy Reflect Intl ArrayBuffer DataView Float32Array Float64Array Int8Array Int16Array Int32Array Uint8Array Uint16Array Uint32Array parseInt parseFloat isNaN isFinite encodeURI encodeURIComponent decodeURI decodeURIComponent eval setTimeout setInterval clearTimeout clearInterval fetch console require log alert
 EOF
 
-echo "Scanning JS files in: $TARGET_DIR"
+echo "Scanning JS files in: $TARGET_DIR for undeclared functions"
 echo "-------------------------------------------------"
 
 # Function to strip // and /* */ comments line-by-line via pure AWK

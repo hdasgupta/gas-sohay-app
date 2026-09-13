@@ -3,8 +3,8 @@
 # Target directory containing JSX/JS views (defaults to current directory)
 TARGET_DIR="${1:-.}"
 
-echo "Scanning JSX view files in: $TARGET_DIR"
-echo "--------------------------------------------------------------------------------"
+echo "Scanning JSX view files in: $TARGET_DIR for missing imports"
+echo "---------------------------------------------------------"
 
 # Standard React built-in components to exclude
 EXCLUDED="React|Fragment|Suspense|Profiler|StrictMode"

@@ -4,7 +4,7 @@
 TARGET_DIR="${1:-.}"
 
 echo "Scanning for alert, confirm, and window.confirm calls..."
-echo "--------------------------------------------------------------------------------"
+echo "----------------------------------------------------------"
 
 # -r : Search recursively
 # -n : Print line numbers

@@ -17,7 +17,7 @@ grep -r -E -o '\b(function|async function)\s+([a-zA-Z0-9_$]+)|\b(const|let|var)\
   | sort -u > "$DECLARED_FILE"
 
 echo "Scanning JSX files in '$JSX_DIR' for callBackend invocations..."
-echo "--------------------------------------------------------------------------------"
+echo "---------------------------------------------------------------"
 
 # Regex using hex codes: \x22 = ", \x27 = ', \x60 = `
 PATTERN='callBackend[[:space:]]*\([[:space:]]*[\x22\x27\x60][a-zA-Z0-9_$]+[\x22\x27\x60]'
