@@ -400,7 +400,7 @@ export default function AdminView({ styles = {} }) {
           message={success}
           type="success"
           duration={10}
-        /><div style={{ color: '#16a34a', marginBottom: '14px', padding: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
+        />}
 
         <form onSubmit={handleSubmit}>
           {/* Basic Info */}
