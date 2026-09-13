@@ -260,16 +260,16 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       
       <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
         <div>
-          <label style={defaultStyles.label}>Organization Name (Locked)</label>
+          <label style={defaultStyles.label}>Organization Name</label>
           <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.orgName} readOnly />
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Doctor Name & Email (Locked)</label>
+            <label style={defaultStyles.label}>Doctor Name & Email</label>
             <input style={defaultStyles.readOnlyInput} value={`${fixedClinicInfo.doctorName} (${fixedClinicInfo.doctorEmail})`} readOnly />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Speciality (Locked)</label>
+            <label style={defaultStyles.label}>Speciality</label>
             <input style={defaultStyles.readOnlyInput} value={fixedClinicInfo.doctorSpeciality} readOnly />
           </div>
         </div>
@@ -278,50 +278,18 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
         <div style={{ display: 'flex', gap: '8px' }}>
           <div style={{ flex: 3, position: 'relative' }}>
             <label style={defaultStyles.label}>Patient Name</label>
-            <input
-              style={defaultStyles.input}
+            <SuggestionBox
+              suggestions={ masterPatients.map((patient)=>{
+                  label: patient.name, 
+                  value: patient.email
+              })}
               placeholder="Type or select patient name..."
               value={patientInput}
-              onChange={(e) => {
-                setPatientInput(e.target.value);
-                setPatientEmail(''); // Clear hidden email if user types a new manual name
-                setShowPatientDropdown(true);
+              onChange={(patientName, patient) => {
+                setPatientInput(patientName);
+                setPatientEmail(patient?.email || ''); 
               }}
-              onFocus={() => setShowPatientDropdown(true)}
             />
-
-            {showPatientDropdown && filteredPatients.length > 0 && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  background: '#fff',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '4px',
-                  zIndex: 20,
-                  maxHeight: '140px',
-                  overflowY: 'auto',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                {filteredPatients.map((patient, idx) => {
-                  const name = typeof patient === 'string' ? patient : patient?.name || '';
-                  const age = typeof patient === 'object' && patient?.age ? ` (${patient.age} yrs)` : '';
-                  return (
-                    <div
-                      key={idx}
-                      style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
-                      onClick={() => handleSelectPatient(patient)}
-                    >
-                      <strong>{name}</strong>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>{age}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           <div style={{ flex: 1 }}>
