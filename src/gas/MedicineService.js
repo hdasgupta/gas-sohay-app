@@ -105,7 +105,7 @@ function getMedicineMasterList() {
   const data = loadCSVInParallel(url).slice(1); // Returns [[col1, col2], [col1, col2]]
   
   // Access data fields directly
-  Logger.log(data);
+  Logger.log(data.length);
 
 
   return data.map((medicine) => medicine[1]);
