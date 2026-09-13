@@ -285,12 +285,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           <div style={{ flex: 3, position: 'relative' }}>
             <label style={defaultStyles.label}>Patient Name</label>
             <SuggestionBox
-              suggestions={ masterPatients.map((patient)=>{
-                  return {
-                    label: patient.name, 
-                    value: patient.email
-                  }
-              })}
+              suggestions={ masterPatients}
               placeholder="Type or select patient name..."
               value={patientInput}
               onSelect={(patientName, patient) => {
@@ -328,18 +323,18 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           ⏳ Loading catalog data...
         </div>
       ) : (
-        <div style={{ marginBottom: '12px', position: 'relative' }}>
+        
           <SuggestionBox
-            suggestions={ masterPatients}
-            placeholder="Search medicine catalog (type at least 4 letters)..."
-            minCharsToSuggest={4}
+            suggestions={ masterMedicines}
+            placeholder="Search medicine catalog (type at least 3 letters)..."
+            minCharsToSuggest={3}
             value={searchTerm}
             onSelect={(medicineName, _) => {
                handleSelectSearchedMedicine(medicineName)
             }}
             style={defaultStyles.input}
           />
-        </div>
+        
       )}
 
       <div style={{ display: 'grid', gap: '10px', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
