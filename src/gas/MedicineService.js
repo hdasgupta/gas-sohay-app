@@ -99,7 +99,7 @@ function assembleAndParseGAS(chunkTexts) {
  */
 function getMedicineMasterList() {
 
-  const url = 'https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/updated_indian_medicine_data.csv';
+  const url = 'https://raw.githubusercontent.com/junioralive/Indian-Medicine-Dataset/refs/heads/main/DATA/indian_medicine_data.csv';
   
 
   const data = loadCSVInParallel(url).slice(1); // Returns [[col1, col2], [col1, col2]]
