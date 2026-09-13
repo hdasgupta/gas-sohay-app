@@ -101,7 +101,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   const resetForm = () => {
     setPatientInput('');
     setPatientEmail('');
-    setPatientAge('');
+    setPatientAge('');@
     setSearchTerm('');
     setPrescriptionList([]);
     setCurrentMed(initialMedState);
@@ -231,7 +231,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
       if (res && res.success) {
         setDocLink(res.docUrl);
-        resetForm();
+        resetForm();@
       } else {
         showAlert('Failed to generate prescription document: ' + (res?.error || 'Unknown error'), 'error');
       }
@@ -259,7 +259,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           type={alert.type}
           duration={alert.duration}
           onClose={() => setAlert(null)}
-          style={defaultStyles.label}
         />
       )}
       
@@ -320,9 +319,12 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
       <h3>Add Medicine</h3>
 
       {isMedicinesLoading ? (
-        <div style={{ padding: '12px', background: '#e0f2fe', borderRadius: '6px', color: '#0369a1', marginBottom: '16px', fontSize: '14px' }}>
-          ⏳ Loading catalog data...
-        </div>
+        <LoaderMessage 
+          align="center"
+          style={{ padding: '12px', background: '#e0f2fe', borderRadius: '6px', color: '#0369a1', marginBottom: '16px', fontSize: '14px' }}
+          message="Loading catalog data..."
+        />
+        
       ) : (
         
           <SuggestionBox

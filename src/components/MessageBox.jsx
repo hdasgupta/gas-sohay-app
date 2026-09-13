@@ -2,26 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import './MessageBox.css';
 
 /**
- * MessageBox Component with animated progress countdown line
+ * Full-width MessageBox Component with dynamic animated progress line
  * 
- * @param {string|React.ReactNode} message - Content message
- * @param {'info'|'success'|'warning'|'error'} [type='info'] - Severity variant type
- * @param {number} [duration=3000] - Duration in milliseconds before auto-closing
- * @param {function} [onClose] - Callback function triggered on dismiss
+ * @param {string|React.ReactNode} message - Notification text or node content
+ * @param {'info'|'success'|'warning'|'error'} [type='info'] - Alert style variant
+ * @param {number} [duration=3000] - Time in milliseconds before auto-dismissal
+ * @param {function} [onClose] - Callback when timer ends or close button is clicked
  */
 export default function MessageBox({
   message,
   type = 'info',
   duration = 3000,
-  onClose, 
-  style
+  onClose
 }) {
   const [remainingTime, setRemainingTime] = useState(duration);
   const [isPaused, setIsPaused] = useState(false);
   const startTimeRef = useRef(Date.now());
   const timerRef = useRef(null);
 
-  // Icon mapping helper
   const renderIcon = () => {
     switch (type) {
       case 'success': return '✓';
@@ -31,7 +29,6 @@ export default function MessageBox({
     }
   };
 
-  // Timer logic synchronized with hover state
   useEffect(() => {
     if (isPaused) {
       clearTimeout(timerRef.current);
@@ -47,7 +44,6 @@ export default function MessageBox({
 
   const handleMouseEnter = () => {
     setIsPaused(true);
-    // Calculate remaining duration elapsed before pause
     const elapsedTime = Date.now() - startTimeRef.current;
     setRemainingTime((prev) => Math.max(0, prev - elapsedTime));
   };
@@ -59,7 +55,6 @@ export default function MessageBox({
   return (
     <div
       className={`message-box ${type}`}
-      style={style}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -72,7 +67,6 @@ export default function MessageBox({
         &times;
       </button>
 
-      {/* Animated progress bar */}
       <div
         className="progress-bar"
         style={{

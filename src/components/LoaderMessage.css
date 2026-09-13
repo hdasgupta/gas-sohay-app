@@ -1,0 +1,54 @@
+.loader-message-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* Alignment utilities across full width */
+.loader-message-container.align-center {
+  justify-content: center;
+}
+
+.loader-message-container.align-left {
+  justify-content: flex-start;
+}
+
+.loader-message-container.align-right {
+  justify-content: flex-end;
+}
+
+.hourglass-icon {
+  width: 22px;
+  height: 22px;
+  color: #0284c7;
+  flex-shrink: 0;
+  transform-origin: center;
+  animation: flipHourglass 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes flipHourglass {
+  0% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(180deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  90% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
