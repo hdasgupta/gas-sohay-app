@@ -110,10 +110,10 @@ export default function App() {
             Book Appointment
           </button>
           <button onClick={() => setView('family')} style={view === 'family' ? styles.navActive : styles.navBtn}>
-          Family Account
+          Family
         </button></>}
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
-            My Appointments
+            My/Family Appointments
           </button>
           {user.role==='doctor' && <button
             style={view === 'prescription' ? styles.navActive : styles.navBtn}
@@ -144,7 +144,7 @@ export default function App() {
 }
 
 const styles = {
-  container: { maxWidth: '480px', margin: '30px auto', fontFamily: 'Arial, sans-serif' },
+  container: { maxWidth: '100%', margin: '30px auto', fontFamily: 'Arial, sans-serif' },
   card: { padding: '20px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' },
   input: { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
   btnPrimary: { width: '100%', padding: '10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },
