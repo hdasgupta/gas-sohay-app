@@ -103,7 +103,7 @@ export default function SuggestionBox({
     if (onChange) {
       onChange(nextText);
     }
-    alert(onSelect)
+    alert(onSelect.toString())
     if (onSelect) {
       onSelect(item.raw);
     }
