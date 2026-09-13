@@ -10,7 +10,7 @@ import AppointmentListView from './views/AppointmentListView';
 import PrescriptionView from './views/PrescriptionView';
 import FamilyManagementView from './views/FamilyManagementView';
 import ResetPasswordView from './views/ResetPasswordView';
-
+import SlideView from './views/SlideView';
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
 
@@ -126,6 +126,7 @@ export default function App() {
 
       <Alert message={status} styles={styles} />
 
+      <SlideView activeKey={view}>
       {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} onNavigateResetPassword={() => setView('resetPassword')} styles={styles} />}
       {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
       {view === 'resetPassword' && <ResetPasswordView styles={styles} />}
@@ -138,6 +139,7 @@ export default function App() {
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
+      </SlideView>
     </div>
     
   );
