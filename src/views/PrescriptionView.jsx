@@ -3,6 +3,7 @@ import { callBackend } from '../utils/backend';
 import MessageBox from '../components/MessageBox';
 import ConfirmBox from '../components/ConfirmBox';
 import SuggestionBox from '../components/SuggestionBox';
+import LoaderMessage from '../components/LoaderMessage';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
   const defaultStyles = {
