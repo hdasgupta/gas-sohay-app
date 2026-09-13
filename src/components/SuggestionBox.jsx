@@ -90,7 +90,7 @@ export default function SuggestionBox({
   };
 
   const handleSelect = (item) => {
-    alert(JSON.stringify(item));
+    
     const nextText = clearOnSelect ? '' : item.label;
 
     if (!isControlled) {
@@ -104,6 +104,7 @@ export default function SuggestionBox({
     if (onSelect) {
       onSelect(item.raw);
     }
+    alert(JSON.stringify(item));
   };
 
   const showDropdown = isOpen && filteredSuggestions.length > 0;
