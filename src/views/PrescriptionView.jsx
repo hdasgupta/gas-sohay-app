@@ -288,6 +288,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               suggestions={ masterPatients}
               placeholder="Type or select patient name..."
               value={patientInput}
+              onChange={(text) => setPatientInput(text)}
               onSelect={(patientName, patient) => {
                 setPatientInput(patientName);
                 setPatientEmail(patient?.email || ''); 

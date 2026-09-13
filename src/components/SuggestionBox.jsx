@@ -4,17 +4,19 @@ import './SuggestionBox.css';
 /**
  * Universal SuggestionBox Component
  * 
- * @param {Array<string | {label: string, value: any}>} suggestions - Suggestion list
- * @param {function} onSelect - Callback when an item is chosen: onSelect(selectedItem)
- * @param {number} minCharsToSuggest - Minimum character count before dropdown opens (default: 1)
- * @param {boolean} clearOnSelect - If true, clears the input box text after selecting an item (default: false)
- * @param {object} style - Inline CSS styles for custom input formatting
- * @param {string} className - Additional CSS class name for the input box
- * @param {string} placeholder - Input placeholder text
+ * @param {Array<string | {label: string, value: any}>} suggestions - List of options
+ * @param {function} [onSelect] - Optional callback triggered on item click: onSelect(selectedRawItem)
+ * @param {function} [onChange] - Optional callback triggered on input text change: onChange(text)
+ * @param {number} [minCharsToSuggest=1] - Minimum characters required to start suggesting
+ * @param {boolean} [clearOnSelect=false] - If true, clears the input field after selection
+ * @param {object} [style={}] - Custom inline CSS styles for the input box
+ * @param {string} [className=''] - Custom CSS class name for the input box
+ * @param {string} [placeholder='Type to search...'] - Input placeholder string
  */
 export default function SuggestionBox({
   suggestions = [],
   onSelect,
+  onChange,
   minCharsToSuggest = 1,
   clearOnSelect = false,
   style = {},
@@ -25,7 +27,7 @@ export default function SuggestionBox({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // 1. Normalize suggestions array (handles both string[] and object[])
+  // 1. Normalize items into a standard { label, value, raw } structure
   const normalizedSuggestions = useMemo(() => {
     if (!Array.isArray(suggestions)) return [];
 
@@ -58,7 +60,7 @@ export default function SuggestionBox({
     );
   }, [normalizedSuggestions, inputValue, minCharsToSuggest]);
 
-  // 3. Close dropdown when clicking outside
+  // 3. Auto-close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -70,22 +72,24 @@ export default function SuggestionBox({
   }, []);
 
   const handleInputChange = (e) => {
-    setInputValue(e.target.value);
+    const text = e.target.value;
+    setInputValue(text);
     setIsOpen(true);
+    if (onChange) {
+      onChange(text);
+    }
   };
 
   const handleSelect = (item) => {
-    // Optional clearing behavior on selection
-    if (clearOnSelect) {
-      setInputValue('');
-    } else {
-      setInputValue(item.label);
-    }
-    
+    const newText = clearOnSelect ? '' : item.label;
+    setInputValue(newText);
     setIsOpen(false);
 
+    if (onChange) {
+      onChange(newText);
+    }
     if (onSelect) {
-      onSelect(item.raw); // Pass original object or string back to parent
+      onSelect(item.raw);
     }
   };
 
@@ -110,7 +114,7 @@ export default function SuggestionBox({
               key={index}
               className="suggestion-item"
               onMouseDown={(e) => {
-                e.preventDefault(); // Prevents blur event before click registers
+                e.preventDefault(); // Prevents input blur before selection triggers
                 handleSelect(item);
               }}
             >
