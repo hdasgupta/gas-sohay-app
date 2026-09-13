@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 import MessageBox from '../components/MessageBox';
 import ConfirmBox from '../components/ConfirmBox';
-import {} from '../components/SuggestionBox';
+import SuggestionBox from '../components/SuggestionBox';
 
 export default function PrescriptionView({ user = {}, styles = {} }) {
   const defaultStyles = {
