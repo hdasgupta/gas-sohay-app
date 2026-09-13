@@ -49,7 +49,7 @@ export default function SuggestionBox({
     }
     const search = trimmed.toLowerCase();
     return normalizedSuggestions.filter((item) =>
-      item.label.toLowerCase().includes(search)
+      item.label.toLowerCase().startsWith(search)
     );
   }, [normalizedSuggestions, inputValue, minCharsToSuggest]);
 
