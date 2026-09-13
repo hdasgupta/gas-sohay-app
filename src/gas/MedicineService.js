@@ -5,19 +5,34 @@
  * @returns {Array<Array<string>>} Parsed 2D array of CSV rows
  */
 function loadCSVInParallel(url, chunkSizeMB = 5) {
-  // 1. Get file size via HEAD request
-  const headResponse = UrlFetchApp.fetch(url, { method: 'HEAD', muteHttpExceptions: true });
-  const headers = headResponse.getHeaders();
-  const contentLength = parseInt(headers['Content-Length'] || headers['content-length'], 10);
+  // 1. Fetch only the first byte to inspect headers
+  const probeResponse = UrlFetchApp.fetch(url, {
+    method: 'get',
+    headers: { Range: 'bytes=0-0' },
+    muteHttpExceptions: true
+  });
+
+  const headers = probeResponse.getHeaders();
+  
+  // Content-Range format is usually: "bytes 0-0/104857600"
+  const contentRange = headers['Content-Range'] || headers['content-range'];
+  let contentLength = 0;
+
+  if (contentRange) {
+    contentLength = parseInt(contentRange.split('/')[1], 10);
+  } else {
+    // Fallback if Content-Range isn't returned directly
+    contentLength = parseInt(headers['Content-Length'] || headers['content-length'], 10);
+  }
 
   if (!contentLength || isNaN(contentLength)) {
-    throw new Error('Server did not return Content-Length or HTTP Range is not supported.');
+    throw new Error('Could not determine total file size. Server may not support HTTP Range requests.');
   }
 
   const chunkSize = chunkSizeMB * 1024 * 1024;
   const requests = [];
 
-  // 2. Build HTTP Range request objects
+  // 2. Build HTTP Range request objects using 'get'
   for (let start = 0; start < contentLength; start += chunkSize) {
     const end = Math.min(start + chunkSize - 1, contentLength - 1);
     requests.push({
@@ -28,11 +43,11 @@ function loadCSVInParallel(url, chunkSizeMB = 5) {
     });
   }
 
-  // 3. Fetch all chunks in parallel on Google servers
+  // 3. Fetch all chunks in parallel
   const responses = UrlFetchApp.fetchAll(requests);
   const chunkTexts = responses.map(res => res.getContentText('UTF-8'));
 
-  // 4. Assemble chunks & fix line splits across boundaries
+  // 4. Assemble and parse
   return assembleAndParseGAS(chunkTexts);
 }
 
