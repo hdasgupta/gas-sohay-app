@@ -144,8 +144,8 @@ export default function App() {
 }
 
 const styles = {
-  container: { maxWidth: '100%', /*margin: '30px auto',*/ fontFamily: 'Arial, sans-serif' },
-  card: { /*padding: '20px', */border: '1px solid #ddd', borderRadius: '8px', background: '#fff' },
+  container: { maxWidth: '100%', margin: '2px auto', fontFamily: 'Arial, sans-serif' },
+  card: { padding: '2px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' },
   input: { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
   btnPrimary: { width: '100%', padding: '10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },
   btnSecondary: { padding: '5px 10px', background: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
