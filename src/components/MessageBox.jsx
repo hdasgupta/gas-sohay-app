@@ -1,71 +1,83 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import './MessageBox.css';
 
-export default function MessagwBox({ 
-  message, 
-  type = 'info', 
-  onClose, 
-  duration = 0 
+/**
+ * MessageBox Component with animated progress countdown line
+ * 
+ * @param {string|React.ReactNode} message - Content message
+ * @param {'info'|'success'|'warning'|'error'} [type='info'] - Severity variant type
+ * @param {number} [duration=3000] - Duration in milliseconds before auto-closing
+ * @param {function} [onClose] - Callback function triggered on dismiss
+ */
+export default function MessageBox({
+  message,
+  type = 'info',
+  duration = 3000,
+  onClose
 }) {
-  if (!message) return null;
+  const [remainingTime, setRemainingTime] = useState(duration);
+  const [isPaused, setIsPaused] = useState(false);
+  const startTimeRef = useRef(Date.now());
+  const timerRef = useRef(null);
 
-  // Auto-dismiss after duration (in milliseconds) if set
-  useEffect(() => {
-    if (duration > 0 && onClose) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, duration);
-      return () => clearTimeout(timer);
+  // Icon mapping helper
+  const renderIcon = () => {
+    switch (type) {
+      case 'success': return '✓';
+      case 'error': return '✕';
+      case 'warning': return '⚠';
+      default: return 'ℹ';
     }
-  }, [duration, onClose]);
-
-  // Alert type themes
-  const themes = {
-    info: { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', icon: 'ℹ️' },
-    success: { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', icon: '✅' },
-    warning: { bg: '#fffbeb', border: '#fef08a', text: '#b45309', icon: '⚠️' },
-    error: { bg: '#fef2f2', border: '#fecaca', text: '#dc2626', icon: '❌' }
   };
 
-  const style = themes[type] || themes.info;
+  // Timer logic synchronized with hover state
+  useEffect(() => {
+    if (isPaused) {
+      clearTimeout(timerRef.current);
+    } else {
+      startTimeRef.current = Date.now();
+      timerRef.current = setTimeout(() => {
+        if (onClose) onClose();
+      }, remainingTime);
+    }
+
+    return () => clearTimeout(timerRef.current);
+  }, [isPaused, remainingTime, onClose]);
+
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+    // Calculate remaining duration elapsed before pause
+    const elapsedTime = Date.now() - startTimeRef.current;
+    setRemainingTime((prev) => Math.max(0, prev - elapsedTime));
+  };
+
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+  };
 
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justify: 'space-between',
-        padding: '12px 16px',
-        marginBottom: '12px',
-        borderRadius: '6px',
-        border: `1px solid ${style.border}`,
-        backgroundColor: style.bg,
-        color: style.text,
-        fontSize: '14px',
-        fontWeight: '500',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-      }}
+      className={`message-box ${type}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span>{style.icon}</span>
+      <div className="message-content">
+        <span className="type-icon">{renderIcon()}</span>
         <span>{message}</span>
       </div>
 
-      {onClose && (
-        <button
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: style.text,
-            fontSize: '16px',
-            cursor: 'pointer',
-            padding: '0 4px',
-            lineHeight: 1
-          }}
-        >
-          ✕
-        </button>
-      )}
+      <button className="close-btn" onClick={onClose} aria-label="Close message">
+        &times;
+      </button>
+
+      {/* Animated progress bar */}
+      <div
+        className="progress-bar"
+        style={{
+          '--duration': `${duration}ms`,
+          animationPlayState: isPaused ? 'paused' : 'running'
+        }}
+      />
     </div>
   );
 }
