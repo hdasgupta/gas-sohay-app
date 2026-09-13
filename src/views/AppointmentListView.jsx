@@ -11,7 +11,7 @@ export default function AppointmentListView({ user, styles = {} }) {
 
   
   const cardStyle = styles.card || {
-    padding: '24px',
+    padding: '10px',
     background: '#ffffff',
     borderRadius: '10px',
     border: '1px solid #cbd5e1',

@@ -12,7 +12,7 @@ export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
   const [message, setMessage] = useState(null);
 
   const cardStyle = styles.card || {
-    padding: '32px',
+    padding: '10px',
     background: '#ffffff',
     borderRadius: '10px',
     border: '1px solid #cbd5e1',
