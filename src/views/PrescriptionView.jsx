@@ -259,7 +259,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           type={alert.type}
           duration={alert.duration}
           onClose={() => setAlert(null)}
-          style={{ display: 'grid'}}
+          style={defaultStyles.label}
         />
       )}
       
