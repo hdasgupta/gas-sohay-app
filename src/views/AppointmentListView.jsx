@@ -105,7 +105,7 @@ export default function AppointmentListView({ user, styles = {} }) {
         style={{
           border: '1px solid #e2e8f0',
           borderRadius: '8px',
-          padding: '16px',
+          /*padding: '16px',*/
           background: isCancelled ? '#fafafa' : '#ffffff',
           boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
         }}
