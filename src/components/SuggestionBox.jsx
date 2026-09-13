@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import './SuggestionBox.css';
 
 /**
@@ -93,13 +93,13 @@ export default function SuggestionBox({
     
     const nextText = clearOnSelect ? '' : item.label;
 
-    
+    alert(isControlled)
     if (!isControlled) {
       setInternalValue(nextText);
     }
     
     setIsOpen(false);
-
+    alert(nextText)
     if (onChange) {
       onChange(nextText);
     }
