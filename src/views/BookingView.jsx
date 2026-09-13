@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
+import MessageBox from '../components/MessageBox';
+import LoaderMessage from '../components/LoaderMessage';
 
 export default function BookingView({ user, styles = {} }) {
   const cardStyle = styles.card || {
