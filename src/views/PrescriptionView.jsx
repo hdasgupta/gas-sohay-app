@@ -292,7 +292,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
                 setPatientInput(patientName);
                 setPatientEmail(patient?.email || ''); 
               }}
-              style={defaultStyles.label}
+              style={defaultStyles.input}
             />
           </div>
 
