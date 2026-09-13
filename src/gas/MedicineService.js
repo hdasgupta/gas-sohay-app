@@ -6,7 +6,7 @@
  */
 function loadCSVInParallel(url, chunkSizeMB = 5) {
   // 1. Get file size via HEAD request
-  const headResponse = UrlFetchApp.fetch(url, { method: 'head', muteHttpExceptions: true });
+  const headResponse = UrlFetchApp.fetch(url, { method: 'HEAD', muteHttpExceptions: true });
   const headers = headResponse.getHeaders();
   const contentLength = parseInt(headers['Content-Length'] || headers['content-length'], 10);
 
