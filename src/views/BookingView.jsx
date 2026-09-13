@@ -157,9 +157,11 @@ export default function BookingView({ user, styles = {} }) {
         <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#1e293b' }}>Book Doctor Appointment</h2>
 
         {error && (
-          <div style={{ color: '#dc2626', marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '14px' }}>
-            {error}
-          </div>
+          <MessageBox
+            message={error}
+            type="error"
+            duration={10}
+          />
         )}
 
         {bookingSuccess && (
@@ -316,7 +318,10 @@ export default function BookingView({ user, styles = {} }) {
               cursor: submitting || !selectedDoctorEmail || !selectedSlot ? 'not-allowed' : 'pointer'
             }}
           >
-            {submitting ? 'Generating Meet & Booking...' : 'Confirm Appointment'}
+            {submitting ? <LoaderMessage 
+                align="center"
+                message="Generating Meet & Booking..."
+              /> : 'Confirm Appointment'}
           </button>
         </form>
       </div>

@@ -390,8 +390,17 @@ export default function AdminView({ styles = {} }) {
           onConfirm={handleConfirmResult}
         />
         
-        {error && <div style={{ color: '#dc2626', marginBottom: '14px', padding: '10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '13px' }}>{error}</div>}
-        {success && <div style={{ color: '#16a34a', marginBottom: '14px', padding: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
+        {error && <MessageBox
+          message={error}
+          type="error"
+          duration={10}
+        />
+        }
+        {success && <MessageBox
+          message={success}
+          type="success"
+          duration={10}
+        /><div style={{ color: '#16a34a', marginBottom: '14px', padding: '10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '4px', fontSize: '13px' }}>{success}</div>}
 
         <form onSubmit={handleSubmit}>
           {/* Basic Info */}
@@ -556,7 +565,10 @@ export default function AdminView({ styles = {} }) {
           </div>
 
           <button type="submit" disabled={submitting} style={btnPrimary}>
-            {submitting ? 'Saving...' : editingId ? 'Update Doctor' : 'Add Doctor'}
+            {submitting ? <LoaderMessage 
+                align="center"
+                message="Saving..."
+          /> : editingId ? 'Update Doctor' : 'Add Doctor'}
           </button>
         </form>
       </div>
@@ -567,7 +579,11 @@ export default function AdminView({ styles = {} }) {
 
         {/* Doctor Multiline Cards List */}
         {loadingList ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>Loading doctor profiles...</div>
+          <LoaderMessage 
+            align="center"
+            style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}
+            message="Loading doctor profiles..."
+          />
         ) : doctorsList.length === 0 ? (
           <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '8px' }}>
             No doctors registered yet.

@@ -280,26 +280,21 @@ export default function AppointmentListView({ user, styles = {} }) {
       
         {/* Action Alert Banner */}
         {actionMessage && (
-          <div
-            style={{
-              padding: '12px 16px',
-              marginBottom: '20px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              background: actionMessage.type === 'success' ? '#f0fdf4' : '#fef2f2',
-              border: actionMessage.type === 'success' ? '1px solid #bbf7d0' : '1px solid #fecaca',
-              color: actionMessage.type === 'success' ? '#15803d' : '#dc2626'
-            }}
-          >
-            {actionMessage.text}
-          </div>
+          <MessageBox
+            message={actionMessage.text}
+            type={actionMessage.type}
+            duration={10}
+          />
+          
         )}
 
         {/* Loading / Empty State */}
         {loading ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
-            Loading appointments...
-          </div>
+          <LoaderMessage 
+            align="center"
+            style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}
+            message="Loading appointments..."
+          />
         ) : appointments.length === 0 ? (
           <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '8px' }}>
             No appointments scheduled yet.
