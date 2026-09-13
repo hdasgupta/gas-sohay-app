@@ -12,7 +12,8 @@ export default function SuggestionBox({
   suggestions = [],
   value = '',
   onChange,
-  placeholder = 'Type to search...'
+  placeholder = 'Type to search...', 
+  style={{}}, 
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -71,7 +72,7 @@ export default function SuggestionBox({
     <div className="suggestion-box-container" ref={containerRef}>
       <input
         type="text"
-        className="suggestion-input"
+        style={style}
         value={value}
         onChange={handleInputChange}
         onFocus={() => setIsOpen(true)}

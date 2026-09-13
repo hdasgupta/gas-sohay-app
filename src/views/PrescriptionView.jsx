@@ -292,6 +292,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
                 setPatientInput(patientName);
                 setPatientEmail(patient?.email || ''); 
               }}
+              style={defaultStyles.label}
             />
           </div>
 
@@ -307,7 +308,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           </div>
 
           <div style={{ flex: 1 }}>
-            <label style={defaultStyles.label}>Date (Locked)</label>
+            <label style={defaultStyles.label}>Date</label>
             <input style={defaultStyles.readOnlyInput} type="date" value={todayDate} readOnly />
           </div>
         </div>
