@@ -90,6 +90,7 @@ export default function SuggestionBox({
   };
 
   const handleSelect = (item) => {
+    alert(JSON.stringify(item));
     const nextText = clearOnSelect ? '' : item.label;
 
     if (!isControlled) {
