@@ -281,7 +281,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
                 setPatientInput(text);
               } }
               onSelect={(patient) => {
-                alert(JSON.stringify(patient);
+                alert(JSON.stringify(patient));
                 handleSelectPatient(patient)
               }}
               style={defaultStyles.input}
