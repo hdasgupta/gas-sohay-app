@@ -70,11 +70,11 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
     try {
       loadCSVInParallel(url)
-      /*callBackend('getMedicineMasterList', [], (data) => {
+      callBackend('getMedicineMasterList', [], (data) => {
         setMasterMedicines(Array.isArray(data) ? data : []);
         medDone = true;
         checkLoadingFinished();
-      });*/
+      });
     } catch (err) {
       medDone = true;
       checkLoadingFinished();
