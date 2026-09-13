@@ -108,20 +108,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setCurrentMed(initialMedState);
   };
 
-  const filteredPatients = patientInput.trim().length >= 2
-    ? masterPatients.filter((p) => {
-        const pName = typeof p === 'string' ? p : p?.name || '';
-        return pName.toLowerCase().includes(patientInput.trim().toLowerCase());
-      })
-    : [];
-
-  const showMedicineSuggestions = searchTerm.trim().length >= 4;
-  const filteredMedicines = showMedicineSuggestions
-    ? masterMedicines.filter((m) => {
-        const medName = typeof m === 'string' ? m : m?.name || '';
-        return medName.toLowerCase().includes(searchTerm.trim().toLowerCase());
-      })
-    : [];
+  
 
   // Patient Selection captures and stores email silently
   const handleSelectPatient = (patient) => {
@@ -290,8 +277,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               value={patientInput}
               onChange={(text) => setPatientInput(text)}
               onSelect={(patientName, patient) => {
-                setPatientInput(patientName);
-                setPatientEmail(patient?.email || ''); 
+                handleSelectPatient(patient)
               }}
               style={defaultStyles.input}
             />
