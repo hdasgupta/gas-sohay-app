@@ -73,6 +73,7 @@ export default function App() {
       if (res.success) {
         setUser(res.user);
         saveSession(res.user);
+        setStatus('');
         routeUserByRole(res.user);
       } else {
         setStatus(res.error);
