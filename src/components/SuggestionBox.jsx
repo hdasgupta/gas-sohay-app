@@ -14,7 +14,7 @@ import './SuggestionBox.css';
  * @param {string} [className=''] - Custom CSS class for input element
  * @param {string} [placeholder='Type to search...'] - Placeholder text
  */
-export default const SuggestionBox = React.memo(({
+export default function SuggestionBox({
   suggestions = [],
   onSelect,
   onChange,
@@ -142,4 +142,4 @@ export default const SuggestionBox = React.memo(({
       )}
     </div>
   );
-}) 
+}
