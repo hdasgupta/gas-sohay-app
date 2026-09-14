@@ -73,7 +73,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     try {
       //loadCSVInParallel(url)
       callBackend('getMedicineMasterList', [], (data) => {
-        alert(data);
+        
         setMasterMedicines(Array.isArray(data) ? data : []);
         medDone = true;
         checkLoadingFinished();
@@ -115,7 +115,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   // Patient Selection captures and stores email silently
   const handleSelectPatient = (patient) => {
-    try{
     
     const pName = patient?.label || '';
     const pEmail = patient?.value|| '';
@@ -124,13 +123,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setPatientInput(pName);
     setPatientEmail(pEmail); // Store patient email internally
     
-    } catch (e) {
-      alert(e.message)
-    }
   };
 
-  if(patientEmail)
-  alert(patientEmail);
   
   const handleMedicineNameChange = (name) => {
     const isTablet = name.trim().toLowerCase().endsWith('tablet');
