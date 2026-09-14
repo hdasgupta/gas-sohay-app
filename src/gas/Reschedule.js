@@ -1,31 +1,28 @@
 /**
- * 1. Search for active scheduled/rescheduled appointment by patient and doctor email
+ * 1. Suggestions data for Patients and Doctors
+ */
+function getSuggestionOptions() {
+  
+  return { doctors: getDoctorsList(), patients: getPatientMaster() };
+}
+
+/**
+ * 2. Search active upcoming appointment using fixed column indices
+ * Fixed Sequence: [0: id, 1: patientemail, 2: doctoremail, 3: date, 4: time, 5: meetlink, 6: status, 7: prescription link]
  */
 function findActiveAppointment(patientEmail, doctorEmail) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  const sheet = getOrCreateSheet("Appointments");
   const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  
-  const idx = {
-    id: 0,
-    patientEmail: 1,
-    doctorEmail: 2,
-    date: 3,
-    time: 4,
-    meetLink: 5,
-    status: 6,
-    prescriptionLink: 7
-  };
-  
-  const pEmail = patientEmail.trim().toLowerCase();
-  const dEmail = doctorEmail.trim().toLowerCase();
-  
+
+  const pEmail = String(patientEmail).trim().toLowerCase();
+  const dEmail = String(doctorEmail).trim().toLowerCase();
+
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    const rowStatus = String(row[idx.status]).toLowerCase();
-    const rowPatient = String(row[idx.patientEmail]).trim().toLowerCase();
-    const rowDoctor = String(row[idx.doctorEmail]).trim().toLowerCase();
-    
+    const rowPatient = String(row[1]).trim().toLowerCase();
+    const rowDoctor = String(row[2]).trim().toLowerCase();
+    const rowStatus = String(row[6]).trim().toLowerCase();
+
     if (
       rowPatient === pEmail &&
       rowDoctor === dEmail &&
@@ -34,130 +31,185 @@ function findActiveAppointment(patientEmail, doctorEmail) {
       return {
         success: true,
         appointment: {
-          id: String(row[idx.id]),
-          patientEmail: row[idx.patientEmail],
-          doctorEmail: row[idx.doctorEmail],
-          date: formatDate(JSON.parse(row[idx.date])),
-          time: String(JSON.parse(row[idx.time])).trim(),
-          meetLink: row[idx.meetLink],
-          status: row[idx.status],
-          prescriptionLink: row[idx.prescriptionLink]
+          id: String(row[0]),
+          patientemail: row[1],
+          doctoremail: row[2],
+          date: formatDate(JSON.parse(row[3])),
+          time: String(JSON.parse(row[4])).trim(),
+          meetlink: row[5],
+          status: row[6],
+          prescriptionlink: row[7]
         }
       };
     }
   }
-  
-  return { success: false, message: "No active (Scheduled/Rescheduled) appointment found for this patient and doctor." };
+
+  return { success: false, message: "No active scheduled/rescheduled appointment found." };
 }
 
 /**
- * 2. Get available time slots for a given doctor & patient on a selected date
- * Checks doctor's weekday availability schedule & filters out existing appointment conflicts.
+ * 3. Fetch 30-minute available slots, enforcing double-booking & date-time difference rules
  */
 function getAvailableSlots(doctorEmail, patientEmail, selectedDateStr, currentAppointmentId) {
-  const dEmail = doctorEmail.trim().toLowerCase();
-  const pEmail = patientEmail.trim().toLowerCase();
-  
-  // Step A: Fetch Doctor's Weekday Availability Array from "Doctors" sheet
-  const docSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Doctors");
-  const doctor = getDoctorByEmail(doctorEmail);
-  const patient = getPatientByEmail(patientEmail)
-  
-  let doctorAvailability = doctor. availability;
-  
-  
-  // Determine weekday name from selectedDateStr (YYYY-MM-DD)
+  const dEmail = String(doctorEmail).trim().toLowerCase();
+  const pEmail = String(patientEmail).trim().toLowerCase();
+
+  // Fetch doctor availability schedule
+  const docSheet = getOrCreateSheet("Doctors");
+  const docData = docSheet.getDataRange().getValues();
+
+  let rawAvailability = {};
+  for (let i = 1; i < docData.length; i++) {
+    if (String(docData[i][3]).trim().toLowerCase() === dEmail) {
+      try {
+        rawAvailability = typeof docData[i][6] === 'string'
+          ? JSON.parse(docData[i][6])
+          : docData[i][6];
+      } catch (e) {
+        return { success: false, message: "Invalid JSON in doctor.availability column." };
+      }
+      break;
+    }
+  }
+
+  // Determine weekday name
   const dateParts = selectedDateStr.split("-");
   const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
   const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const selectedWeekday = weekdays[dateObj.getDay()];
+
+  const rawDaySchedule = rawAvailability[selectedWeekday] || [];
   
-  const daySlots = doctorAvailability[selectedWeekday] || [];
-  if (daySlots.length === 0) {
+  // Expand weekday window into 30-minute time slots
+  const all30MinSlots = breakInto30MinSlots(rawDaySchedule);
+
+  if (all30MinSlots.length === 0) {
     return { success: true, slots: [], message: `Doctor is not available on ${selectedWeekday}s.` };
   }
-  
-  // Step B: Get all booked slots on selectedDateStr for Doctor OR Patient
-  const appSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+
+  // Cross-reference conflict with existing appointments
+  const appSheet = getOrCreateSheet("Appointments");
   const appData = appSheet.getDataRange().getValues();
-  const appHeaders = appData[0];
-  
-  const idx = {
-    id: 0,
-    patientEmail: 1,
-    doctorEmail: 2,
-    date: 3,
-    time: 4,
-    status: 5
-  };
-  
-  const currentApp = getAppointmentById(appData, idx, currentAppointmentId);
-  const occupiedSlots = new Set();
-  
+
+  let currentApptDate = "";
+  let currentApptTime = "";
+
+  // Locate current appointment details
   for (let i = 1; i < appData.length; i++) {
-    const rowId = String(appData[i][idx.id]);
-    const rowStatus = String(appData[i][idx.status]).toLowerCase();
-    
-    // Ignore current appointment row and cancelled appointments
+    if (String(appData[i][0]) === String(currentAppointmentId)) {
+      currentApptDate = formatDate(JSON.parse(appData[i][3]));
+      currentApptTime = String(JSON.parse(appData[i][4])).trim();
+      break;
+    }
+  }
+
+  const occupiedSlots = new Set();
+
+  for (let i = 1; i < appData.length; i++) {
+    const rowId = String(appData[i][0]);
+    const rowStatus = String(appData[i][6]).trim().toLowerCase();
+
     if (rowId === String(currentAppointmentId) || rowStatus === "cancelled") {
       continue;
     }
-    
-    const rowDate = formatDate(appData[i][idx.date]);
-    const rowDoctor = String(appData[i][idx.doctorEmail]).trim().toLowerCase();
-    const rowPatient = String(appData[i][idx.patientEmail]).trim().toLowerCase();
-    
-    if (rowDate === selectedDateStr) {
-      // Slot is blocked if Doctor OR Patient is already booked
-      if (rowDoctor === dEmail || rowPatient === pEmail) {
-        occupiedSlots.add(String(appData[i][idx.time]).trim());
-      }
+
+    const rowDate = formatDate(JSON.parse(appData[i][3]));
+    const rowDoctor = String(appData[i][2]).trim().toLowerCase();
+    const rowPatient = String(appData[i][1]).trim().toLowerCase();
+    const rowTime = String(JSON.parse(appData[i][4])).trim();
+
+    // Prevent conflict: doctor or patient double-booking on same date & time
+    if (rowDate === selectedDateStr && (rowDoctor === dEmail || rowPatient === pEmail)) {
+      occupiedSlots.add(rowTime);
     }
   }
-  
+
   // Filter out occupied slots
-  let availableSlots = daySlots.filter(slot => !occupiedSlots.has(slot));
-  
-  // Step C: Rule - Cannot reschedule to the exact same date AND time
-  if (currentApp && currentApp.date === selectedDateStr) {
-    availableSlots = availableSlots.filter(slot => slot !== currentApp.time);
+  let availableSlots = all30MinSlots.filter(slot => !occupiedSlots.has(slot));
+
+  // Constraint: Cannot reschedule to the exact same date and time slot
+  if (selectedDateStr === currentApptDate) {
+    availableSlots = availableSlots.filter(slot => slot !== currentApptTime);
   }
-  
+
   return { success: true, slots: availableSlots };
 }
 
 /**
- * 3. Execute Reschedule Update on "Appointments" sheet
- *
- * Reschedules an existing appointment with conflict checks.
- * 
- * @param {string} appointmentId - ID of the appointment to reschedule
- * @param {string} newDate - Date in YYYY-MM-DD format
- * @param {string} newTime - Time slot (e.g., "10:00 AM")
- * @returns {object} Result object { success: boolean, message: string }
+ * Helper: Converts schedule ranges/arrays into 30-minute interval slots
+ */
+function breakInto30MinSlots(scheduleArray) {
+  const slots = [];
+  if (!Array.isArray(scheduleArray)) return slots;
+
+  scheduleArray.forEach(item => {
+    const strItem = String(item).trim();
+    if (strItem.includes('-')) {
+      const parts = strItem.split('-').map(p => p.trim());
+      let startMins = parseTimeToMinutes(parts[0]);
+      let endMins = parseTimeToMinutes(parts[1]);
+
+      if (startMins !== null && endMins !== null) {
+        let curr = startMins;
+        while (curr < endMins) {
+          slots.push(formatMinutesToTime(curr));
+          curr += 30;
+        }
+      }
+    } else {
+      slots.push(strItem);
+    }
+  });
+
+  return slots;
+}
+
+function parseTimeToMinutes(timeStr) {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!match) return null;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const ampm = match[3] ? match[3].toUpperCase() : null;
+
+  if (ampm) {
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+  }
+  return hours * 60 + minutes;
+}
+
+function formatMinutesToTime(totalMinutes) {
+  let hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const minsStr = minutes < 10 ? '0' + minutes : minutes;
+  const hrsStr = hours < 10 ? '0' + hours : hours;
+  return `${hrsStr}:${minsStr} ${ampm}`;
+}
+
+/**
+ * 4. Update row directly using fixed sequence indices
+ * Fixed Sequence: [0: id, 1: patientemail, 2: doctoremail, 3: date, 4: time, 5: meetlink, 6: status, 7: prescription link]
  */
 function updateAppointmentSchedule(appointmentId, newDate, newTime) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Appointments");
+  const sheet = getOrCreateSheet("Appointments");
   const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-
-  const idIdx = 0;
-  const dateIdx = 3;
-  const timeIdx = 4;
-  const statusIdx = 5;
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idIdx]) === String(appointmentId)) {
+    if (String(data[i][0]) === String(appointmentId)) {
       const rowNum = i + 1;
-      sheet.getRange(rowNum, dateIdx + 1).setValue(JSON.stringify(newDate));
-      sheet.getRange(rowNum, timeIdx + 1).setValue(JSON.stringify(newTime));
-      sheet.getRange(rowNum, statusIdx + 1).setValue("Rescheduled");
+      // Sheet columns are 1-indexed (date: 4, time: 5, status: 7)
+      sheet.getRange(rowNum, 4).setValue(JSON.stringify(newDate));
+      sheet.getRange(rowNum, 5).setValue(JSON.stringify(newTime));
+      sheet.getRange(rowNum, 7).setValue("Rescheduled");
 
-      return { success: true, message: `Appointment successfully rescheduled to ${newDate} at ${newTime}.` };
+      return { success: true, message: `Appointment rescheduled to ${newDate} at ${newTime}.` };
     }
   }
 
-  return { success: false, message: "Failed to locate appointment ID for update." };
+  return { success: false, message: "Appointment ID not found." };
 }
 
 function formatDate(dateVal) {
@@ -165,16 +217,4 @@ function formatDate(dateVal) {
     return Utilities.formatDate(dateVal, Session.getScriptTimeZone(), "yyyy-MM-dd");
   }
   return String(dateVal).trim();
-}
-
-function getAppointmentById(data, idx, apptId) {
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idx.id]) === String(apptId)) {
-      return {
-        date: formatDate(JSON.parse(data[i][idx.date])),
-        time: String(JSON.parse(data[i][idx.time])).trim()
-      };
-    }
-  }
-  return null;
 }

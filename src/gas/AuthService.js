@@ -147,21 +147,25 @@ function registerPatient(data) {
   };
 }
 
-
-function getPatientByEmail(email) {
-  // Tab to edit
+function getPatientMaster() {
   var userSheet = getOrCreateSheet('Users');
   var users = userSheet.getDataRange().getValues();
+  var patients = []
   for (var i = 1; i < users.length; i++) {
-    if (users[i][3] === email) {
-      return {
-         id: users[i][0], 
-         name: users[i][1], 
-         location: users[i][2], 
-         email: users[i][3], 
-         phone: users[i][4], 
-         role: users[i][6] 
-      };
-    }
+  
+    patients.push({
+      id: users[i][0],
+      name: users[i][1],
+      location: users[i][2],
+      email: users[i][3],
+      phone: users[i][4],
+      role: users[i][6]
+    });
+  
   }
+  return patients;
+}
+
+function getPatientByEmail(email) {
+  return getPatientMaster().filter((patient) => patient.email === email)[0];
 }

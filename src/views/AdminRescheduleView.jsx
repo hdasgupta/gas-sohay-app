@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import SuggestionBox from '../components/SuggestionBox';
+import MessageBox from '../components/MessageBox';
+import LoaderMessage from '../components/LoaderMessage';
 
 export default function AdminRescheduleView() {
-  // Search Inputs
+  const [patientName, setPatientName]= useState('');
   const [patientEmail, setPatientEmail] = useState('');
+  const [doctorName, setDoctoeName] = useState('');
   const [doctorEmail, setDoctorEmail] = useState('');
+
+  const [patientSuggestions, setPatientSuggestions] = useState([]);
+  const [doctorSuggestions, setDoctorSuggestions] = useState([]);
+
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
-
-  // Found Appointment State
   const [appointment, setAppointment] = useState(null);
 
-  // Reschedule Form States
   const [selectedDate, setSelectedDate] = useState('');
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedTime, setSelectedTime] = useState('');
@@ -18,7 +23,25 @@ export default function AdminRescheduleView() {
   const [submitting, setSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
 
-  // Step 1: Search Active Appointment
+  useEffect(() => {
+    callBackend('getSuggestionOptions', [], (res) => {
+      if (res) {
+        setDoctorSuggestions(res.doctors.map((doctor) => {
+          return {
+            label: doctor.name, 
+            value: doctor.email
+          }
+        })|| []);
+        setPatientSuggestions(res.patients.map((patient) => {
+          return {
+            label: patient.name, 
+            value: patient.email
+          }
+        })|| []);
+      }
+    });
+  }, []);
+
   const handleSearch = (e) => {
     e.preventDefault();
     setSearchError('');
@@ -29,12 +52,12 @@ export default function AdminRescheduleView() {
     setStatusMessage({ type: '', text: '' });
 
     if (!patientEmail || !doctorEmail) {
-      setSearchError('Please provide both Patient and Doctor email addresses.');
+      setSearchError('Please provide both Patient and Doctor name.');
       return;
     }
 
     setSearching(true);
-    runGAS('findActiveAppointment', [patientEmail, doctorEmail], (res) => {
+    callBackend('findActiveAppointment', [patientEmail, doctorEmail], (res) => {
       setSearching(false);
       if (res.success) {
         setAppointment(res.appointment);
@@ -44,7 +67,6 @@ export default function AdminRescheduleView() {
     });
   };
 
-  // Step 2: Fetch Available Slots on Date Change
   const handleDateChange = (e) => {
     const dateStr = e.target.value;
     setSelectedDate(dateStr);
@@ -54,13 +76,16 @@ export default function AdminRescheduleView() {
     if (!dateStr) return;
 
     setLoadingSlots(true);
-    runGAS(
+    callBackend(
       'getAvailableSlots',
       [doctorEmail, patientEmail, dateStr, appointment.id],
       (res) => {
         setLoadingSlots(false);
         if (res.success) {
           setAvailableSlots(res.slots);
+          if (res.message) {
+            setStatusMessage({ type: 'info', text: res.message });
+          }
         } else {
           setStatusMessage({ type: 'error', text: res.message });
         }
@@ -68,30 +93,26 @@ export default function AdminRescheduleView() {
     );
   };
 
-  // Step 3: Execute Reschedule Submission
   const handleRescheduleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedDate || !selectedTime) {
-      setStatusMessage({ type: 'error', text: 'Please select both new date and time slot.' });
-      return;
-    }
+    if (!selectedDate || !selectedTime) return;
 
     setSubmitting(true);
     setStatusMessage({ type: '', text: '' });
 
-    runGAS(
+    callBackend(
       'updateAppointmentSchedule',
       [appointment.id, selectedDate, selectedTime],
       (res) => {
         setSubmitting(false);
         if (res.success) {
           setStatusMessage({ type: 'success', text: res.message });
-          setAppointment({
-            ...appointment,
+          setAppointment((prev) => ({
+            ...prev,
             date: selectedDate,
             time: selectedTime,
             status: 'Rescheduled'
-          });
+          }));
           setSelectedTime('');
           setAvailableSlots([]);
         } else {
@@ -101,102 +122,80 @@ export default function AdminRescheduleView() {
     );
   };
 
-  // Helper for Google Apps Script execution
-  const runGAS = (funcName, args, callback) => {
-    if (window.google && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(callback)
-        .withFailureHandler((err) => {
-          setSearching(false);
-          setLoadingSlots(false);
-          setSubmitting(false);
-          setSearchError(err.message || 'Server request failed.');
-        })[funcName](...args);
-    } else {
-      // Mock Data for Local Testing
-      setTimeout(() => {
-        if (funcName === 'findActiveAppointment') {
-          callback({
-            success: true,
-            appointment: {
-              id: 'APT-1002',
-              patientemail: patientEmail,
-              doctoremail: doctorEmail,
-              date: '2026-09-20',
-              time: '10:00 AM',
-              meetlink: 'https://meet.google.com/xyz-abc-def',
-              status: 'Scheduled',
-              prescriptionlink: 'N/A'
-            }
-          });
-        } else if (funcName === 'getAvailableSlots') {
-          callback({ success: true, slots: ['09:00 AM', '11:00 AM', '02:30 PM'] });
-        } else if (funcName === 'updateAppointmentSchedule') {
-          callback({ success: true, message: 'Appointment successfully rescheduled.' });
-        }
-      }, 600);
-    }
-  };
-
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Admin Appointment Reschedule</h2>
+      <h2>Admin Reschedule View</h2>
 
-      {/* SEARCH SECTION */}
-      <form onSubmit={handleSearch} style={styles.searchCard}>
-        <h3>Search Existing Appointment</h3>
+      {/* SEARCH CARD */}
+      <form onSubmit={handleSearch} style={styles.card}>
+        <h3>Search Active Appointment</h3>
         <div style={styles.row}>
-          <div style={styles.inputGroup}>
-            <label>Patient Email:</label>
-            <input
-              type="email"
-              value={patientEmail}
-              onChange={(e) => setPatientEmail(e.target.value)}
-              placeholder="patient@example.com"
-              required
-              style={styles.input}
+          <div style={styles.fieldGroup}>
+            <label style={styles.externalLabel}>Patient</label>
+            <SuggestionBox
+              suggestions={patientSuggestions}
+              
+              onSuggSelect={(patient) =>{
+                setPatientEmail(patient.value);
+                setPatientName(patient.label)
+              }}
+              minCharsToSuggest={0}
+              clearOnSelect={false}
+              placeholder="Select or type patient name..."
             />
           </div>
-          <div style={styles.inputGroup}>
-            <label>Doctor Email:</label>
-            <input
-              type="email"
-              value={doctorEmail}
-              onChange={(e) => setDoctorEmail(e.target.value)}
-              placeholder="doctor@example.com"
-              required
-              style={styles.input}
+
+          <div style={styles.fieldGroup}>
+            <label style={styles.externalLabel}>Doctor </label>
+            <SuggestionBox
+              suggestions={doctorSuggestions}
+              
+              onSuggSelect={(doctor) => {
+                setDoctorEmail(doctor.value);
+                setDoctoeName(doctor.label)
+              }}
+              minCharsToSuggest={0}
+              clearOnSelect={false}
+              placeholder="Select or type doctor name..."
             />
           </div>
         </div>
+
         <button type="submit" disabled={searching} style={styles.btnPrimary}>
-          {searching ? 'Searching...' : 'Search Appointment'}
+          {searching ? <LoaderMessage
+            align="center"
+            message="Searching..."
+          /> : 'Find Appointment'}
         </button>
-        {searchError && <p style={styles.errorText}>{searchError}</p>}
+        {searchError && <MessageBox
+            message={searchError}
+            type="error"
+            duration={10}
+          /> }
       </form>
 
-      {/* APPOINTMENT DETAILS & RESCHEDULE FORM */}
+      {/* DETAILS AND RESCHEDULE FORM */}
       {appointment && (
-        <div style={styles.detailsCard}>
+        <div style={styles.card}>
           <h3>Current Appointment Details</h3>
           <div style={styles.grid}>
-            <p><strong>ID:</strong> {appointment.id}</p>
-            <p><strong>Status:</strong> <span style={styles.badge}>{appointment.status}</span></p>
-            <p><strong>Patient:</strong> {appointment.patientEmail || appointment.patientemail}</p>
-            <p><strong>Doctor:</strong> {appointment.doctorEmail || appointment.doctoremail}</p>
+            <p><strong>Appointment ID:</strong> {appointment.id}</p>
+            <p><strong>Status:</strong> {appointment.status}</p>
+            <p><strong>Patient Email:</strong> {appointment.patientemail}</p>
+            <p><strong>Doctor Email:</strong> {appointment.doctoremail}</p>
             <p><strong>Current Date:</strong> {appointment.date}</p>
             <p><strong>Current Time:</strong> {appointment.time}</p>
-            <p><strong>Meet Link:</strong> <a href={appointment.meetLink || appointment.meetlink} target="_blank" rel="noreferrer">Join Link</a></p>
-            <p><strong>Prescription:</strong> {appointment.prescriptionLink || appointment.prescriptionlink || 'N/A'}</p>
+            <p><strong>Meet Link:</strong> <a href={appointment.meetlink} target="_blank" rel="noreferrer">Open Google Meet</a></p>
+            <p><strong>Prescription:</strong> {appointment.prescriptionlink || 'N/A'}</p>
           </div>
 
           <hr style={styles.divider} />
 
-          <h3>Select New Date & Slot</h3>
+          <h3>Select Reschedule Time (30-min Slots)</h3>
           <form onSubmit={handleRescheduleSubmit}>
             <div style={styles.row}>
-              <div style={styles.inputGroup}>
-                <label>New Date:</label>
+              <div style={styles.fieldGroup}>
+                <label style={styles.externalLabel}>New Date</label>
                 <input
                   type="date"
                   value={selectedDate}
@@ -207,8 +206,8 @@ export default function AdminRescheduleView() {
                 />
               </div>
 
-              <div style={styles.inputGroup}>
-                <label>Available Slots (Based on Doctor Schedule):</label>
+              <div style={styles.fieldGroup}>
+                <label style={styles.externalLabel}>30-Minute Time Slot</label>
                 <select
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
@@ -218,12 +217,12 @@ export default function AdminRescheduleView() {
                 >
                   <option value="">
                     {loadingSlots
-                      ? 'Checking availability...'
+                      ? 'Loading slots...'
                       : !selectedDate
                       ? 'Select date first'
                       : availableSlots.length === 0
                       ? 'No available slots'
-                      : 'Select time slot'}
+                      : 'Select slot'}
                   </option>
                   {availableSlots.map((slot) => (
                     <option key={slot} value={slot}>
@@ -239,14 +238,19 @@ export default function AdminRescheduleView() {
               disabled={submitting || !selectedTime}
               style={{ ...styles.btnPrimary, marginTop: '16px' }}
             >
-              {submitting ? 'Updating...' : 'Confirm Reschedule'}
+              {submitting ? <LoaderMessage 
+                  align="center"
+                  message="Updating..."
+                />  : 'Confirm Reschedule'}
             </button>
           </form>
 
           {statusMessage.text && (
-            <div style={statusMessage.type === 'error' ? styles.errorBox : styles.successBox}>
-              {statusMessage.text}
-            </div>
+            <MessageBox
+              message={statusMessage.text}
+              type={statusMessage.type}
+              duration={10}
+            />
           )}
         </div>
       )}
@@ -255,18 +259,16 @@ export default function AdminRescheduleView() {
 }
 
 const styles = {
-  container: { width: '100%', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' },
-  title: { fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' },
-  searchCard: { backgroundColor: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' },
-  detailsCard: { backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #cbd5e1' },
-  row: { display: 'flex', gap: '16px', marginBottom: '12px' },
-  inputGroup: { flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' },
-  input: { padding: '8px 12px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '14px' },
-  btnPrimary: { backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '4px', cursor: 'pointer', fontWeight: '500' },
+  container: { maxWidth: '780px', margin: '0 auto', fontFamily: 'sans-serif' },
+  card: { backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' },
+  row: { display: 'flex', gap: '16px', marginBottom: '14px' },
+  fieldGroup: { flex: 1, display: 'flex', flexDirection: 'column' },
+  externalLabel: { fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#334155' },
+  input: { width: '100%', padding: '8px 12px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' },
+  btnPrimary: { backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '10px 18px', borderRadius: '4px', cursor: 'pointer', fontWeight: '500' },
   errorText: { color: '#dc2626', fontSize: '14px', marginTop: '8px' },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px', backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '6px' },
-  divider: { margin: '20px 0', borderColor: '#e2e8f0' },
-  badge: { backgroundColor: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' },
-  errorBox: { marginTop: '16px', padding: '10px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '6px' },
-  successBox: { marginTop: '16px', padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', borderRadius: '6px' }
+  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '6px', fontSize: '14px' },
+  divider: { margin: '20px 0', borderColor: '#f1f5f9' },
+  errorBox: { marginTop: '14px', padding: '10px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '6px' },
+  successBox: { marginTop: '14px', padding: '10px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', borderRadius: '6px' }
 };
