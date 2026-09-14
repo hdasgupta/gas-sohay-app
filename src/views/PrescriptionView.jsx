@@ -128,6 +128,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   if(patientEmail)
   alert(patientEmail);
+  
   const handleMedicineNameChange = (name) => {
     const isTablet = name.trim().toLowerCase().endsWith('tablet');
     setCurrentMed((prev) => ({
@@ -280,8 +281,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             <SuggestionBox
               suggestions={ masterPatients}
               placeholder="Type or select patient name..."
-              
-              
+              value= {patientInput}
               onSuggSelect={handleSelectPatient}
               style={defaultStyles.input}
             />
