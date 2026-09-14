@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { callBackend } from '../utils/backend';
+import MessageBox from '../components/MessageBox';
+import LoaderMessage from '../components/LoaderMessage';
 
 export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
   const [step, setStep] = useState(1); // 1: Send OTP, 2: Verify OTP & Reset

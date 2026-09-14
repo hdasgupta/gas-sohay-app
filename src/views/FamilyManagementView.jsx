@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 import MessageBox from '../components/MessageBox';
 import PaginatedList from '../components/PaginatedList';
+import LoaderMessage from '../components/LoaderMessage';
 
 export default function FamilyManagementView({ user = {}, styles = {} }) {
   const cardStyle = styles.card || { padding: '10px', background: '#fff', borderRadius: '8px', border: '1px solid #cbd5e1' };

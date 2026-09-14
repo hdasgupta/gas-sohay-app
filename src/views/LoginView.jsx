@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Captcha from '../components/Captcha';
+import MessageBox from '../components/MessageBox';
+import LoaderMessage from '../components/LoaderMessage';
 
 export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetPassword, styles }) {
   const [authForm, setAuthForm] = useState({ email: '', password: '', });
