@@ -395,7 +395,9 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
           disabled={loading || isMedicinesLoading}
           style={{ ...defaultStyles.btnPrimary, background: (loading || isMedicinesLoading) ? '#94a3b8' : '#2563eb' }}
         >
-          {loading ? 'Generating Google Doc...' : 'Generate Google Doc Prescription'}
+          {loading ? <LoaderMessage
+            align="center"
+            message= 'Generating Google Doc...' /> : 'Generate Google Doc Prescription'}
         </button>
 
         {docLink && (
