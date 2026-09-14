@@ -277,7 +277,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               placeholder="Type or select patient name..."
               
               
-              onSelect={handleSelectPatient}
+              onSuggSelect={handleSelectPatient}
               style={defaultStyles.input}
             />
           </div>
@@ -318,7 +318,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             placeholder="Search medicine catalog (type at least 3 letters)..."
             minCharsToSuggest={3}
             clearOnSelect = {true}
-            onSelect={(medicine) => {
+            onSuggSelect={(medicine) => {
             handleSelectSearchedMedicine(medicine.label);
                
             }}

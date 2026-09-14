@@ -16,8 +16,8 @@ import './SuggestionBox.css';
  */
 export default function SuggestionBox({
   suggestions = [],
-  onSelect,
-  onChange,
+  onSuggSelect,
+  onSuggChange,
   value: controlledValue,
   minCharsToSuggest = 0,
   clearOnSelect = false,
@@ -85,7 +85,7 @@ export default function SuggestionBox({
     setIsOpen(true);
 
     if (onChange) {
-      onChange(text);
+      onSuggChange(text);
     }
   };
 
@@ -100,12 +100,12 @@ export default function SuggestionBox({
     
     setIsOpen(false);
     alert(nextText)
-    if (onChange) {
-      onChange(nextText);
+    if (onSuggChange) {
+      onSuggChange(nextText);
     }
-    alert(onSelect.toString())
-    if (onSelect) {
-      onSelect(item.raw);
+    alert(onSuggSelect.toString())
+    if (onSuggSelect) {
+      onSuggSelect(item.raw);
     }
     alert(JSON.stringify(item));
   };
