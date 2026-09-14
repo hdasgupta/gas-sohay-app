@@ -30,15 +30,6 @@ export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetP
         <MessageBox
             message={error}
             type="error"
-            style={{
-              padding: '10px 14px',
-              marginBottom: '16px',
-              borderRadius: '6px',
-              fontSize: '13px',
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#dc2626'
-            }}
             duration={10}
           />
         
