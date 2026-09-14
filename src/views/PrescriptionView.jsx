@@ -277,10 +277,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               placeholder="Type or select patient name..."
               
               
-              onSelect={(patient) => {
-                alert(JSON.stringify(patient));
-                handleSelectPatient(patient)
-              }}
+              onSelect={handleSelectPatient}
               style={defaultStyles.input}
             />
           </div>
