@@ -164,6 +164,7 @@ function breakInto30MinSlots(scheduleArray) {
   return slots;
 }
 
+/*
 function parseTimeToMinutes(timeStr) {
   const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
   if (!match) return null;
@@ -176,7 +177,7 @@ function parseTimeToMinutes(timeStr) {
     if (ampm === "AM" && hours === 12) hours = 0;
   }
   return hours * 60 + minutes;
-}
+}*/
 
 function formatMinutesToTime(totalMinutes) {
   let hours = Math.floor(totalMinutes / 60);
