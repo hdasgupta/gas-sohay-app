@@ -6,8 +6,8 @@ import AlertErrorBoundary from './components/AlertErrorBoundary';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-  <AlertErrorBoundary>
+ 
     <App />
-  </AlertErrorBoundary>
+
   </StrictMode>,
 )
