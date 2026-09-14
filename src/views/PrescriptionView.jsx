@@ -112,7 +112,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   // Patient Selection captures and stores email silently
   const handleSelectPatient = (patient) => {
-    alert(JSON.stringify(patient));
+    alert(patient);
     const pName = typeof patient === 'string' ? patient : patient?.name || '';
     const pEmail = typeof patient === 'object' && patient?.email ? patient.email : '';
     const pAge = typeof patient === 'object' && patient?.age ? patient.age : '';
@@ -133,7 +133,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   };
 
   const handleSelectSearchedMedicine = (med) => {
-    const selectedName = typeof med === 'string' ? med : med?.name || '';
+    const selectedName = typeof med === 'string' ? med : med?.label || '';
     handleMedicineNameChange(selectedName);
     setSearchTerm('');
   };
