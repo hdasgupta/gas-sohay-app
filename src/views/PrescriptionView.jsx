@@ -73,6 +73,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     try {
       //loadCSVInParallel(url)
       callBackend('getMedicineMasterList', [], (data) => {
+        alert(data);
         setMasterMedicines(Array.isArray(data) ? data : []);
         medDone = true;
         checkLoadingFinished();
