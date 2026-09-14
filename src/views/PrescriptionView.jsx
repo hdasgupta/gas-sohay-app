@@ -123,6 +123,8 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     
   };
 
+  if(patientEmail)
+  alert(patientEmail);
   const handleMedicineNameChange = (name) => {
     const isTablet = name.trim().toLowerCase().endsWith('tablet');
     setCurrentMed((prev) => ({

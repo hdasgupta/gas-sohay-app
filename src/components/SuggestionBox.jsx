@@ -93,21 +93,21 @@ export default function SuggestionBox({
     
     const nextText = clearOnSelect ? '' : item.label;
 
-    alert(isControlled)
+    
     if (!isControlled) {
       setInternalValue(nextText);
     }
     
     setIsOpen(false);
-    alert(nextText)
+    
     if (onSuggChange) {
       onSuggChange(nextText);
     }
-    alert(onSuggSelect.toString())
+    
     if (onSuggSelect) {
       onSuggSelect(item.raw);
     }
-    alert(JSON.stringify(item));
+    
   };
 
   const showDropdown = isOpen && filteredSuggestions.length > 0;
