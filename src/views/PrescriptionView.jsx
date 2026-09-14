@@ -327,7 +327,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
             placeholder="Search medicine catalog (type at least 3 letters)..."
             minCharsToSuggest={3}
             clearOnSelect = {true}
-            onSuggSelect={hanndleSelectSearchedMedicine}
+            onSuggSelect={handleSelectSearchedMedicine}
             style={defaultStyles.input}
           />
         
