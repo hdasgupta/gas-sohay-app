@@ -108,19 +108,21 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setCurrentMed(initialMedState);
   };
 
-  
+  const handleChangePatient = (patientName) => {
+    setPatientInput(pName);
+  }
 
   // Patient Selection captures and stores email silently
   const handleSelectPatient = (patient) => {
     try{
     
-    const pName = typeof patient === 'string' ? patient : patient?.label || '';
-    const pEmail = typeof patient === 'object' && patient?.value ? patient.value: '';
-    const pAge = typeof patient === 'object' && patient?.age ? patient.age : '';
+    const pName = patient?.label || '';
+    const pEmail = patient?.value|| '';
+    
     setAlert("pName="+pName, "info", 10);
     setPatientInput(pName);
     setPatientEmail(pEmail); // Store patient email internally
-    if (pAge) setPatientAge(pAge);
+    
     } catch (e) {
       alert(e.message)
     }
@@ -282,6 +284,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
               suggestions={ masterPatients}
               placeholder="Type or select patient name..."
               value= {patientInput}
+              onSuggChange={handleChangePatient}
               onSuggSelect={handleSelectPatient}
               style={defaultStyles.input}
             />
