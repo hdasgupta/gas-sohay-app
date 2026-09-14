@@ -32,7 +32,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   const todayDate = new Date().toISOString().split('T')[0];
 
-  const [alert, setAlert] = useState(null);
+  const [msg, setMsg] = useState(null);
   const [masterMedicines, setMasterMedicines] = useState([]);
   const [masterPatients, setMasterPatients] = useState([]);
   const [isMedicinesLoading, setIsMedicinesLoading] = useState(true);
@@ -56,7 +56,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   };
   
   const showAlert = (message, type = 'info', duration = 10000) => {
-    setAlert({ message, type, duration });
+    setMsg({ message, type, duration });
   };
 
   const [currentMed, setCurrentMed] = useState(initialMedState);
@@ -120,7 +120,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     const pName = patient?.label || '';
     const pEmail = patient?.value|| '';
     
-    setAlert("pName="+pName, "info", 10);
+    setMsg("pName="+pName, "info", 10);
     setPatientInput(pName);
     setPatientEmail(pEmail); // Store patient email internally
     
@@ -251,12 +251,12 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     <div style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
-      {alert && (
+      {msg && (
         <MessageBox
-          message={alert.message}
-          type={alert.type}
-          duration={alert.duration}
-          onClose={() => setAlert(null)}
+          message={msg.message}
+          type={msg.type}
+          duration={msg.duration}
+          onClose={() => setMsg(null)}
         />
       )}
       
