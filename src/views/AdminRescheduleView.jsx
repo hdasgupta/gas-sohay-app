@@ -218,7 +218,10 @@ export default function AdminRescheduleView() {
                 >
                   <option value="">
                     {loadingSlots
-                      ? 'Loading slots...'
+                      ? <LoaderMessage 
+                    align="center"
+                    message="Loading slots..."
+                  />
                       : !selectedDate
                       ? 'Select date first'
                       : availableSlots.length === 0
