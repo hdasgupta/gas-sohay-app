@@ -110,7 +110,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   };
 
   const handleChangePatient = (patientName) => {
-    setPatientInput(pName);
+    setPatientInput(patientName);
   }
 
   // Patient Selection captures and stores email silently
