@@ -12,7 +12,7 @@ import FamilyManagementView from './views/FamilyManagementView';
 import ResetPasswordView from './views/ResetPasswordView';
 import SlideView from './views/SlideView';
 import AdminRescheduleView from './views/AdminRescheduleView';
-import MessageBox from '../components/MessageBox';
+import MessageBox from './components/MessageBox';
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
 
