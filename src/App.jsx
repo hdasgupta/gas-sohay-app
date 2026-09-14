@@ -134,7 +134,7 @@ export default function App() {
           </button>
         </div>}
 
-      <Alert message={status} styles={styles} />
+      {status && <MessagwBox message={status} type="info" duration = {5000} onClose={()=>setStatus('')}/>}
 
       <SlideView activeKey={view}>
       {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} onNavigateResetPassword={() => setView('resetPassword')} styles={styles} />}
