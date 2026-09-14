@@ -13,6 +13,7 @@ import ResetPasswordView from './views/ResetPasswordView';
 import SlideView from './views/SlideView';
 import AdminRescheduleView from './views/AdminRescheduleView';
 import MessageBox from './components/MessageBox';
+import LoaderMessage from './components/LoaderMessage';
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
 
@@ -22,6 +23,7 @@ export default function App() {
   const [doctors, setDoctors] = useState([]);
   const [confirmation, setConfirmation] = useState(null);
   const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const saved = getSession();
@@ -66,12 +68,12 @@ export default function App() {
 };
 
   const handleLogin = ({ email, password }) => {
-    setStatus('Authenticating...');
+    setLoading(true);
     callBackend('authenticateUser', [email, password], (res) => {
       if (res.success) {
         setUser(res.user);
         saveSession(res.user);
-        setStatus('');
+        setLoading(false);
         routeUserByRole(res.user);
       } else {
         setStatus(res.error);
@@ -135,7 +137,13 @@ export default function App() {
           </button>
         </div>}
 
-      {status && <MessageBox message={status} type="info" duration = {5000} onClose={()=>setStatus('')}/>}
+      {status && <MessageBox message={status} type="error" duration = {5000} onClose={()=>setStatus('')}/>}
+      
+      {loading && <LoaderMessage 
+            align="center"
+            
+            message="Authenticating..."
+          />}
 
       <SlideView activeKey={view}>
       {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} onNavigateResetPassword={() => setView('resetPassword')} styles={styles} />}
