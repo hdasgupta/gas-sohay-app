@@ -68,6 +68,7 @@ export default function MessageBox({
       </button>
 
       <div
+        key={message}
         className="progress-bar"
         style={{
           '--duration': `${duration}ms`,
