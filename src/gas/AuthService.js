@@ -151,7 +151,7 @@ function getPatientMaster() {
   var userSheet = getOrCreateSheet('Users');
   var users = userSheet.getDataRange().getValues();
   var patients = []
-  for (var i = 1; i < users.length; i++) {
+  for (var i = 2; i < users.length; i++) {
   
     patients.push({
       id: users[i][0],
