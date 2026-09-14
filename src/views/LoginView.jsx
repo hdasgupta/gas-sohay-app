@@ -31,6 +31,7 @@ export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetP
             message={error}
             type="error"
             duration={10000}
+            onClose={()=>setError('')}
           />
         
       )}
