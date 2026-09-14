@@ -12,7 +12,7 @@ export default class AlertErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     // Triggers native browser alert on runtime error
-    alert(`Runtime Error: ${error.message}`);
+    alert(`Runtime Error: ${JSON.stringify(error)}, ${JSON.stringify(errorInfo)}`);
   }
 
   render() {
