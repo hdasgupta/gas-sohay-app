@@ -127,9 +127,9 @@ function saveDoctor(payload) {
       return { success: false, error: "A doctor with this phone number already exists." };
     }
   }
-
+  var lastId= Number(data.at(-1)[0].slice(3)) 
   // 5. Append Row
-  const newId = "DOC" + (1000 + data.length);
+  const newId = "DOC" + (lastId + 1);
   const hashedPassword = hashPassword(password);
 
   sheet.appendRow([
