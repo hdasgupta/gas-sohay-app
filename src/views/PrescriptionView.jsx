@@ -112,6 +112,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
 
   // Patient Selection captures and stores email silently
   const handleSelectPatient = (patient) => {
+    try{
     
     const pName = typeof patient === 'string' ? patient : patient?.label || '';
     const pEmail = typeof patient === 'object' && patient?.value ? patient.value: '';
@@ -120,7 +121,9 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     setPatientInput(pName);
     setPatientEmail(pEmail); // Store patient email internally
     if (pAge) setPatientAge(pAge);
-    
+    } catch (e) {
+      alert(e.message)
+    }
   };
 
   if(patientEmail)
