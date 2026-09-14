@@ -16,7 +16,7 @@ export default function MessageBox({
   onClose
 }) {
   const [remainingTime, setRemainingTime] = useState(duration);
-  const [isPaused, setIsPaused] = useState(false);
+  //const [isPaused, setIsPaused] = useState(false);
   const startTimeRef = useRef(Date.now());
   const timerRef = useRef(null);
 
@@ -30,26 +30,26 @@ export default function MessageBox({
   };
 
   useEffect(() => {
-    if (isPaused) {
-      clearTimeout(timerRef.current);
-    } else {
+    //if (isPaused) {
+    //  clearTimeout(timerRef.current);
+    //} else {
       startTimeRef.current = Date.now();
       timerRef.current = setTimeout(() => {
         if (onClose) onClose();
       }, remainingTime);
-    }
+    //}
 
     return () => clearTimeout(timerRef.current);
-  }, [isPaused, remainingTime, onClose]);
+  }, [/*isPaused,*/ remainingTime, onClose]);
 
   const handleMouseEnter = () => {
-    setIsPaused(true);
+    //setIsPaused(true);
     const elapsedTime = Date.now() - startTimeRef.current;
     setRemainingTime((prev) => Math.max(0, prev - elapsedTime));
   };
 
   const handleMouseLeave = () => {
-    setIsPaused(false);
+    //setIsPaused(false);
   };
 
   return (
@@ -71,7 +71,7 @@ export default function MessageBox({
         className="progress-bar"
         style={{
           '--duration': `${duration}ms`,
-          animationPlayState: isPaused ? 'paused' : 'running'
+          animationPlayState:/* isPaused ? 'paused' :*/ 'running'
         }}
       />
     </div>
