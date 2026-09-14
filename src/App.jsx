@@ -11,6 +11,7 @@ import PrescriptionView from './views/PrescriptionView';
 import FamilyManagementView from './views/FamilyManagementView';
 import ResetPasswordView from './views/ResetPasswordView';
 import SlideView from './views/SlideView';
+import AdminRescheduleView from './views/AdminRescheduleView';
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
 
@@ -112,6 +113,7 @@ export default function App() {
           <button onClick={() => setView('family')} style={view === 'family' ? styles.navActive : styles.navBtn}>
           Family
         </button></>}
+        
           <button style={view === 'appointments' ? styles.navActive : styles.navBtn} onClick={() => setView('appointments')}>
             My/Family Appointments
           </button>
@@ -123,6 +125,14 @@ export default function App() {
           </button>}
         </div>
       )}
+      {user && user.role==='admin' && <div style={styles.navBar}>
+          <button style={view === 'admin' ? styles.navActive : styles.navBtn} onClick={() => setView('admin')}>
+           Add Doctor
+          </button>
+          <button style={view === 'reschedule' ? styles.navActive : styles.navBtn} onClick={() => setView('reschedule')}>
+           Reschedule Appointment
+          </button>
+        </div>}
 
       <Alert message={status} styles={styles} />
 
@@ -136,6 +146,7 @@ export default function App() {
       {view === 'family' && <FamilyManagementView user={user} />}
       {view === 'admin' && <AdminView
          styles={styles} />}
+      {view === 'reschedule' && <AdminRescheduleView />}
       {view === 'confirmed' && confirmation && (
         <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
