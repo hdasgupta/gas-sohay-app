@@ -56,7 +56,11 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
     });
   };
 
-  if (loading) return <div style={cardStyle}>Loading family details...</div>;
+  if (loading) return  <LoaderMessage
+            align="center"
+            style={cardStyle}
+            message="Loading family details..."
+          />;
 
   const familyMemberProcessor = (member) => {
     return (
@@ -97,7 +101,7 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
           <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px' }}>Family Name</label>
           <input
             style={inputStyle}
-            placeholder="e.g. Dasgupta Family"
+            placeholder="e.g. WBFFMH Family"
             value={newFamilyName}
             onChange={(e) => setNewFamilyName(e.target.value)}
           />

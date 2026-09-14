@@ -90,19 +90,12 @@ export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
       </p>
 
       {message && (
-        <div
-          style={{
-            padding: '10px 14px',
-            marginBottom: '20px',
-            borderRadius: '6px',
-            fontSize: '13px',
-            background: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
-            border: message.type === 'success' ? '1px solid #bbf7d0' : '1px solid #fecaca',
-            color: message.type === 'success' ? '#15803d' : '#dc2626'
-          }}
-        >
-          {message.text}
-        </div>
+        <MessageBox
+            message={message.text}
+            type={message.type}
+            duration={10}
+          />
+        
       )}
 
       {step === 1 ? (
@@ -145,7 +138,10 @@ export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
               opacity: loading ? 0.7 : 1
             }}
           >
-            {loading ? 'Sending OTP...' : 'Send OTP'}
+            {loading ? <LoaderMessage
+              align="center"
+              message="Sending OTP..."
+            /> : 'Send OTP'}
           </button>
         </form>
       ) : (
@@ -233,7 +229,10 @@ export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
               marginBottom: '12px'
             }}
           >
-            {loading ? 'Updating Password...' : 'Reset Password'}
+            {loading ? <LoaderMessage
+            align="center"
+            message="Updating Password..."
+          /> : 'Reset Password'}
           </button>
 
           <button
