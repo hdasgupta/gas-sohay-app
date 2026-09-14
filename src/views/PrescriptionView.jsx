@@ -118,8 +118,6 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
     
     const pName = patient?.label || '';
     const pEmail = patient?.value|| '';
-    
-    setMsg("pName="+pName, "info", 10);
     setPatientInput(pName);
     setPatientEmail(pEmail); // Store patient email internally
     
