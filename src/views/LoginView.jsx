@@ -30,7 +30,7 @@ export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetP
         <MessageBox
             message={error}
             type="error"
-            duration={10}
+            duration={10000}
           />
         
       )}
