@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default const SlideView = ({ activeKey, children }) => {
+const SlideView = ({ activeKey, children }) => {
   const activeChild = React.Children.toArray(children).find(
     (child) => child.key === activeKey
   );
@@ -22,3 +22,5 @@ export default const SlideView = ({ activeKey, children }) => {
     </div>
   );
 };
+
+export default SlideView;
