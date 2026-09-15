@@ -4,16 +4,11 @@
 function saveMedicineToMaster(name, power) {
   if (!name) return;
   initDatabase();
-  var sheet = getOrCreateSheet('Medicines');
   
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Name', 'Power']);
-  }
-
-  var data = sheet.getDataRange().getValues();
+  var data = getAllData("Medicines");
   var exists = false;
 
-  for (var i = 1; i < data.length; i++) {
+  for (var i = 0; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().toLowerCase() === name.toLowerCase()) {
       exists = true;
       break;
@@ -252,16 +247,14 @@ return {
  * Col F (6): Prescription Link
  */
 function findLatestAppointment(doctorEmail, patientEmail) {
-  var sheet = getOrCreateSheet("Appointments");
-  if (!sheet) return null;
-
-  var data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return null; // No rows or header only
+  
+  var data = getAllData("Appointments");
+  if (data.length ==0) return null; // No rows or header only
 
   var latestAppt = null;
   var latestTimestamp = -1;
 
-  for (var i = 1; i < data.length; i++) {
+  for (var i = 0; i < data.length; i++) {
     var row = data[i];
     var pEmail = String(row[1] || "").toLowerCase().trim();
     var dEmail = String(row[2] || "").toLowerCase().trim();
@@ -314,15 +307,10 @@ function sanitizeFileName(name) {
  */
 function getPatientMasterList() {
   initDatabase();
-  var sheet = getOrCreateSheet('Users');
-  var lastRow = sheet.getLastRow();
+  
 
-  if (lastRow <= 1) {
-    return [];
-  }
-
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0].map(function(h) { 
+  var data = getAllData("Users");
+  var headers = getHeader("Users").map(function(h) { 
     return h.toString().toLowerCase().trim(); 
   });
 
@@ -338,7 +326,7 @@ function getPatientMasterList() {
   var patients = [];
   var seen = {};
 
-  for (var i = 1; i < data.length; i++) {
+  for (var i = 0; i < data.length; i++) {
     var row = data[i];
     var name = row[nameIdx] ? row[nameIdx].toString().trim() : '';
     var role = roleIdx !== -1 && row[roleIdx] ? row[roleIdx].toString().trim().toLowerCase() : '';

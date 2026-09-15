@@ -14,10 +14,8 @@
  * @return {Object} Status and count of cancelled appointments.
  */
 function cancelPastAppointmentsWithoutPrescription() {
-  const sheet = getOrCreateSheet("Appointments");
-  if (!sheet) return { success: false, error: "Appointments sheet not found." };
-
-  const data = sheet.getDataRange().getValues();
+  
+  const data = getAllData("Appointments");
   if (data.length <= 1) return { success: true, updatedCount: 0 };
 
   // Set today's date at midnight (00:00:00) for accurate date comparison
@@ -26,7 +24,7 @@ function cancelPastAppointmentsWithoutPrescription() {
 
   let updatedCount = 0;
 
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     const row = data[i];
     const rawDate = JSON.parse(row[3]);
     const status = row[6] ? row[6].toString().trim() : '';
