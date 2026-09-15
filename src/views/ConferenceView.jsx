@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
+import SingleRecorderJitsi from '../components/SingleRecorderJitsi'
 
 export default function ConferenceView({ key, appointmentId, user, styles = {} }) {
   return (
