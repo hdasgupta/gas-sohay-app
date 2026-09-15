@@ -1,26 +1,49 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 
-const SlideView = ({ activeKey, children }) => {
-  const activeChild = React.Children.toArray(children).find(
-    (child) => child.key === activeKey
-  );
+export const SlideView = ({ activeKey, children }) => {
+  const [currentKey, setCurrentKey] = useState(activeKey);
+  const [prevKey, setPrevKey] = useState(null);
+
+  useEffect(() => {
+    if (activeKey !== currentKey) {
+      setPrevKey(currentKey);
+      setCurrentKey(activeKey);
+    }
+  }, [activeKey, currentKey]);
+
+  const handleAnimationEnd = (key) => {
+    // Unmount previous view only after its exit animation ends
+    if (key === prevKey) {
+      setPrevKey(null);
+    }
+  };
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden' }}>
-      <AnimatePresence initial={false}>
-        <motion.div
-          key={activeKey}
-          initial={{ x: '100%' }}
-          animate={{ x: '0%' }}
-          exit={{ x: '-100%', position: 'absolute', top: 0, left: 0, width: '100%' }}
-          transition={{ duration: 0.3 }}
-        >
-          {activeChild}
-        </motion.div>
-      </AnimatePresence>
+    <div className="slide-view-container">
+      {React.Children.map(children, (child) => {
+        if (!child) return null;
+        const key = child.key;
+        const isCurrent = key === currentKey;
+        const isPrev = key === prevKey;
+
+        // Render only current and exiting children
+        if (!isCurrent && !isPrev) return null;
+
+        const isAnimating = prevKey !== null;
+        const statusClass = isCurrent
+          ? isAnimating ? 'slide-in' : 'active'
+          : 'slide-out';
+
+        return (
+          <div
+            key={key}
+            className={`slide-item ${statusClass}`}
+            onAnimationEnd={() => handleAnimationEnd(key)}
+          >
+            {child}
+          </div>
+        );
+      })}
     </div>
   );
 };
-
-export default SlideView;
