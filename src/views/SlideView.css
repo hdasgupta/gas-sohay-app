@@ -1,30 +1,30 @@
-.slide-view-wrapper {
-  position: relative;
+.slide-view-container {
+  display: grid;
+  grid-template-columns: 1fr;
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
 
+/* Force all items into the same grid cell so they stack without collapsing height */
 .slide-item {
+  grid-area: 1 / 1;
   width: 100%;
+  will-change: transform;
 }
 
-/* Overlay elements during transition */
-.slide-in-left,
-.slide-out-right {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+.slide-static {
+  transform: translateX(0);
 }
 
-/* Incoming view enters from the left */
 .slide-in-left {
   animation: slideInFromLeft 300ms ease-in-out forwards;
+  z-index: 2;
 }
 
-/* Outgoing view slides out to the right */
 .slide-out-right {
   animation: slideOutToRight 300ms ease-in-out forwards;
+  z-index: 1;
 }
 
 @keyframes slideInFromLeft {

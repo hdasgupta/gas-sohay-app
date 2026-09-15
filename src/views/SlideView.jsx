@@ -1,47 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './SlideView.css';
 
 const SlideView = ({ activeKey, children }) => {
-  const [currentKey, setCurrentKey] = useState(activeKey);
-  const [prevKey, setPrevKey] = useState(null);
+  // Sync transition state during render to avoid 1-frame useEffect lag
+  const [state, setState] = useState({ current: activeKey, prev: null });
 
-  useEffect(() => {
-    if (activeKey !== currentKey) {
-      setPrevKey(currentKey);
-      setCurrentKey(activeKey);
-    }
-  }, [activeKey, currentKey]);
+  if (activeKey !== state.current) {
+    setState({
+      current: activeKey,
+      prev: state.current,
+    });
+  }
+
+  // Strip React internal `.$` prefix from child keys
+  const getCleanKey = (child) => {
+    if (!child || child.key === null || child.key === undefined) return null;
+    return String(child.key).replace(/^\.\$/, '');
+  };
 
   const handleAnimationEnd = (key) => {
-    if (key === prevKey) {
-      setPrevKey(null);
+    if (key === state.prev) {
+      setState((prev) => ({ ...prev, prev: null }));
     }
   };
 
   return (
-    <div className="slide-view-wrapper">
+    <div className="slide-view-container">
       {React.Children.map(children, (child) => {
         if (!child) return null;
-        const key = child.key;
 
-        const isCurrent = key === currentKey;
-        const isPrev = key === prevKey;
+        const childKey = getCleanKey(child);
+        const isCurrent = childKey === String(state.current);
+        const isPrev = childKey === String(state.prev);
 
-        // Do not render items that are neither current nor exiting
+        // Keep only active and exiting children mounted
         if (!isCurrent && !isPrev) return null;
 
-        const isTransitioning = prevKey !== null;
-        let animationClass = 'active';
+        const isAnimating = state.prev !== null;
+        let animClass = 'slide-static';
 
-        if (isTransitioning) {
-          animationClass = isCurrent ? 'slide-in-left' : 'slide-out-right';
+        if (isAnimating) {
+          animClass = isCurrent ? 'slide-in-left' : 'slide-out-right';
         }
 
         return (
           <div
-            key={key}
-            className={`slide-item ${animationClass}`}
-            onAnimationEnd={() => handleAnimationEnd(key)}
+            key={childKey}
+            className={`slide-item ${animClass}`}
+            onAnimationEnd={() => handleAnimationEnd(childKey)}
           >
             {child}
           </div>
