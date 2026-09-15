@@ -37,7 +37,7 @@ export default function App() {
   }, []);
 
   const routeUserByRole = (usr) => {
-    if(window.appointmentId) {
+    if(window.roomId) {
       setView('conference')
     }
     else if (usr.role === 'admin') {

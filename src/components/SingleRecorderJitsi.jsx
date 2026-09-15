@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-export default function SingleRecorderJitsi({ roomId, userEmail, userName, isRecorder = false, driveFolderId }) {
+export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, isRecorder = false, driveFolderId }) {
   const containerRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
@@ -108,7 +108,7 @@ export default function SingleRecorderJitsi({ roomId, userEmail, userName, isRec
   };
   
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+    <div key={key} style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
       <div style={{ 
         padding: '8px 12px', 
         marginBottom: '8px', 
