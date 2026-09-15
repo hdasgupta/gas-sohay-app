@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './SlideView.css';
 
 const SlideView = ({ activeKey, children }) => {
   const [currentKey, setCurrentKey] = useState(activeKey);
