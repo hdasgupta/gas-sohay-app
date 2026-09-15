@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export const SlideView = ({ activeKey, children }) => {
+const SlideView = ({ activeKey, children }) => {
   const [currentKey, setCurrentKey] = useState(activeKey);
   const [prevKey, setPrevKey] = useState(null);
 
@@ -47,3 +47,5 @@ export const SlideView = ({ activeKey, children }) => {
     </div>
   );
 };
+
+export default SlideView;
