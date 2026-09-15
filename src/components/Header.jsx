@@ -9,13 +9,13 @@ export default function Header({ logo, user, orgName, onLogout, styles }) {
       <button onClick={onLogout} style={styles.btnDanger}>Logout</button>
       
     </div>
-    <div>
+    <div style={styles.header}>
         <img 
           src={logo} 
           alt={`${orgName} Logo`} 
           className="header-logo" 
-          height="300"
-          width="300"
+          height="100"
+          width="100"
         />
         <h1>{orgName}</h1>
       </div>
