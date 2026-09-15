@@ -5,7 +5,7 @@ import SingleRecorderJitsi from '../components/SingleRecorderJitsi'
 export default function ConferenceView({ key, appointmentId, user, styles = {} }) {
   return (
     <SingleRecorderJitsi 
-      key={kkey}
+      key={key}
       roomId={appointmentId}
       isRecorder={user.role === "doctor"}
       userEmail={user.email}
