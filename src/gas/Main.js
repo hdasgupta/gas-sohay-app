@@ -1,7 +1,7 @@
 /**
  * Web App Entry Point serving single page application container.
  */
-function doGet() {
+function doGet(e) {
   var template = HtmlService.createTemplateFromFile('index');
   
   template.roomId = e.pathInfo||undefined;
