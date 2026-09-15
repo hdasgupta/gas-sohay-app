@@ -36,15 +36,18 @@ export default function App() {
   }, []);
 
   const routeUserByRole = (usr) => {
-  if (usr.role === 'admin') {
-    setView('admin');
-  } else if (usr.role === 'doctor') {
-    setView('prescription');
-  } else {
-    setView('booking');
-  }
-  loadDoctors();
-};
+    if(window.appointmentId) {
+      setView('conference')
+    }
+    else if (usr.role === 'admin') {
+      setView('admin');
+    } else if (usr.role === 'doctor') {
+      setView('prescription');
+    } else {
+      setView('booking');
+    }
+    loadDoctors();
+  };
 
   const loadDoctors = () => {
     callBackend('getDoctorsList', [], (data) => setDoctors(data || []));

@@ -28,3 +28,9 @@ function getOrCreateSheet(name, headers) {
   }
   return sheet;
 }
+
+function getAllData(name) {
+  const sheet = getOrCreateSheet(name)
+  const data = sheet.getDataRange().getValues();
+  return data.slice(1);
+}

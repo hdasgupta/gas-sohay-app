@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>gas-sohay-app</title>
     <script>
+      <? if(serverData) {
+        for(key in serverData) {
+        ?>
+        window[key] = <?!= JSON.stringify(serverData[key]) ?>;
+        <? 
+        }
+      } ?>
       window.roomId = "<?= roomId ?>";
     </script>
   </head>
