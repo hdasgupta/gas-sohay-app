@@ -24,7 +24,7 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
         configOverwrite: { startWithAudioMuted: false, disableDeepLinking: true }
       };
       
-      apiInstance = new window.JitsiMeetExternalAPI('meet.jit.si', options);
+      apiInstance = new window.JitsiMeetExternalAPI('meet.ffm.freifunk.net', options);
       
       // ACTIVE ONLY FOR DESIGNATED RECORDER
       if (isRecorder) {
