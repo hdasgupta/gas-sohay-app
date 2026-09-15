@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import logo from './assets/logo.jpg';
+import logo from './assets/logo.png';
 import Header from './components/Header';
 import Alert from './components/Alert';
 import MeetLinkCard from './components/MeetLinkCard';
