@@ -147,18 +147,18 @@ export default function App() {
           />}
 
       <SlideView activeKey={view}>
-      {view === 'login' && <LoginView onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} onNavigateResetPassword={() => setView('resetPassword')} styles={styles} />}
-      {view === 'signup' && <SignupView onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />}
-      {view === 'resetPassword' && <ResetPasswordView styles={styles} />}
-      {view === 'booking' && <BookingView doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />}
-      {view === 'appointments' && <AppointmentListView user={user} styles={styles} />}
-      {view === 'prescription' &&  <PrescriptionView user={user} styles={styles} />}
-      {view === 'family' && <FamilyManagementView user={user} />}
-      {view === 'admin' && <AdminView
-         styles={styles} />}
-      {view === 'reschedule' && <AdminRescheduleView />}
-      {view === 'confirmed' && confirmation && (
-        <MeetLinkCard confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
+      <LoginView key="login" onSubmit={handleLogin} onNavigateSignup={() => setView('signup')} onNavigateResetPassword={() => setView('resetPassword')} styles={styles} />
+      <SignupView key="signup"  onSubmit={(formData) => handleSignUp(formData)} onNavigateLogin={() => setView('login')} styles={styles} />
+      <ResetPasswordView key="resetPassword" styles={styles} />
+      <BookingView key="booking" doctors={doctors} user={user} onSubmitBooking={handleBookAppointment} styles={styles} />
+      <AppointmentListView key="appointments" user={user} styles={styles} />
+      <PrescriptionView key="prescription" user={user} styles={styles} />
+      <FamilyManagementView key="family" user={user} />
+      <AdminView key="admin"
+         styles={styles} />
+      <AdminRescheduleView key="reschedule" />
+       {confirmation && (
+        <MeetLinkCard key="confirmation" confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
       </SlideView>
     </div>
