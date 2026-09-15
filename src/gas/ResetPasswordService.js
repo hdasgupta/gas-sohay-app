@@ -10,36 +10,33 @@ function sendPasswordResetOtp(email) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let userFound = false;
 
-  // Search in 'Users' sheet
-  const usersSheet = ss.getSheetByName("Users");
-  if (usersSheet) {
-    const data = usersSheet.getDataRange().getValues();
-    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+ 
+    const data = getAllData("Users");
+    const headers = getHeader("Users").map(h => h.toString().toLowerCase().trim());
     const emailColIdx = headers.indexOf("email") !== -1 ? headers.indexOf("email") : 1;
 
-    for (let i = 1; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       if (data[i][emailColIdx] && data[i][emailColIdx].toString().trim().toLowerCase() === cleanEmail) {
         userFound = true;
         break;
       }
     }
-  }
+  
 
   // Search in 'Doctors' sheet if not found in Users
   if (!userFound) {
-    const doctorsSheet = ss.getSheetByName("Doctors");
-    if (doctorsSheet) {
-      const data = doctorsSheet.getDataRange().getValues();
-      const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    
+      const data = getAllData("Doctors");
+      const headers = getHeader("Doctors").map(h => h.toString().toLowerCase().trim());
       const emailColIdx = headers.indexOf("email") !== -1 ? headers.indexOf("email") : 1;
 
-      for (let i = 1; i < data.length; i++) {
+      for (let i = 0; i < data.length; i++) {
         if (data[i][emailColIdx] && data[i][emailColIdx].toString().trim().toLowerCase() === cleanEmail) {
           userFound = true;
           break;
         }
       }
-    }
+    
   }
 
   if (!userFound) {
@@ -106,13 +103,11 @@ function resetPasswordWithOtp(email, otp, newPassword, confirmPassword) {
 
   // Helper to update password column in a sheet
   const updateSheetPassword = (sheetName) => {
-    const sheet = ss.getSheetByName(sheetName);
-    if (!sheet) return false;
+    
+    const data = getAllData(sheetName);
+    if (data.length < 1) return false;
 
-    const data = sheet.getDataRange().getValues();
-    if (data.length < 2) return false;
-
-    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    const headers = getHeader(sheetName).map(h => h.toString().toLowerCase().trim());
     const emailIdx = headers.indexOf("email") !== -1 ? headers.indexOf("email") : 1;
     
     // Find hashedpassword column, fallback to password
@@ -120,7 +115,7 @@ function resetPasswordWithOtp(email, otp, newPassword, confirmPassword) {
     if (passIdx === -1) passIdx = headers.indexOf("password");
     if (passIdx === -1) passIdx = 2; // Default fallback column index
 
-    for (let i = 1; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       if (data[i][emailIdx] && data[i][emailIdx].toString().trim().toLowerCase() === cleanEmail) {
         sheet.getRange(i + 1, passIdx + 1).setValue(hashedPassword);
         return true;

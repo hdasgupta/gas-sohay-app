@@ -2,14 +2,12 @@
  * Fetches all appointments for a specific patient email (or all if omitted).
  */
 function getAppointmentsForUser(email) {
-  const sheet = getOrCreateSheet("Appointments");
-  if (!sheet) return [];
 
-  const data = sheet.getDataRange().getValues();
+  const data = getAllData("Appointments");
   const appointments = [];
   const members = (getFamilyDetailsByUser(email)?. members || []).map((member) => member.email);
 
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     const row = data[i];
     const rowPatientEmail = row[1] ? row[1].toString().trim().toLowerCase() : '';
     const rowDoctorEmail = row[2] ? row[2].toString().trim().toLowerCase() : '';
@@ -40,16 +38,11 @@ function cancelAppointment(appointmentId) {
     return { success: false, error: "Appointment ID is required." };
   }
 
-  const sheet = getOrCreateSheet("Appointments");
-  if (!sheet) {
-    return { success: false, error: "Appointments sheet not found." };
-  }
-
-  const data = sheet.getDataRange().getValues();
+  const data = getAllData("Appointments");
   let rowIndex = -1;
   let targetRow = null;
 
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().trim() === appointmentId.trim()) {
       rowIndex = i + 1; // 1-based index in Apps Script
       targetRow = data[i];

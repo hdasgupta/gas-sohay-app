@@ -34,3 +34,9 @@ function getAllData(name) {
   const data = sheet.getDataRange().getValues();
   return data.slice(1);
 }
+
+function getHeader(name) {
+  const sheet = getOrCreateSheet(name)
+  const data = sheet.getDataRange().getValues();
+  return data[0];
+}

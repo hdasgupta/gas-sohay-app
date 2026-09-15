@@ -11,13 +11,13 @@ function getSuggestionOptions() {
  * Fixed Sequence: [0: id, 1: patientemail, 2: doctoremail, 3: date, 4: time, 5: meetlink, 6: status, 7: prescription link]
  */
 function findActiveAppointment(patientEmail, doctorEmail) {
-  const sheet = getOrCreateSheet("Appointments");
-  const data = sheet.getDataRange().getValues();
+  
+  const data = getAllData("Appointments");
 
   const pEmail = String(patientEmail).trim().toLowerCase();
   const dEmail = String(doctorEmail).trim().toLowerCase();
 
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     const row = data[i];
     const rowPatient = String(row[1]).trim().toLowerCase();
     const rowDoctor = String(row[2]).trim().toLowerCase();
@@ -55,11 +55,10 @@ function getAvailableSlots(doctorEmail, patientEmail, selectedDateStr, currentAp
   const pEmail = String(patientEmail).trim().toLowerCase();
 
   // Fetch doctor availability schedule
-  const docSheet = getOrCreateSheet("Doctors");
-  const docData = docSheet.getDataRange().getValues();
+  const docData = getAllData("Doctors");
 
   let rawAvailability = {};
-  for (let i = 1; i < docData.length; i++) {
+  for (let i = 0; i < docData.length; i++) {
     if (String(docData[i][3]).trim().toLowerCase() === dEmail) {
       try {
         rawAvailability = typeof docData[i][6] === 'string'
@@ -88,14 +87,13 @@ function getAvailableSlots(doctorEmail, patientEmail, selectedDateStr, currentAp
   }
 
   // Cross-reference conflict with existing appointments
-  const appSheet = getOrCreateSheet("Appointments");
-  const appData = appSheet.getDataRange().getValues();
+  const appData = getAllData("Appointments");
 
   let currentApptDate = "";
   let currentApptTime = "";
 
   // Locate current appointment details
-  for (let i = 1; i < appData.length; i++) {
+  for (let i = 0; i < appData.length; i++) {
     if (String(appData[i][0]) === String(currentAppointmentId)) {
       currentApptDate = formatDate(JSON.parse(appData[i][3]));
       currentApptTime = String(JSON.parse(appData[i][4])).trim();
@@ -105,7 +103,7 @@ function getAvailableSlots(doctorEmail, patientEmail, selectedDateStr, currentAp
 
   const occupiedSlots = new Set();
 
-  for (let i = 1; i < appData.length; i++) {
+  for (let i = 0; i < appData.length; i++) {
     const rowId = String(appData[i][0]);
     const rowStatus = String(appData[i][6]).trim().toLowerCase();
 
@@ -195,10 +193,10 @@ function formatMinutesToTime(totalMinutes) {
  * Fixed Sequence: [0: id, 1: patientemail, 2: doctoremail, 3: date, 4: time, 5: meetlink, 6: status, 7: prescription link]
  */
 function updateAppointmentSchedule(appointmentId, newDate, newTime) {
-  const sheet = getOrCreateSheet("Appointments");
-  const data = sheet.getDataRange().getValues();
+  
+  const data = getAllData("Appointments");
 
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     if (String(data[i][0]) === String(appointmentId)) {
       const rowNum = i + 1;
       // Sheet columns are 1-indexed (date: 4, time: 5, status: 7)
