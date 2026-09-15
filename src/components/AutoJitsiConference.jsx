@@ -51,7 +51,11 @@ export default function SingleRecorderJitsi({ roomId, userEmail, userName, isRec
   const autoStartRecording = async () => {
     try {
       recordedChunksRef.current = [];
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: "browser" },
+          audio: true // Captures tab audio (all participants' voices)
+        });
+
       streamRef.current = stream;
       
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });

@@ -3,13 +3,13 @@
  */
 function getRoomDetails(roomId, userEmail) {
   // Example: Retrieve room details from a Google Sheet database
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Meetings");
+  const sheet = getOrCreateSheet("Appointments");
   const data = sheet.getDataRange().getValues();
   
   let hostEmail = "";
   for (let i = 1; i < data.length; i++) {
     if (data[i][0] === roomId) { // Column A: Room ID
-      hostEmail = data[i][1];   // Column B: Recorder/Host Email
+      hostEmail = data[i][2];   // Column B: Recorder/Host Email
       break;
     }
   }

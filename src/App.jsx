@@ -105,6 +105,10 @@ export default function App() {
     setUser(null);
     setView('login');
   };
+  
+  if(window.roomId) {
+    alert(window.roomId);
+  }
 
   return (
    
