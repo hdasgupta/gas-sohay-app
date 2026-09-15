@@ -16,7 +16,7 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
     script.async = true;
     script.onload = () => {
       const options = {
-        roomName: roomId,
+        roomName: 'vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd/'+roomId,
         width: '100%',
         height: '600px',
         parentNode: containerRef.current,
