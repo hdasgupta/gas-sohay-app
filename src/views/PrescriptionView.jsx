@@ -5,7 +5,7 @@ import ConfirmBox from '../components/ConfirmBox';
 import SuggestionBox from '../components/SuggestionBox';
 import LoaderMessage from '../components/LoaderMessage';
 
-export default function PrescriptionView({ user = {}, styles = {} }) {
+export default function PrescriptionView({ key, user = {}, styles = {} }) {
   const defaultStyles = {
     card: styles.card || { padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', margin: '10px 0' },
     input: styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' },
@@ -240,7 +240,7 @@ export default function PrescriptionView({ user = {}, styles = {} }) {
   };
 
   return (
-    <div style={defaultStyles.card}>
+    <div key={key} style={defaultStyles.card}>
       <h2>Prepare Digital Prescription</h2>
 
       {msg && (

@@ -3,7 +3,7 @@ import Captcha from '../components/Captcha';
 import MessageBox from '../components/MessageBox';
 import LoaderMessage from '../components/LoaderMessage';
 
-export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetPassword, styles }) {
+export default function LoginView({key, onSubmit, onNavigateSignup, onNavigateResetPassword, styles }) {
   const [authForm, setAuthForm] = useState({ email: '', password: '', });
   const [captchaInput, setCaptchaInput] = useState('');
   const [generatedCaptcha, setGeneratedCaptcha] = useState('');
@@ -25,7 +25,7 @@ export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetP
   };
 
   return (
-    <>
+    <div key={key}>
       {error && (
         <MessageBox
             message={error}
@@ -62,6 +62,6 @@ export default function LoginView({ onSubmit, onNavigateSignup, onNavigateResetP
         <p>New user? <span style={styles.link} onClick={onNavigateSignup}>Register Here</span></p>
         <p>Forgot password? <span style={styles.link} onClick={onNavigateResetPassword}>Reset Password</span></p>
       </form>
-    </>
+    </div>
   );
 }

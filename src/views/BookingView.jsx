@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { callBackend } from '../utils/backend';
 import MessageBox from '../components/MessageBox';
 import LoaderMessage from '../components/LoaderMessage';
-export default function BookingView({ user, styles = {} }) {
+export default function BookingView({ key, user, styles = {} }) {
   const cardStyle = styles.card || {
     padding: '10px',
     background: '#ffffff',
@@ -153,7 +153,7 @@ export default function BookingView({ user, styles = {} }) {
   const selectedDoctorObj = availableDoctors.find((d) => d.email === selectedDoctorEmail);
 
   return (
-    <div style={{ maxWidth: '100%', margin: '0 auto', padding: '16px' }}>
+    <div key={key} style={{ maxWidth: '100%', margin: '0 auto', padding: '16px' }}>
       <div style={cardStyle}>
         <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#1e293b' }}>Book Doctor Appointment</h2>
 

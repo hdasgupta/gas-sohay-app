@@ -4,7 +4,7 @@ import SuggestionBox from '../components/SuggestionBox';
 import MessageBox from '../components/MessageBox';
 import LoaderMessage from '../components/LoaderMessage';
 
-export default function AdminRescheduleView() {
+export default function AdminRescheduleView({key}) {
   const [patientName, setPatientName]= useState('');
   const [patientEmail, setPatientEmail] = useState('');
   const [doctorName, setDoctoeName] = useState('');
@@ -124,7 +124,7 @@ export default function AdminRescheduleView() {
   };
 
   return (
-    <div style={styles.container}>
+    <div key={key} style={styles.container}>
       <h2>Admin Reschedule View</h2>
 
       {/* SEARCH CARD */}

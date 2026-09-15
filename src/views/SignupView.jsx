@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { callBackend } from '../utils/backend';
 
-export default function SignupView({ onSubmit, onNavigateLogin, styles }) {
+export default function SignupView({ key, onSubmit, onNavigateLogin, styles }) {
   const [formData, setFormData] = useState({ name: '', location: '', phone: '', email: '', password: '', confirmPassword: '' });
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -52,7 +52,7 @@ export default function SignupView({ onSubmit, onNavigateLogin, styles }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={styles.card}>
+    <form key={key} onSubmit={handleSubmit} style={styles.card}>
       <h2>Patient Registration</h2>
 
       <input required placeholder="Full Name" style={styles.input} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />

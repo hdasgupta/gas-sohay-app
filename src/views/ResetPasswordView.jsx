@@ -3,7 +3,7 @@ import { callBackend } from '../utils/backend';
 import MessageBox from '../components/MessageBox';
 import LoaderMessage from '../components/LoaderMessage';
 
-export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
+export default function ResetPasswordView({ key, onBackToLogin, styles = {} }) {
   const [step, setStep] = useState(1); // 1: Send OTP, 2: Verify OTP & Reset
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -81,7 +81,7 @@ export default function ResetPasswordView({ onBackToLogin, styles = {} }) {
   };
 
   return (
-    <div style={cardStyle}>
+    <div key={key} style={cardStyle}>
       <h2 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '22px', textAlign: 'center' }}>
         Reset Password
       </h2>

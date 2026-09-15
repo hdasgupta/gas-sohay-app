@@ -4,7 +4,7 @@ import MessageBox from '../components/MessageBox';
 import PaginatedList from '../components/PaginatedList';
 import LoaderMessage from '../components/LoaderMessage';
 
-export default function FamilyManagementView({ user = {}, styles = {} }) {
+export default function FamilyManagementView({ key, user = {}, styles = {} }) {
   const cardStyle = styles.card || { padding: '10px', background: '#fff', borderRadius: '8px', border: '1px solid #cbd5e1' };
   const inputStyle = styles.input || { width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' };
   const btnStyle = styles.btnPrimary || { padding: '10px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };
@@ -78,7 +78,7 @@ export default function FamilyManagementView({ user = {}, styles = {} }) {
   }
   
   return (
-    <div style={cardStyle}>
+    <div key={key} style={cardStyle}>
       <h2>Family Account Settings</h2>
 
       {errorMsg && (

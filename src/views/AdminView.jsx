@@ -7,7 +7,7 @@ import LoaderMessage from '../components/LoaderMessage';
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-export default function AdminView({ styles = {} }) {
+export default function AdminView({key, styles = {} }) {
   const cardStyle = styles.card || {
     padding: '10px',
     background: '#ffffff',
@@ -366,7 +366,7 @@ export default function AdminView({ styles = {} }) {
   };
   
   return (
-    <div style={{ maxWidth: '980px', margin: '0 auto', padding: '16px' }}>
+    <div key={key} style={{ maxWidth: '980px', margin: '0 auto', padding: '16px' }}>
       {/* Form Card */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

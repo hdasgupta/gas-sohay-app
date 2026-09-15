@@ -5,7 +5,7 @@ import PaginatedList from '../components/PaginatedList';
 import MessageBox from '../components/MessageBox';
 import LoaderMessage from '../components/LoaderMessage';
 
-export default function AppointmentListView({ user, styles = {} }) {
+export default function AppointmentListView({ key, user, styles = {} }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState(null);
@@ -246,7 +246,7 @@ export default function AppointmentListView({ user, styles = {} }) {
     };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
+    <div key={key} style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
       <div style={cardStyle}>
         {/* View Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
