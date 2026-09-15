@@ -4,7 +4,7 @@
 function doGet(e) {
   var template = HtmlService.createTemplateFromFile('index');
   
-  template.roomId = e.pathInfo||undefined;
+  template.roomId = e.parameter.appointmentId||undefined;
   
   return template
     .evaluate()
