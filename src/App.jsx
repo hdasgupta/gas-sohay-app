@@ -178,7 +178,7 @@ export default function App() {
         key="conference"
         user={user}
         appointmentId={window.roomId}
-        
+      />
       </SlideView>
     </div>
     
