@@ -12,7 +12,7 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
     let apiInstance = null;
     
     const script = document.createElement('script');
-    script.src = 'https://meet.jit.si/external_api.js';
+    script.src = 'https://8x8.vc/vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd/external_api.js';
     script.async = true;
     script.onload = () => {
       const options = {
@@ -24,7 +24,7 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
         configOverwrite: { startWithAudioMuted: false, disableDeepLinking: true }
       };
       
-      apiInstance = new window.JitsiMeetExternalAPI('meet.ffm.freifunk.net', options);
+      apiInstance = new window.JitsiMeetExternalAPI('8x8.vc', options);
       
       // ACTIVE ONLY FOR DESIGNATED RECORDER
       if (isRecorder) {

@@ -40,3 +40,40 @@ function saveMeetingVideoToDrive(base64Data, fileName, folderId) {
     return { success: false, error: error.toString() };
   }
 }
+
+/**
+ * Generates an automated authentication token to bypass Jitsi login prompts.
+ */
+function getJitsiAuthToken(roomId, userEmail, userName, isModerator) {
+  const appId = "vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd"; // Obtain free from jaas.8x8.vc
+  const apiKeyAppId = "vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd/d541c4";
+  
+  const header = { alg: "RS256", typ: "JWT", kid: apiKeyAppId };
+  const payload = {
+    aud: "jitsi",
+    iss: "chat",
+    sub: appId,
+    room: roomId,
+    context: {
+      user: {
+        name: userName,
+        email: userEmail,
+        id: userEmail,
+        moderator: isModerator ? "true" : "false"
+      },
+      features: {
+        recording: "true",
+        livestreaming: "true"
+      }
+    },
+    exp: Math.floor(Date.now() / 1000) + (60 * 60) // Valid for 1 hour
+  };
+
+  // Construct JWT
+  const encodedHeader = Utilities.base64EncodeWebSafe(JSON.stringify(header));
+  const encodedPayload = Utilities.base64EncodeWebSafe(JSON.stringify(payload));
+  const unsignedToken = encodedHeader + "." + encodedPayload;
+  
+  // Note: For official JaaS, sign using your private key via Utilities.computeRsaSha256Signature
+  return unsignedToken; 
+}
