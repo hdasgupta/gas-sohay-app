@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logo from './assets/logo.png';
 import Header from './components/Header';
 import Alert from './components/Alert';
 import MeetLinkCard from './components/MeetLinkCard';
@@ -24,6 +25,7 @@ export default function App() {
   const [confirmation, setConfirmation] = useState(null);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false)
+  const [meetLoading, setMeetLoading] = useState(false)
 
   useEffect(() => {
     const saved = getSession();
@@ -87,13 +89,14 @@ export default function App() {
   }, 10 * 60 * 1000);
 
   const handleBookAppointment = (payload) => {
-    setStatus('Creating Google Calendar Event & Meet Link...');
+    setMeetLoading(true);
     callBackend('bookAppointment', [payload], (res) => {
       if (res.success) {
         setConfirmation(res);
         setStatus('');
         setView('confirmed');
       }
+      setMeetLoading(false);
     });
   };
 
@@ -106,7 +109,7 @@ export default function App() {
   return (
    
     <div style={styles.container}>
-      <Header user={user} onLogout={handleLogout} styles={styles} />
+      <Header logo={logo} orgName="West Bengal Forum For Mental Health" user={user} onLogout={handleLogout} styles={styles} />
       
       {/* Navigation Bar for Logged-In Users */}
       {user && user.role !== 'admin' && (
@@ -144,6 +147,10 @@ export default function App() {
             align="center"
             
             message="Authenticating..."
+          />}
+      {meetLoading && <LoaderMessage 
+            align="center"
+            message="Creating Google Calendar Event & Meet Link..."
           />}
 
       <SlideView activeKey={view}>
