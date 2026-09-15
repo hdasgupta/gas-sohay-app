@@ -182,10 +182,12 @@ const styles = {
   btnDanger: { background: '#ef4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' },
   label: { display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
-  org: {   display: "flex";
-  justifyContent: "center"; /* Centers children horizontally */
-  alignItems: "center";     /* Centers children vertically */
-  gap: "1rem";               /* Adds spacing between children */},
+  org: {   display: "flex", 
+flexDirection: "row", /* Placed on a horizontal row (default) */
+justifyContent: "center", /* Centers children horizontally along the line */
+alignItems: "center", /* Centers children vertically */
+flexWrap: "nowrap", /* Forces all children to stay on the same line */
+gap: "1rem"},
   navBar: { display: 'flex', gap: '8px', marginBottom: '16px' },
   navBtn: { flex: 1, padding: '8px', background: '#1e293b', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' },
   navActive: { flex: 1, padding: '8px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },
