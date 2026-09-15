@@ -1,35 +1,46 @@
-.slide-view-container {
+.slide-view-wrapper {
   position: relative;
-  overflow: hidden;
   width: 100%;
+  overflow: hidden;
 }
 
 .slide-item {
   width: 100%;
 }
 
-/* Absolute positioning keeps both views overlapping during slide */
-.slide-in,
-.slide-out {
+/* Overlay elements during transition */
+.slide-in-left,
+.slide-out-right {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
 }
 
-.slide-in {
-  animation: slideIn 1000ms ease-in-out forwards;
+/* Incoming view enters from the left */
+.slide-in-left {
+  animation: slideInFromLeft 300ms ease-in-out forwards;
 }
 
-.slide-out {
-  animation: slideOut 1000ms ease-in-out forwards;
+/* Outgoing view slides out to the right */
+.slide-out-right {
+  animation: slideOutToRight 300ms ease-in-out forwards;
 }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
-@keyframes slideOut {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }

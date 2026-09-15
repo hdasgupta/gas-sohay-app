@@ -13,32 +13,34 @@ const SlideView = ({ activeKey, children }) => {
   }, [activeKey, currentKey]);
 
   const handleAnimationEnd = (key) => {
-    // Unmount previous view only after its exit animation ends
     if (key === prevKey) {
       setPrevKey(null);
     }
   };
 
   return (
-    <div className="slide-view-container">
+    <div className="slide-view-wrapper">
       {React.Children.map(children, (child) => {
         if (!child) return null;
         const key = child.key;
+
         const isCurrent = key === currentKey;
         const isPrev = key === prevKey;
 
-        // Render only current and exiting children
+        // Do not render items that are neither current nor exiting
         if (!isCurrent && !isPrev) return null;
 
-        const isAnimating = prevKey !== null;
-        const statusClass = isCurrent
-          ? isAnimating ? 'slide-in' : 'active'
-          : 'slide-out';
+        const isTransitioning = prevKey !== null;
+        let animationClass = 'active';
+
+        if (isTransitioning) {
+          animationClass = isCurrent ? 'slide-in-left' : 'slide-out-right';
+        }
 
         return (
           <div
             key={key}
-            className={`slide-item ${statusClass}`}
+            className={`slide-item ${animationClass}`}
             onAnimationEnd={() => handleAnimationEnd(key)}
           >
             {child}
