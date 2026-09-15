@@ -182,6 +182,7 @@ const styles = {
   btnDanger: { background: '#ef4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' },
   label: { display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+  org: { display: 'grid', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
   navBar: { display: 'flex', gap: '8px', marginBottom: '16px' },
   navBtn: { flex: 1, padding: '8px', background: '#1e293b', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' },
   navActive: { flex: 1, padding: '8px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' },

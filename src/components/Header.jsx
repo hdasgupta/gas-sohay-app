@@ -9,7 +9,7 @@ export default function Header({ logo, user, orgName, onLogout, styles }) {
       <button onClick={onLogout} style={styles.btnDanger}>Logout</button>
       
     </div>
-    <div style={styles.header}>
+    <div style={styles.org}>
         <img 
           src={logo} 
           alt={`${orgName} Logo`} 
