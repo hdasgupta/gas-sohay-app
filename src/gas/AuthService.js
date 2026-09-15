@@ -138,7 +138,8 @@ function registerPatient(data) {
     if (users[i][3] === data.email) return { success: false, message: 'Email is already registered.' };
   }
 
-  var userId = 'USR-' + new Date().getTime();
+  var userId = 'USR-' + (100000+variables.userSeq++);
+  setVariable('userSeq',  variables. userSeq);
   sheet.appendRow([userId, data.name, data.location, data.email, data.phone, hashPassword(data.password), 'patient']);
 
   return {

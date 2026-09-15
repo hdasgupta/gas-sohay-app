@@ -127,9 +127,10 @@ function saveDoctor(payload) {
       return { success: false, error: "A doctor with this phone number already exists." };
     }
   }
-  var lastId= Number(data.at(-1)[0].slice(3)) 
+  
   // 5. Append Row
-  const newId = "DOC" + (lastId + 1);
+  const newId = "DOC" + (100000+variables.doctorSeq++);
+  setVariable('doctorSeq', variables.doctorSeq)
   const hashedPassword = hashPassword(password);
 
   sheet.appendRow([

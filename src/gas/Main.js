@@ -1,14 +1,14 @@
-/**
+
+ /**
  * Web App Entry Point serving single page application container.
  */
 function doGet(e) {
   var template = HtmlService.createTemplateFromFile('index');
   
   template.serverData = {
-    roomId: e.parameter.appointmentId||undefined
+    roomId: e.parameter.appointmentId||undefined, 
+    ...variables
   }
-  
-  
   
   return template
     .evaluate()

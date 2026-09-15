@@ -318,7 +318,9 @@ function bookAppointment(payload) {
     }
   }
 
-  const appointmentId = "APT" + Date.now().toString().slice(-6);
+  const appointmentId = "APT" + (100000+variables.appointmentSeq++);
+  setVariable("appointmentSeq", variables.appointmentSeq);
+  
   const status = "Scheduled";
   const prescriptionLink = "";
 

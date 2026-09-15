@@ -7,6 +7,7 @@ function initDatabase() {
   getOrCreateSheet('Appointments', ['ID', 'PatientEmail', 'DoctorEmail', 'Date', 'Time', 'MeetLink', 'Status', 'PrescriptionUrl']);
   getOrCreateSheet('Medicines', ['NameAndPower']);
   getOrCreateSheet('Families', ['Id', 'Name', 'Email', 'Date']);
+  getOrCreateSheet('Variables', [ 'Name', 'Value']);
 
   // Pre-seed Default Admin Account if Users sheet is empty
   var userSheet = getOrCreateSheet('Users');

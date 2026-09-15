@@ -15,8 +15,8 @@ function createFamily(payload) {
     return { success: false, error: "User already belongs to a family." };
   }
 
-  const familyId = "FAM-" + Math.floor(100000 + Math.random() * 900000);
-  
+  const familyId = "FAM-" + (100000+variables.familySeq++);;
+  setVariable('familySeq', variables.familySeq);
   // Save family record [familyId, familyName, primaryEmail, createdAt]
   sheet.appendRow([familyId, familyName, userEmail, new Date().toISOString()]);
 
