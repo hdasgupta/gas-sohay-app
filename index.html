@@ -9,7 +9,7 @@
       <? if(serverData) {
         for(key in serverData) {
         ?>
-        window[key] = <?!= JSON.stringify(serverData[key]) ?>;
+        window["<?= key ?>"] = <?!= JSON.stringify(serverData[key]) ?>;
         <? 
         }
       } ?>
