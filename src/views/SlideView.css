@@ -17,11 +17,11 @@
 }
 
 .slide-in {
-  animation: slideIn 300ms ease-in-out forwards;
+  animation: slideIn 1000ms ease-in-out forwards;
 }
 
 .slide-out {
-  animation: slideOut 300ms ease-in-out forwards;
+  animation: slideOut 1000ms ease-in-out forwards;
 }
 
 @keyframes slideIn {
