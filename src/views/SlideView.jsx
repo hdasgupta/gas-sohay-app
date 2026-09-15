@@ -1,17 +1,24 @@
 import React from 'react';
-import './SlideView.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
-/**
- * Custom wrapper component that animates children from left on view change
- * @param {string|number} activeKey - Unique identifier of the current view
- * @param {React.ReactNode} children - The view component to render
- */
-export default function SlideView({ activeKey, children }) {
+export const SlideView = ({ activeKey, children }) => {
+  const activeChild = React.Children.toArray(children).find(
+    (child) => child.key === activeKey
+  );
+
   return (
-    <div className="slide-view-wrapper">
-      <div key={activeKey} className="slide-in-left">
-        {children}
-      </div>
+    <div style={{ position: 'relative', overflow: 'hidden' }}>
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={activeKey}
+          initial={{ x: '100%' }}
+          animate={{ x: '0%' }}
+          exit={{ x: '-100%', position: 'absolute', top: 0, left: 0, width: '100%' }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeChild}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
-}
+};
