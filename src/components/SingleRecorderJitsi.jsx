@@ -29,9 +29,8 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
       };
       
       apiInstance = new window.JitsiMeetExternalAPI('8x8.vc', options);
-      //const iframe = apiInstance.getIFrame();
-      //iframe.setAttribute('allow', 'camera *; microphone *; display-capture *; autoplay *; clipboard-write *');
-      
+      const iframe = apiInstance.getIFrame();
+      iframe.setAttribute('allow', 'camera *; microphone *; display-capture *; autoplay *; clipboard-write *');
       // ACTIVE ONLY FOR DESIGNATED RECORDER
       if (isRecorder) {
         apiInstance.addEventListener('videoConferenceJoined', async () => {
@@ -125,7 +124,7 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
         color: isRecorder ? '#15803d' : '#374151' 
       }}>
         <strong>Status:</strong> {status}
-      </div> 
+      </div> <
     <div ref = { containerRef } style = { { border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' } }
     /> 
     </div>

@@ -9,7 +9,7 @@ function doGet(e) {
     roomId: e.parameter.appointmentId||undefined, 
     ...variables
   }
-  
+  /*
   try {
   const token = getJitsiAuthToken(roomId, userEmail, userName, isModerator);
   
@@ -23,7 +23,7 @@ function doGet(e) {
     success: false,
     error: error.message
   })).setMimeType(ContentService.MimeType.JSON);
-}
+}*/
   
   return template
     .evaluate()
