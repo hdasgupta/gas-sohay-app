@@ -8,7 +8,7 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
   
   const [status, setStatus] = useState(isRecorder ? 'Recorder Mode: Standby' : 'Standard Participant Mode');
   
-  useEffect(() => {
+  useEffect(async() => {
     let apiInstance = null;
     
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
