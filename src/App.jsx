@@ -50,7 +50,7 @@ export default function App() {
     loadDoctors();
   };
 
-  alert(window.roomId)
+  
   const loadDoctors = () => {
     callBackend('getDoctorsList', [], (data) => setDoctors(data || []));
   };
