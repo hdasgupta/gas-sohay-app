@@ -172,7 +172,7 @@ export default function App() {
        {confirmation && (
         <MeetLinkCard key="confirmation" confirmation={confirmation} user={user} onReset={() => setView('appointments')} styles={styles} />
       )}
-      {window.roomid && <ConferenceView 
+      {window.roomId && <ConferenceView 
         key="conference"
         user={user}
         appointmentId={window.roomId}
