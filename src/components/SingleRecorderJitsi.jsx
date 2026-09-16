@@ -8,13 +8,12 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
   
   const [status, setStatus] = useState(isRecorder ? 'Recorder Mode: Standby' : 'Standard Participant Mode');
   
-  useEffect(async() => {
+  useEffect(() => {
     let apiInstance = null;
     
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) =>stream.getTracks().forEach(track => track.stop())).catch((e)=> alert(e.message));
     
-    // 2. Stop tracks immediately so Jitsi can claim the hardware devices
-    stream.getTracks().forEach(track => track.stop());
+
 
     const script = document.createElement('script');
     script.src = 'https://8x8.vc/vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd/external_api.js';
