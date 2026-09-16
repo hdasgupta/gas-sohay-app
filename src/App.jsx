@@ -16,6 +16,7 @@ import AdminRescheduleView from './views/AdminRescheduleView';
 import MessageBox from './components/MessageBox';
 import LoaderMessage from './components/LoaderMessage';
 import ConferenceView from './views/ConferenceView';
+import VideoCallView from './views/VideoCallView';
 import { getSession, saveSession, clearSession } from './utils/storage';
 import { callBackend } from './utils/backend';
 
