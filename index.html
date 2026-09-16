@@ -6,20 +6,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>gas-sohay-app</title>
     <script>
-      async function startApp() {
-  try {
-    // Force browser to prompt for media permissions inside GAS frame
-    //const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    // Stop tracks immediately so Jitsi can access the devices
-    //tempStream.getTracks().forEach(track => track.stop());
-    
-   // loadJitsiMeeting();
-  } catch (err) {
-    alert("Camera/Microphone permission denied: " + err.message);
+      // Inside your GAS React app index file
+function launchVideoCall() {
+  const videoWindow = window.open('', '_blank');
+  
+  if (!videoWindow) {
+    alert('Please allow popups to launch the video call.');
+    return;
   }
+
+  // Inject standard HTML/React page into the top-level window
+  videoWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Video Call & Auto-Recorder</title>
+        <script src='https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js'></script>
+      </head>
+      <body>
+        <div id="status">Connecting...</div>
+        <video id="localVideo" autoplay playsinline muted style="width:300px;"></video>
+        <video id="remoteVideo" autoplay playsinline style="width:300px;"></video>
+        <script>
+          let mediaRecorder;
+          let recordedChunks = [];
+
+          async function init() {
+            try {
+              // 1. Camera access now works without iframe restrictions
+              const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+              document.getElementById('localVideo').srcObject = stream;
+
+              // 2. Auto-start recording immediately
+              startRecording(stream);
+
+              // 3. Connect PeerJS
+              const peer = new Peer();
+              peer.on('open', (id) => {
+                document.getElementById('status').innerText = 'Room ID: ' + id;
+              });
+
+              peer.on('call', (call) => {
+                call.answer(stream);
+                call.on('stream', (remoteStream) => {
+                  document.getElementById('remoteVideo').srcObject = remoteStream;
+                });
+              });
+            } catch (err) {
+              console.error('Camera Access Failed:', err);
+            }
+          }
+
+          function startRecording(stream) {
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.start(1000); // Record in 1s slices
+          }
+
+          init();
+        </script>
+      </body>
+    </html>
+  `);
+  videoWindow.document.close();
 }
 
-window.onload = startApp;
       <? if(serverData) {
         for(key in serverData) {
         ?>
