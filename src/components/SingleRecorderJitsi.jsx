@@ -17,16 +17,20 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
     script.onload = () => {
       const options = {
         roomName: 'vpaas-magic-cookie-f05a06c6b6a4427a8427ac58fdafb9bd/'+roomId,
-        jwt: 'eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtZjA1YTA2YzZiNmE0NDI3YTg0MjdhYzU4ZmRhZmI5YmQvNTZlM2I5LVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3ODk1MDIzOTAsImV4cCI6MTc4OTUwOTU5MCwibmJmIjoxNzg5NTAyMzg1LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtZjA1YTA2YzZiNmE0NDI3YTg0MjdhYzU4ZmRhZmI5YmQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsImZpbGUtdXBsb2FkIjp0cnVlLCJvdXRib3VuZC1jYWxsIjp0cnVlLCJzaXAtb3V0Ym91bmQtY2FsbCI6ZmFsc2UsInRyYW5zY3JpcHRpb24iOnRydWUsImxpc3QtdmlzaXRvcnMiOmZhbHNlLCJyZWNvcmRpbmciOnRydWUsImZsaXAiOmZhbHNlfSwidXNlciI6eyJoaWRkZW4tZnJvbS1yZWNvcmRlciI6ZmFsc2UsIm1vZGVyYXRvciI6dHJ1ZSwibmFtZSI6ImhpbWFnaG5hLmRhc2d1cHRhIiwiaWQiOiJnb29nbGUtb2F1dGgyfDExMDAyMjYzNTc5NzAwNjczMjA0NSIsImF2YXRhciI6IiIsImVtYWlsIjoiaGltYWdobmEuZGFzZ3VwdGFAZ21haWwuY29tIn19LCJyb29tIjoiKiJ9.I08NxcXu3yOWGrq_X304LnhijCUQeH8UhG3fEAYX6vNL1M8dbWPdU5eCwkW4cMIMz9ulJ4KfMU1HMKK--OfbBKa4vIEmqwH2r2hC2dK0QxiU_6prmyzA4ostQ1T3CfIgl31fQKXRQcr1x48SUMZirLlGbnw-iN_0zTHdAVlo2znQrUaQGIb2H1bIdDkBQjE-n5GpMidPaVFHd2XYQLBgUVPJeC3DlXT232dWrBmvzWxyI9fNIPBJuGhf6gKdJ9jXRCW-e2gRq-hIoB3DRB74vDF5VzwqpIuBA0NGujWkP-u2CtiFNsOvvWJjB4zOlfEcxaza5nJtDZAvD0bB7QrWGw', 
+        jwt: 'eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtZjA1YTA2YzZiNmE0NDI3YTg0MjdhYzU4ZmRhZmI5YmQvNTZlM2I5LVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3ODk1MDI1ODcsImV4cCI6MTc4OTUwOTc4NywibmJmIjoxNzg5NTAyNTgyLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtZjA1YTA2YzZiNmE0NDI3YTg0MjdhYzU4ZmRhZmI5YmQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsImZpbGUtdXBsb2FkIjp0cnVlLCJvdXRib3VuZC1jYWxsIjp0cnVlLCJzaXAtb3V0Ym91bmQtY2FsbCI6ZmFsc2UsInRyYW5zY3JpcHRpb24iOnRydWUsImxpc3QtdmlzaXRvcnMiOnRydWUsInJlY29yZGluZyI6dHJ1ZSwiZmxpcCI6ZmFsc2V9LCJ1c2VyIjp7ImhpZGRlbi1mcm9tLXJlY29yZGVyIjpmYWxzZSwibW9kZXJhdG9yIjp0cnVlLCJuYW1lIjoiaGltYWdobmEuZGFzZ3VwdGEiLCJpZCI6Imdvb2dsZS1vYXV0aDJ8MTEwMDIyNjM1Nzk3MDA2NzMyMDQ1IiwiYXZhdGFyIjoiIiwiZW1haWwiOiJoaW1hZ2huYS5kYXNndXB0YUBnbWFpbC5jb20ifX0sInJvb20iOiIqIn0.gJS-mNGlAp9okpLphzVcGSmgHAzI36tzAWOOB2fnrz08B8fKuJBFWOHtSwTjSl02G1CigMsDURlmv1ozpWdRgn-a4E1lv_ucD10Gz0kH0Xb6aYmKPWq5aHV7EtNkDTHf3-6iDC7T1y8I88gd68APPga_FeY5F84pxz1rRUKPXWEV1cGJrPNlQP6a8EgKL_lkaC9EtL4bCfykc65RraundY32TpXDZsYL_ed5u48Q1OqaVRhp9-o9ZSUrJmsdtRsfRWRA19MVh46kfBNYjngb9paxwtKyiTf7dqY3wpn_HLZbpXKu3ZreJ0TfyikiTi5Gj1SmnZEK1jf_zA87tsvfMw?', 
         width: '100%',
         height: '600px',
         parentNode: containerRef.current,
         userInfo: { email: userEmail, displayName: userName },
-        configOverwrite: { startWithAudioMuted: false, disableDeepLinking: true }
+        configOverwrite: { startWithAudioMuted: false,
+        disableDeepLinking: true,
+          startWithVideoMuted: false
+        }
       };
       
       apiInstance = new window.JitsiMeetExternalAPI('8x8.vc', options);
-      
+      const iframe = apiInstance.getIFrame();
+      iframe.setAttribute('allow', 'camera *; microphone *; display-capture *; autoplay *; clipboard-write *');
       // ACTIVE ONLY FOR DESIGNATED RECORDER
       if (isRecorder) {
         apiInstance.addEventListener('videoConferenceJoined', async () => {
