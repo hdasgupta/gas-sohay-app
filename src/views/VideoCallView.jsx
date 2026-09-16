@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
 
-export default function VideoCallView() {
+export default function VideoCallView({ key }) {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -57,7 +57,7 @@ export default function VideoCallView() {
   };
 
   return (
-    <div>
+    <div key={key}>
       <video ref={localVideoRef} autoPlay playsInline muted style={{ width: '300px' }} />
       <video ref={remoteVideoRef} autoPlay playsInline style={{ width: '300px' }} />
     </div>
