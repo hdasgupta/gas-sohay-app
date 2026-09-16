@@ -29,8 +29,8 @@ export default function SingleRecorderJitsi({ key, roomId, userEmail, userName, 
       };
       
       apiInstance = new window.JitsiMeetExternalAPI('8x8.vc', options);
-      const iframe = apiInstance.getIFrame();
-      iframe.setAttribute('allow', 'camera *; microphone *; display-capture *; autoplay *; clipboard-write *');
+      //const iframe = apiInstance.getIFrame();
+      //iframe.setAttribute('allow', 'camera *; microphone *; display-capture *; autoplay *; clipboard-write *');
       
       // ACTIVE ONLY FOR DESIGNATED RECORDER
       if (isRecorder) {
