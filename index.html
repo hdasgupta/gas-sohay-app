@@ -9,9 +9,9 @@
       async function startApp() {
   try {
     // Force browser to prompt for media permissions inside GAS frame
-    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    //const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     // Stop tracks immediately so Jitsi can access the devices
-    tempStream.getTracks().forEach(track => track.stop());
+    //tempStream.getTracks().forEach(track => track.stop());
     
    // loadJitsiMeeting();
   } catch (err) {
